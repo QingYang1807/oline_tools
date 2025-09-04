@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
   <title>网页画板工具</title>
   <link rel="stylesheet" href="../assets/css/style.css">
   <style>
@@ -11,79 +11,149 @@
       padding: 0;
       overflow: hidden;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      touch-action: none; /* 防止移动端滚动 */
     }
 
     .whiteboard-container {
       display: flex;
       height: 100vh;
       background: #f5f5f5;
+      position: relative;
     }
 
+    /* 响应式工具栏 */
     .toolbar {
-      width: 70px;
+      width: 80px;
       background: #fff;
       box-shadow: 2px 0 10px rgba(0,0,0,0.1);
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 10px 0;
+      padding: 15px 0;
       z-index: 100;
+      transition: all 0.3s ease;
+    }
+
+    /* 移动端工具栏 */
+    @media (max-width: 768px) {
+      .toolbar {
+        width: 100%;
+        height: 80px;
+        flex-direction: row;
+        justify-content: space-around;
+        padding: 10px 20px;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        top: auto;
+        border-top: 1px solid #e0e0e0;
+      }
+      
+      .whiteboard-container {
+        flex-direction: column;
+      }
+      
+      .canvas-container {
+        margin-bottom: 80px;
+      }
     }
 
     .tool-btn {
-      width: 50px;
-      height: 50px;
-      margin: 5px;
+      width: 60px;
+      height: 60px;
+      margin: 8px;
       border: none;
       background: #f0f0f0;
-      border-radius: 8px;
+      border-radius: 12px;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       transition: all 0.3s;
       position: relative;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
 
-    .tool-btn:hover {
+    /* 移动端按钮样式 */
+    @media (max-width: 768px) {
+      .tool-btn {
+        width: 50px;
+        height: 50px;
+        margin: 5px;
+        border-radius: 10px;
+      }
+    }
+
+    .tool-btn:hover, .tool-btn:active {
       background: #e0e0e0;
       transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
 
     .tool-btn.active {
       background: #4CAF50;
       color: white;
+      box-shadow: 0 4px 16px rgba(76, 175, 80, 0.4);
     }
 
     .tool-btn svg {
-      width: 24px;
-      height: 24px;
+      width: 28px;
+      height: 28px;
+    }
+
+    @media (max-width: 768px) {
+      .tool-btn svg {
+        width: 24px;
+        height: 24px;
+      }
     }
 
     .canvas-container {
       flex: 1;
       position: relative;
       overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     #whiteboard {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
       background: white;
       box-shadow: 0 0 20px rgba(0,0,0,0.1);
       cursor: crosshair;
+      border-radius: 8px;
+      touch-action: none;
+    }
+
+    /* 移动端画布优化 */
+    @media (max-width: 768px) {
+      #whiteboard {
+        max-width: 95vw;
+        max-height: 70vh;
+        width: auto;
+        height: auto;
+      }
     }
 
     .color-picker {
-      width: 50px;
-      height: 50px;
-      margin: 5px;
+      width: 60px;
+      height: 60px;
+      margin: 8px;
       border: 3px solid #ddd;
-      border-radius: 8px;
+      border-radius: 12px;
       cursor: pointer;
       overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    @media (max-width: 768px) {
+      .color-picker {
+        width: 50px;
+        height: 50px;
+        margin: 5px;
+        border-radius: 10px;
+      }
     }
 
     .color-picker input {
@@ -95,34 +165,64 @@
     }
 
     .slider-container {
-      margin: 10px 0;
-      padding: 0 10px;
+      margin: 15px 0;
+      padding: 0 15px;
+      text-align: center;
+    }
+
+    @media (max-width: 768px) {
+      .slider-container {
+        margin: 10px 0;
+        padding: 0 10px;
+      }
     }
 
     .slider {
-      width: 50px;
+      width: 60px;
       -webkit-appearance: none;
-      height: 5px;
-      border-radius: 5px;
+      height: 6px;
+      border-radius: 6px;
       background: #ddd;
       outline: none;
+    }
+
+    @media (max-width: 768px) {
+      .slider {
+        width: 50px;
+        height: 5px;
+      }
     }
 
     .slider::-webkit-slider-thumb {
       -webkit-appearance: none;
       appearance: none;
-      width: 15px;
-      height: 15px;
+      width: 18px;
+      height: 18px;
       border-radius: 50%;
       background: #4CAF50;
       cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+
+    @media (max-width: 768px) {
+      .slider::-webkit-slider-thumb {
+        width: 16px;
+        height: 16px;
+      }
     }
 
     .separator {
-      width: 50px;
+      width: 60px;
       height: 1px;
       background: #ddd;
-      margin: 10px 0;
+      margin: 15px 0;
+    }
+
+    @media (max-width: 768px) {
+      .separator {
+        width: 50px;
+        margin: 10px 0;
+      }
     }
 
     .properties-panel {
@@ -131,11 +231,23 @@
       right: 20px;
       background: white;
       padding: 20px;
-      border-radius: 10px;
+      border-radius: 15px;
       box-shadow: 0 0 20px rgba(0,0,0,0.1);
-      min-width: 200px;
+      min-width: 250px;
       display: none;
       z-index: 200;
+      border: 1px solid #e0e0e0;
+    }
+
+    /* 移动端属性面板 */
+    @media (max-width: 768px) {
+      .properties-panel {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        min-width: auto;
+        padding: 15px;
+      }
     }
 
     .properties-panel.show {
@@ -143,14 +255,23 @@
     }
 
     .property-group {
-      margin-bottom: 15px;
+      margin-bottom: 20px;
     }
 
     .property-label {
-      font-size: 12px;
+      font-size: 14px;
       color: #666;
-      margin-bottom: 5px;
+      margin-bottom: 8px;
       display: block;
+      font-weight: 500;
+    }
+
+    .property-input {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
     }
 
     .file-upload-area {
@@ -165,8 +286,16 @@
       display: none;
       align-items: center;
       justify-content: center;
-      background: rgba(255,255,255,0.9);
+      background: rgba(255,255,255,0.95);
       z-index: 300;
+      backdrop-filter: blur(10px);
+    }
+
+    @media (max-width: 768px) {
+      .file-upload-area {
+        width: 90vw;
+        height: 150px;
+      }
     }
 
     .file-upload-area.drag-over {
@@ -182,14 +311,15 @@
       position: absolute;
       background: #333;
       color: white;
-      padding: 5px 10px;
-      border-radius: 5px;
-      font-size: 12px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 13px;
       pointer-events: none;
       opacity: 0;
       transition: opacity 0.3s;
       white-space: nowrap;
       z-index: 400;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     }
 
     .tool-btn:hover .tooltip {
@@ -199,13 +329,23 @@
     .shape-menu {
       position: absolute;
       top: 0;
-      left: 60px;
+      left: 70px;
       background: white;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      padding: 5px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      padding: 8px;
       display: none;
       z-index: 150;
+      border: 1px solid #e0e0e0;
+    }
+
+    @media (max-width: 768px) {
+      .shape-menu {
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 90px;
+        top: auto;
+      }
     }
 
     .shape-menu.show {
@@ -214,20 +354,22 @@
     }
 
     .shape-option {
-      width: 40px;
-      height: 40px;
-      margin: 2px;
+      width: 50px;
+      height: 50px;
+      margin: 4px;
       border: none;
       background: #f0f0f0;
-      border-radius: 5px;
+      border-radius: 8px;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
+      transition: all 0.2s;
     }
 
     .shape-option:hover {
       background: #e0e0e0;
+      transform: scale(1.05);
     }
 
     .export-menu {
@@ -235,30 +377,47 @@
       bottom: 20px;
       right: 20px;
       background: white;
-      padding: 10px;
-      border-radius: 10px;
+      padding: 15px;
+      border-radius: 15px;
       box-shadow: 0 0 20px rgba(0,0,0,0.1);
       display: none;
       z-index: 200;
+      border: 1px solid #e0e0e0;
+    }
+
+    @media (max-width: 768px) {
+      .export-menu {
+        bottom: 100px;
+        right: 10px;
+        left: 10px;
+        padding: 12px;
+      }
     }
 
     .export-menu.show {
       display: flex;
       gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
     }
 
     .export-btn {
-      padding: 8px 16px;
+      padding: 10px 18px;
       border: none;
       background: #4CAF50;
       color: white;
-      border-radius: 5px;
+      border-radius: 8px;
       cursor: pointer;
       font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
 
     .export-btn:hover {
       background: #45a049;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
 
     #fileInput {
@@ -268,22 +427,113 @@
     .text-input {
       position: absolute;
       border: 2px dashed #4CAF50;
-      background: rgba(255,255,255,0.9);
-      padding: 5px;
+      background: rgba(255,255,255,0.95);
+      padding: 8px;
       font-family: Arial, sans-serif;
       font-size: 16px;
       outline: none;
       display: none;
       z-index: 250;
+      border-radius: 6px;
+      min-width: 100px;
     }
 
     .text-input.show {
       display: block;
     }
+
+    /* 移动端优化 */
+    .mobile-controls {
+      display: none;
+    }
+
+    @media (max-width: 768px) {
+      .mobile-controls {
+        display: flex;
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        gap: 10px;
+        z-index: 150;
+      }
+      
+      .mobile-btn {
+        width: 40px;
+        height: 40px;
+        border: none;
+        background: rgba(255,255,255,0.9);
+        border-radius: 8px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        backdrop-filter: blur(10px);
+      }
+      
+      .mobile-btn svg {
+        width: 20px;
+        height: 20px;
+      }
+    }
+
+    /* 触摸手势提示 */
+    .touch-hint {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0,0,0,0.8);
+      color: white;
+      padding: 20px;
+      border-radius: 15px;
+      text-align: center;
+      display: none;
+      z-index: 500;
+      max-width: 300px;
+    }
+
+    .touch-hint.show {
+      display: block;
+    }
+
+    /* 画布网格背景 */
+    .canvas-grid {
+      background-image: 
+        linear-gradient(rgba(0,0,0,0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,0,0,0.1) 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+
+    /* 响应式字体 */
+    @media (max-width: 768px) {
+      .tool-btn {
+        font-size: 12px;
+      }
+    }
   </style>
 </head>
 <body>
   <div class="whiteboard-container">
+    <!-- 移动端控制按钮 -->
+    <div class="mobile-controls">
+      <button class="mobile-btn" id="clearBtn" title="清空画布">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M19 13H5v-2h14v2z"/>
+        </svg>
+      </button>
+      <button class="mobile-btn" id="undoBtn" title="撤销">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/>
+        </svg>
+      </button>
+      <button class="mobile-btn" id="redoBtn" title="重做">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M18.4 10.6C16.55 8.99 14.15 8 11.5 8c-4.65 0-8.58 3.03-9.96 7.22L3.9 16c1.05-3.19 4.05-5.5 7.6-5.5 1.95 0 3.73.72 5.12 1.88L19 16V7l-3.6 3.6z"/>
+        </svg>
+      </button>
+    </div>
+
     <div class="toolbar">
       <!-- 画笔工具 -->
       <button class="tool-btn active" data-tool="pen" title="画笔">
@@ -298,40 +548,24 @@
           <path d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.11 0 2-.9 2-2V5c0-1.1-.89-2-2-2zm0 16H5V5h14v14z"/>
         </svg>
         <div class="shape-menu" id="shapeMenu">
-          <button class="shape-option" data-shape="rectangle" title="矩形">
-            <svg viewBox="0 0 24 24" width="20" height="20">
-              <rect x="4" y="6" width="16" height="12" fill="none" stroke="currentColor" stroke-width="2"/>
-            </svg>
-          </button>
-          <button class="shape-option" data-shape="circle" title="圆形">
-            <svg viewBox="0 0 24 24" width="20" height="20">
-              <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"/>
-            </svg>
-          </button>
-          <button class="shape-option" data-shape="line" title="直线">
-            <svg viewBox="0 0 24 24" width="20" height="20">
-              <line x1="4" y1="20" x2="20" y2="4" stroke="currentColor" stroke-width="2"/>
-            </svg>
-          </button>
-          <button class="shape-option" data-shape="arrow" title="箭头">
-            <svg viewBox="0 0 24 24" width="20" height="20">
-              <path d="M4 20L20 4M20 4v8M20 4h-8" fill="none" stroke="currentColor" stroke-width="2"/>
-            </svg>
-          </button>
+          <button class="shape-option" data-shape="rect" title="矩形">□</button>
+          <button class="shape-option" data-shape="circle" title="圆形">○</button>
+          <button class="shape-option" data-shape="line" title="直线">/</button>
+          <button class="shape-option" data-shape="arrow" title="箭头">→</button>
         </div>
       </button>
 
       <!-- 文字工具 -->
-      <button class="tool-btn" data-tool="text" title="文字">
+      <button class="tool-btn" data-tool="text" title="添加文字">
         <svg viewBox="0 0 24 24" fill="currentColor">
-          <path d="M5 4v3h5.5v12h3V7H19V4z"/>
+          <path d="M2.5 4v3h5v12h3V7h5V4H2.5zM21.5 9h-9v3h3v7h3v-7h3V9z"/>
         </svg>
       </button>
 
       <!-- 橡皮擦 -->
       <button class="tool-btn" data-tool="eraser" title="橡皮擦">
         <svg viewBox="0 0 24 24" fill="currentColor">
-          <path d="M15.14 3c-.51 0-1.02.2-1.41.59L2.59 14.73c-.78.78-.78 2.05 0 2.83L5.03 20h7.66l8.72-8.72c.78-.78.78-2.05 0-2.83l-4.85-4.85c-.39-.39-.9-.59-1.42-.6zm0 2.41l4.85 4.85L8.95 21.29H5.03l-2.44-2.44L13.73 5.41z"/>
+          <path d="M15.14 3C14.63 2 13.89 1.5 13 1.5S11.37 2 10.86 3L3 10.86C2 11.37 1.5 12.11 1.5 13S2 14.63 3 15.14L10.86 23C11.37 24 12.11 24.5 13 24.5S14.63 24 15.14 23L23 15.14C24 14.63 24.5 13.89 24.5 13S24 11.37 23 10.86L15.14 3z"/>
         </svg>
       </button>
 
@@ -342,192 +576,236 @@
         <input type="color" id="colorPicker" value="#000000">
       </div>
 
-      <!-- 线条粗细 -->
+      <!-- 画笔粗细 -->
       <div class="slider-container">
-        <input type="range" class="slider" id="lineWidth" min="1" max="20" value="2">
+        <input type="range" id="brushSize" class="slider" min="1" max="50" value="5">
+        <div class="property-label">粗细</div>
       </div>
 
       <div class="separator"></div>
 
-      <!-- 上传图片 -->
+      <!-- 图片上传 -->
       <button class="tool-btn" data-tool="image" title="上传图片">
         <svg viewBox="0 0 24 24" fill="currentColor">
           <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
         </svg>
       </button>
 
-      <!-- 上传文件 -->
-      <button class="tool-btn" data-tool="file" title="上传文件">
-        <svg viewBox="0 0 24 24" fill="currentColor">
-          <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
-        </svg>
-      </button>
-
-      <div class="separator"></div>
-
-      <!-- 清空画布 -->
-      <button class="tool-btn" data-tool="clear" title="清空画布">
-        <svg viewBox="0 0 24 24" fill="currentColor">
-          <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
-        </svg>
-      </button>
-
       <!-- 导出 -->
       <button class="tool-btn" data-tool="export" title="导出">
         <svg viewBox="0 0 24 24" fill="currentColor">
-          <path d="M19 12v7H5v-7H3v7c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zm-6 .67l2.59-2.58L17 11.5l-5 5-5-5 1.41-1.41L11 12.67V3h2z"/>
+          <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+        </svg>
+        <div class="export-menu" id="exportMenu">
+          <button class="export-btn" onclick="exportCanvas('png')">PNG</button>
+          <button class="export-btn" onclick="exportCanvas('jpg')">JPG</button>
+          <button class="export-btn" onclick="exportCanvas('svg')">SVG</button>
+        </div>
+      </button>
+
+      <!-- 设置 -->
+      <button class="tool-btn" data-tool="settings" title="设置">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
         </svg>
       </button>
     </div>
 
     <div class="canvas-container">
-      <canvas id="whiteboard"></canvas>
-      <textarea class="text-input" id="textInput"></textarea>
+      <canvas id="whiteboard" class="canvas-grid" width="800" height="600"></canvas>
     </div>
-  </div>
 
-  <!-- 属性面板 -->
-  <div class="properties-panel" id="propertiesPanel">
-    <div class="property-group">
-      <label class="property-label">画板尺寸</label>
-      <div style="display: flex; gap: 10px;">
-        <input type="number" id="canvasWidth" value="1200" style="width: 70px;">
-        <span>×</span>
-        <input type="number" id="canvasHeight" value="800" style="width: 70px;">
-        <button onclick="resizeCanvas()">应用</button>
+    <!-- 属性面板 -->
+    <div class="properties-panel" id="propertiesPanel">
+      <h3 style="margin-top: 0;">画布设置</h3>
+      
+      <div class="property-group">
+        <label class="property-label">画布宽度</label>
+        <input type="number" id="canvasWidth" class="property-input" value="800" min="100" max="2000">
+      </div>
+      
+      <div class="property-group">
+        <label class="property-label">画布高度</label>
+        <input type="number" id="canvasHeight" class="property-input" value="600" min="100" max="2000">
+      </div>
+      
+      <div class="property-group">
+        <label class="property-label">背景网格</label>
+        <input type="checkbox" id="showGrid" checked>
+      </div>
+      
+      <button class="export-btn" onclick="resizeCanvas()" style="width: 100%;">应用设置</button>
+    </div>
+
+    <!-- 文件上传区域 -->
+    <div class="file-upload-area" id="fileUploadArea">
+      <div style="text-align: center;">
+        <div style="font-size: 48px; margin-bottom: 10px;">📁</div>
+        <div>拖拽图片到此处或点击上传</div>
       </div>
     </div>
-  </div>
 
-  <!-- 文件上传区域 -->
-  <div class="file-upload-area" id="fileUploadArea">
-    <div style="text-align: center;">
-      <svg viewBox="0 0 24 24" width="48" height="48" fill="#4CAF50">
-        <path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/>
-      </svg>
-      <p>拖拽文件到此处上传</p>
-      <p style="font-size: 12px; color: #666;">或点击选择文件</p>
+    <!-- 触摸手势提示 -->
+    <div class="touch-hint" id="touchHint">
+      <h3>触摸手势说明</h3>
+      <p>• 单指绘制</p>
+      <p>• 双指缩放画布</p>
+      <p>• 三指移动画布</p>
+      <button onclick="document.getElementById('touchHint').classList.remove('show')" style="margin-top: 15px; padding: 8px 16px; background: #4CAF50; color: white; border: none; border-radius: 6px; cursor: pointer;">知道了</button>
     </div>
-  </div>
 
-  <!-- 导出菜单 -->
-  <div class="export-menu" id="exportMenu">
-    <button class="export-btn" onclick="exportCanvas('png')">导出 PNG</button>
-    <button class="export-btn" onclick="exportCanvas('jpg')">导出 JPG</button>
-    <button class="export-btn" onclick="exportCanvas('svg')">导出 SVG</button>
+    <input type="file" id="fileInput" accept="image/*">
+    <input type="text" class="text-input" id="textInput" placeholder="输入文字...">
   </div>
-
-  <!-- 隐藏的文件输入 -->
-  <input type="file" id="fileInput" accept="image/*,.pdf,.doc,.docx,.txt">
 
   <script>
-    // 初始化画布
     const canvas = document.getElementById('whiteboard');
     const ctx = canvas.getContext('2d');
-    const textInput = document.getElementById('textInput');
     
-    // 设置画布尺寸
-    canvas.width = 1200;
-    canvas.height = 800;
-    
-    // 状态管理
     let isDrawing = false;
     let currentTool = 'pen';
     let currentColor = '#000000';
-    let currentLineWidth = 2;
-    let currentShape = null;
-    let startX, startY;
+    let brushSize = 5;
+    let lastX = 0;
+    let lastY = 0;
     let history = [];
     let historyIndex = -1;
-    let shapeStart = null;
-    let elements = []; // 存储所有元素
+    let isPanning = false;
+    let panStartX = 0;
+    let panStartY = 0;
+    let scale = 1;
+    let offsetX = 0;
+    let offsetY = 0;
     
-    // 保存当前画布状态
-    function saveState() {
-      history = history.slice(0, historyIndex + 1);
-      history.push(canvas.toDataURL());
-      historyIndex++;
+    // 触摸相关变量
+    let touchStartDistance = 0;
+    let touchStartScale = 1;
+    let touchStartOffsetX = 0;
+    let touchStartOffsetY = 0;
+    
+    // 初始化
+    function init() {
+      // 设置画布样式
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.strokeStyle = currentColor;
+      ctx.lineWidth = brushSize;
+      
+      // 保存初始状态
+      saveState();
+      
+      // 显示触摸提示（仅在移动端）
+      if (window.innerWidth <= 768) {
+        setTimeout(() => {
+          document.getElementById('touchHint').classList.add('show');
+        }, 1000);
+      }
     }
     
-    // 初始保存空白状态
-    saveState();
+    // 保存状态
+    function saveState() {
+      const imageData = canvas.toDataURL();
+      history = history.slice(0, historyIndex + 1);
+      history.push(imageData);
+      historyIndex = history.length - 1;
+    }
     
-    // 工具按钮事件
+    // 清空画布
+    function clearCanvas() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      saveState();
+    }
+    
+    // 撤销
+    function undo() {
+      if (historyIndex > 0) {
+        historyIndex--;
+        const img = new Image();
+        img.src = history[historyIndex];
+        img.onload = function() {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, 0, 0);
+        };
+      }
+    }
+    
+    // 重做
+    function redo() {
+      if (historyIndex < history.length - 1) {
+        historyIndex++;
+        const img = new Image();
+        img.src = history[historyIndex];
+        img.onload = function() {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, 0, 0);
+        };
+      }
+    }
+    
+    // 工具切换
     document.querySelectorAll('.tool-btn').forEach(btn => {
       btn.addEventListener('click', function() {
         const tool = this.dataset.tool;
         
-        if (tool === 'clear') {
-          if (confirm('确定要清空画布吗？')) {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            saveState();
-          }
-          return;
-        }
-        
-        if (tool === 'export') {
-          document.getElementById('exportMenu').classList.toggle('show');
-          return;
-        }
-        
-        if (tool === 'image' || tool === 'file') {
-          document.getElementById('fileInput').click();
-          return;
-        }
-        
-        if (tool === 'shapes') {
-          document.getElementById('shapeMenu').classList.toggle('show');
-          return;
-        }
-        
-        // 更新当前工具
+        // 移除所有活动状态
         document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+        
+        // 添加活动状态
         this.classList.add('active');
+        
+        // 设置当前工具
         currentTool = tool;
         
-        // 更新鼠标样式
-        updateCursor();
+        // 特殊工具处理
+        if (tool === 'shapes') {
+          const shapeMenu = document.getElementById('shapeMenu');
+          shapeMenu.classList.toggle('show');
+        } else if (tool === 'export') {
+          const exportMenu = document.getElementById('exportMenu');
+          exportMenu.classList.toggle('show');
+        } else if (tool === 'settings') {
+          const propertiesPanel = document.getElementById('propertiesPanel');
+          propertiesPanel.classList.toggle('show');
+        } else if (tool === 'image') {
+          document.getElementById('fileInput').click();
+        } else if (tool === 'text') {
+          addText();
+        }
+        
+        // 隐藏其他菜单
+        if (tool !== 'shapes') {
+          document.getElementById('shapeMenu').classList.remove('show');
+        }
+        if (tool !== 'export') {
+          document.getElementById('exportMenu').classList.remove('show');
+        }
+        if (tool !== 'settings') {
+          document.getElementById('propertiesPanel').classList.remove('show');
+        }
       });
     });
     
     // 形状选择
-    document.querySelectorAll('.shape-option').forEach(btn => {
-      btn.addEventListener('click', function() {
-        currentShape = this.dataset.shape;
+    document.querySelectorAll('.shape-option').forEach(option => {
+      option.addEventListener('click', function() {
+        const shape = this.dataset.shape;
         currentTool = 'shape';
+        currentShape = shape;
         document.getElementById('shapeMenu').classList.remove('show');
-        updateCursor();
       });
     });
     
-    // 颜色和线宽
-    document.getElementById('colorPicker').addEventListener('change', function() {
-      currentColor = this.value;
+    // 颜色选择器
+    document.getElementById('colorPicker').addEventListener('change', function(e) {
+      currentColor = e.target.value;
+      ctx.strokeStyle = currentColor;
     });
     
-    document.getElementById('lineWidth').addEventListener('change', function() {
-      currentLineWidth = this.value;
+    // 画笔粗细
+    document.getElementById('brushSize').addEventListener('input', function(e) {
+      brushSize = parseInt(e.target.value);
+      ctx.lineWidth = brushSize;
     });
-    
-    // 更新鼠标样式
-    function updateCursor() {
-      switch(currentTool) {
-        case 'pen':
-          canvas.style.cursor = 'crosshair';
-          break;
-        case 'eraser':
-          canvas.style.cursor = 'grab';
-          break;
-        case 'text':
-          canvas.style.cursor = 'text';
-          break;
-        case 'shape':
-          canvas.style.cursor = 'crosshair';
-          break;
-        default:
-          canvas.style.cursor = 'default';
-      }
-    }
     
     // 鼠标事件
     canvas.addEventListener('mousedown', startDrawing);
@@ -535,38 +813,17 @@
     canvas.addEventListener('mouseup', stopDrawing);
     canvas.addEventListener('mouseout', stopDrawing);
     
-    // 触摸事件支持
-    canvas.addEventListener('touchstart', handleTouch);
-    canvas.addEventListener('touchmove', handleTouch);
-    canvas.addEventListener('touchend', stopDrawing);
-    
-    function handleTouch(e) {
-      e.preventDefault();
-      const touch = e.touches[0];
-      const mouseEvent = new MouseEvent(e.type === 'touchstart' ? 'mousedown' : 'mousemove', {
-        clientX: touch.clientX,
-        clientY: touch.clientY
-      });
-      canvas.dispatchEvent(mouseEvent);
-    }
+    // 触摸事件
+    canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+    canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+    canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
     
     function startDrawing(e) {
-      const rect = canvas.getBoundingClientRect();
-      startX = e.clientX - rect.left;
-      startY = e.clientY - rect.top;
-      
-      if (currentTool === 'text') {
-        showTextInput(startX, startY);
-        return;
-      }
-      
-      isDrawing = true;
-      
       if (currentTool === 'pen' || currentTool === 'eraser') {
-        ctx.beginPath();
-        ctx.moveTo(startX, startY);
-      } else if (currentTool === 'shape') {
-        shapeStart = { x: startX, y: startY };
+        isDrawing = true;
+        const rect = canvas.getBoundingClientRect();
+        lastX = (e.clientX - rect.left - offsetX) / scale;
+        lastY = (e.clientY - rect.top - offsetY) / scale;
       }
     }
     
@@ -574,125 +831,178 @@
       if (!isDrawing) return;
       
       const rect = canvas.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      
-      ctx.lineWidth = currentLineWidth;
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
+      const currentX = (e.clientX - rect.left - offsetX) / scale;
+      const currentY = (e.clientY - rect.top - offsetY) / scale;
       
       if (currentTool === 'pen') {
-        ctx.globalCompositeOperation = 'source-over';
         ctx.strokeStyle = currentColor;
-        ctx.lineTo(x, y);
+        ctx.lineWidth = brushSize;
+        ctx.beginPath();
+        ctx.moveTo(lastX, lastY);
+        ctx.lineTo(currentX, currentY);
         ctx.stroke();
       } else if (currentTool === 'eraser') {
-        ctx.globalCompositeOperation = 'destination-out';
-        ctx.lineWidth = currentLineWidth * 3;
-        ctx.lineTo(x, y);
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = brushSize * 2;
+        ctx.beginPath();
+        ctx.moveTo(lastX, lastY);
+        ctx.lineTo(currentX, currentY);
         ctx.stroke();
-      } else if (currentTool === 'shape' && shapeStart) {
-        // 绘制形状预览
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        ctx.putImageData(imageData, 0, 0);
-        
-        ctx.globalCompositeOperation = 'source-over';
-        ctx.strokeStyle = currentColor;
-        
-        switch(currentShape) {
-          case 'rectangle':
-            ctx.strokeRect(shapeStart.x, shapeStart.y, x - shapeStart.x, y - shapeStart.y);
-            break;
-          case 'circle':
-            const radius = Math.sqrt(Math.pow(x - shapeStart.x, 2) + Math.pow(y - shapeStart.y, 2));
-            ctx.beginPath();
-            ctx.arc(shapeStart.x, shapeStart.y, radius, 0, 2 * Math.PI);
-            ctx.stroke();
-            break;
-          case 'line':
-            ctx.beginPath();
-            ctx.moveTo(shapeStart.x, shapeStart.y);
-            ctx.lineTo(x, y);
-            ctx.stroke();
-            break;
-          case 'arrow':
-            drawArrow(shapeStart.x, shapeStart.y, x, y);
-            break;
-        }
       }
+      
+      lastX = currentX;
+      lastY = currentY;
     }
     
     function stopDrawing() {
       if (isDrawing) {
         isDrawing = false;
-        shapeStart = null;
         saveState();
       }
     }
     
-    // 绘制箭头
-    function drawArrow(fromX, fromY, toX, toY) {
-      const headLength = 10;
-      const angle = Math.atan2(toY - fromY, toX - fromX);
+    // 触摸事件处理
+    function handleTouchStart(e) {
+      e.preventDefault();
       
-      ctx.beginPath();
-      ctx.moveTo(fromX, fromY);
-      ctx.lineTo(toX, toY);
-      ctx.lineTo(toX - headLength * Math.cos(angle - Math.PI / 6), toY - headLength * Math.sin(angle - Math.PI / 6));
-      ctx.moveTo(toX, toY);
-      ctx.lineTo(toX - headLength * Math.cos(angle + Math.PI / 6), toY - headLength * Math.sin(angle + Math.PI / 6));
-      ctx.stroke();
+      if (e.touches.length === 1) {
+        // 单指绘制
+        const touch = e.touches[0];
+        const rect = canvas.getBoundingClientRect();
+        lastX = (touch.clientX - rect.left - offsetX) / scale;
+        lastY = (touch.clientY - rect.top - offsetY) / scale;
+        isDrawing = true;
+      } else if (e.touches.length === 2) {
+        // 双指缩放
+        const touch1 = e.touches[0];
+        const touch2 = e.touches[1];
+        touchStartDistance = Math.sqrt(
+          Math.pow(touch2.clientX - touch1.clientX, 2) +
+          Math.pow(touch2.clientY - touch1.clientY, 2)
+        );
+        touchStartScale = scale;
+      } else if (e.touches.length === 3) {
+        // 三指移动
+        const touch = e.touches[0];
+        panStartX = touch.clientX - offsetX;
+        panStartY = touch.clientY - offsetY;
+        isPanning = true;
+      }
     }
     
-    // 文字输入
-    function showTextInput(x, y) {
-      const rect = canvas.getBoundingClientRect();
-      textInput.style.left = (rect.left + x) + 'px';
-      textInput.style.top = (rect.top + y) + 'px';
-      textInput.style.fontSize = currentLineWidth * 8 + 'px';
-      textInput.style.color = currentColor;
-      textInput.value = '';
-      textInput.classList.add('show');
-      textInput.focus();
+    function handleTouchMove(e) {
+      e.preventDefault();
       
-      textInput.onblur = function() {
-        if (textInput.value.trim()) {
-          ctx.font = currentLineWidth * 8 + 'px Arial';
-          ctx.fillStyle = currentColor;
-          ctx.fillText(textInput.value, x, y);
+      if (e.touches.length === 1 && isDrawing) {
+        // 单指绘制
+        const touch = e.touches[0];
+        const rect = canvas.getBoundingClientRect();
+        const currentX = (touch.clientX - rect.left - offsetX) / scale;
+        const currentY = (touch.clientY - rect.top - offsetY) / scale;
+        
+        if (currentTool === 'pen') {
+          ctx.strokeStyle = currentColor;
+          ctx.lineWidth = brushSize;
+          ctx.beginPath();
+          ctx.moveTo(lastX, lastY);
+          ctx.lineTo(currentX, currentY);
+          ctx.stroke();
+        } else if (currentTool === 'eraser') {
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = brushSize * 2;
+          ctx.beginPath();
+          ctx.moveTo(lastX, lastY);
+          ctx.lineTo(currentX, currentY);
+          ctx.stroke();
+        }
+        
+        lastX = currentX;
+        lastY = currentY;
+      } else if (e.touches.length === 2) {
+        // 双指缩放
+        const touch1 = e.touches[0];
+        const touch2 = e.touches[1];
+        const distance = Math.sqrt(
+          Math.pow(touch2.clientX - touch1.clientX, 2) +
+          Math.pow(touch2.clientY - touch1.clientY, 2)
+        );
+        
+        const newScale = touchStartScale * (distance / touchStartDistance);
+        scale = Math.max(0.5, Math.min(3, newScale));
+        
+        // 更新画布变换
+        updateCanvasTransform();
+      } else if (e.touches.length === 3 && isPanning) {
+        // 三指移动
+        const touch = e.touches[0];
+        offsetX = touch.clientX - panStartX;
+        offsetY = touch.clientY - panStartY;
+        
+        // 更新画布变换
+        updateCanvasTransform();
+      }
+    }
+    
+    function handleTouchEnd(e) {
+      if (e.touches.length === 0) {
+        if (isDrawing) {
+          isDrawing = false;
           saveState();
         }
-        textInput.classList.remove('show');
-      };
+        if (isPanning) {
+          isPanning = false;
+        }
+      }
     }
     
-    // 文件上传
+    // 更新画布变换
+    function updateCanvasTransform() {
+      canvas.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
+    }
+    
+    // 添加文字
+    function addText() {
+      const textInput = document.getElementById('textInput');
+      textInput.style.display = 'block';
+      textInput.style.left = '50%';
+      textInput.style.top = '50%';
+      textInput.style.transform = 'translate(-50%, -50%)';
+      textInput.focus();
+      
+      textInput.addEventListener('blur', function() {
+        if (this.value.trim()) {
+          const rect = canvas.getBoundingClientRect();
+          const x = (rect.width / 2 - offsetX) / scale;
+          const y = (rect.height / 2 - offsetY) / scale;
+          
+          ctx.font = `${brushSize * 3}px Arial`;
+          ctx.fillStyle = currentColor;
+          ctx.fillText(this.value, x, y);
+          saveState();
+        }
+        this.style.display = 'none';
+        this.value = '';
+      });
+    }
+    
+    // 图片上传处理
     document.getElementById('fileInput').addEventListener('change', function(e) {
       const file = e.target.files[0];
-      if (!file) return;
-      
-      if (file.type.startsWith('image/')) {
+      if (file) {
         const reader = new FileReader();
         reader.onload = function(event) {
           const img = new Image();
           img.onload = function() {
-            // 将图片绘制到画布中心
-            const scale = Math.min(300 / img.width, 300 / img.height);
-            const width = img.width * scale;
-            const height = img.height * scale;
-            const x = (canvas.width - width) / 2;
-            const y = (canvas.height - height) / 2;
+            const rect = canvas.getBoundingClientRect();
+            const x = (rect.width / 2 - offsetX) / scale - img.width / 2;
+            const y = (rect.height / 2 - offsetY) / scale - img.height / 2;
             
-            ctx.drawImage(img, x, y, width, height);
+            ctx.drawImage(img, x, y);
             saveState();
           };
           img.src = event.target.result;
         };
         reader.readAsDataURL(file);
-      } else {
-        // 处理其他文件类型
-        alert('已上传文件: ' + file.name);
-        // 这里可以添加显示文件图标的逻辑
       }
     });
     
@@ -730,6 +1040,11 @@
       }
     });
     
+    // 移动端按钮事件
+    document.getElementById('clearBtn').addEventListener('click', clearCanvas);
+    document.getElementById('undoBtn').addEventListener('click', undo);
+    document.getElementById('redoBtn').addEventListener('click', redo);
+    
     // 导出功能
     function exportCanvas(format) {
       const link = document.createElement('a');
@@ -761,33 +1076,26 @@
       saveState();
     }
     
+    // 背景网格切换
+    document.getElementById('showGrid').addEventListener('change', function(e) {
+      if (e.target.checked) {
+        canvas.classList.add('canvas-grid');
+      } else {
+        canvas.classList.remove('canvas-grid');
+      }
+    });
+    
     // 键盘快捷键
     document.addEventListener('keydown', function(e) {
       if (e.ctrlKey || e.metaKey) {
         switch(e.key) {
           case 'z':
             e.preventDefault();
-            if (historyIndex > 0) {
-              historyIndex--;
-              const img = new Image();
-              img.src = history[historyIndex];
-              img.onload = function() {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.drawImage(img, 0, 0);
-              };
-            }
+            undo();
             break;
           case 'y':
             e.preventDefault();
-            if (historyIndex < history.length - 1) {
-              historyIndex++;
-              const img = new Image();
-              img.src = history[historyIndex];
-              img.onload = function() {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.drawImage(img, 0, 0);
-              };
-            }
+            redo();
             break;
           case 's':
             e.preventDefault();
@@ -805,7 +1113,19 @@
       if (!e.target.closest('.tool-btn[data-tool="export"]') && !e.target.closest('.export-menu')) {
         document.getElementById('exportMenu').classList.remove('show');
       }
+      if (!e.target.closest('.tool-btn[data-tool="settings"]') && !e.target.closest('.properties-panel')) {
+        document.getElementById('propertiesPanel').classList.remove('show');
+      }
     });
+    
+    // 窗口大小调整
+    window.addEventListener('resize', function() {
+      // 重新计算画布位置
+      updateCanvasTransform();
+    });
+    
+    // 初始化
+    init();
   </script>
 </body>
 </html>

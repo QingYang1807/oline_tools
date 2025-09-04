@@ -1,0 +1,546 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>学习打卡面板 · 网页工具箱</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <meta name="color-scheme" content="light dark">
+  <style>
+    .checkin-container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    
+    .date-header {
+      text-align: center;
+      margin: 32px 0;
+      padding: 24px;
+      background: var(--card);
+      border-radius: 16px;
+      border: 1px solid var(--border);
+    }
+    
+    .date-display {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+    
+    .streak-info {
+      color: var(--muted);
+      font-size: 1rem;
+    }
+    
+    .task-list {
+      margin: 32px 0;
+    }
+    
+    .task-item {
+      display: flex;
+      align-items: center;
+      padding: 20px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-bottom: 16px;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px var(--shadow);
+    }
+    
+    .task-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px var(--shadow-lg);
+    }
+    
+    .task-checkbox {
+      width: 24px;
+      height: 24px;
+      margin-right: 16px;
+      cursor: pointer;
+      accent-color: var(--accent);
+    }
+    
+    .task-content {
+      flex: 1;
+    }
+    
+    .task-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin: 0 0 4px 0;
+      color: var(--fg);
+    }
+    
+    .task-description {
+      color: var(--muted);
+      margin: 0;
+      font-size: 0.95rem;
+    }
+    
+    .task-status {
+      margin-left: 16px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+    
+    .status-completed {
+      background: #dcfce7;
+      color: #166534;
+    }
+    
+    .status-pending {
+      background: #fef3c7;
+      color: #92400e;
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin: 32px 0;
+    }
+    
+    .stat-card {
+      background: var(--card);
+      padding: 24px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      text-align: center;
+      box-shadow: 0 2px 8px var(--shadow);
+    }
+    
+    .stat-number {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+    
+    .stat-label {
+      color: var(--muted);
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .add-task-form {
+      background: var(--card);
+      padding: 24px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      margin: 32px 0;
+      box-shadow: 0 2px 8px var(--shadow);
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    .form-label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: var(--fg);
+    }
+    
+    .form-input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg);
+      color: var(--fg);
+      font-size: 1rem;
+      transition: border-color 0.3s ease;
+    }
+    
+    .form-input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    
+    .btn {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .btn:hover {
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+    }
+    
+    .btn-secondary {
+      background: var(--muted);
+      margin-left: 12px;
+    }
+    
+    .btn-secondary:hover {
+      background: #6b7280;
+    }
+    
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 500;
+      margin-bottom: 24px;
+      transition: color 0.3s ease;
+    }
+    
+    .back-link:hover {
+      color: var(--accent-hover);
+    }
+    
+    .back-link::before {
+      content: "←";
+      margin-right: 8px;
+      font-size: 1.2rem;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 48px 24px;
+      color: var(--muted);
+    }
+    
+    .empty-state h3 {
+      margin-bottom: 16px;
+      color: var(--fg);
+    }
+    
+    @media (max-width: 768px) {
+      .task-item {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      
+      .task-checkbox {
+        margin-bottom: 12px;
+      }
+      
+      .task-status {
+        margin: 12px 0 0 0;
+        align-self: flex-start;
+      }
+      
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <h1 class="site-title">📚 学习打卡面板</h1>
+      <p class="site-subtitle">养成好习惯，每天进步一点点</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="checkin-container">
+      <a href="../index.html" class="back-link">返回工具箱</a>
+      
+      <div class="date-header">
+        <div class="date-display" id="currentDate"></div>
+        <div class="streak-info" id="streakInfo"></div>
+      </div>
+      
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-number" id="todayCompleted">0</div>
+          <div class="stat-label">今日完成</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="totalTasks">0</div>
+          <div class="stat-label">总任务数</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="currentStreak">0</div>
+          <div class="stat-label">连续天数</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="completionRate">0%</div>
+          <div class="stat-label">完成率</div>
+        </div>
+      </div>
+      
+      <div class="add-task-form">
+        <h3 style="margin-top: 0;">添加新任务</h3>
+        <div class="form-group">
+          <label class="form-label" for="taskTitle">任务名称</label>
+          <input type="text" id="taskTitle" class="form-input" placeholder="例如：刷一道算法题">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="taskDescription">任务描述（可选）</label>
+          <input type="text" id="taskDescription" class="form-input" placeholder="例如：每天至少刷一道力扣题目">
+        </div>
+        <button class="btn" onclick="addTask()">添加任务</button>
+        <button class="btn btn-secondary" onclick="loadSampleTasks()">加载示例任务</button>
+      </div>
+      
+      <div class="task-list" id="taskList">
+        <!-- 任务列表将通过 JavaScript 动态生成 -->
+      </div>
+      
+      <div class="empty-state" id="emptyState" style="display: none;">
+        <h3>还没有任务</h3>
+        <p>添加一些学习任务开始你的打卡之旅吧！</p>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <span>© <span id="year"></span> 工具箱</span>
+    </div>
+  </footer>
+
+  <script>
+    // 全局变量
+    let tasks = [];
+    let checkinData = {};
+    
+    // 初始化
+    document.addEventListener('DOMContentLoaded', function() {
+      loadData();
+      updateDisplay();
+      document.getElementById('year').textContent = new Date().getFullYear();
+    });
+    
+    // 加载数据
+    function loadData() {
+      const savedTasks = localStorage.getItem('studyCheckinTasks');
+      const savedCheckinData = localStorage.getItem('studyCheckinData');
+      
+      if (savedTasks) {
+        tasks = JSON.parse(savedTasks);
+      }
+      
+      if (savedCheckinData) {
+        checkinData = JSON.parse(savedCheckinData);
+      }
+    }
+    
+    // 保存数据
+    function saveData() {
+      localStorage.setItem('studyCheckinTasks', JSON.stringify(tasks));
+      localStorage.setItem('studyCheckinData', JSON.stringify(checkinData));
+    }
+    
+    // 更新显示
+    function updateDisplay() {
+      updateDateHeader();
+      updateStats();
+      updateTaskList();
+    }
+    
+    // 更新日期头部
+    function updateDateHeader() {
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('zh-CN', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        weekday: 'long'
+      });
+      
+      document.getElementById('currentDate').textContent = dateStr;
+      
+      const today = getDateKey(now);
+      const streak = calculateStreak();
+      document.getElementById('streakInfo').textContent = 
+        `连续打卡 ${streak} 天 | 今日任务 ${getTodayTasks().length} 个`;
+    }
+    
+    // 更新统计信息
+    function updateStats() {
+      const today = getDateKey(new Date());
+      const todayTasks = getTodayTasks();
+      const completedToday = todayTasks.filter(task => 
+        checkinData[today] && checkinData[today][task.id]
+      ).length;
+      
+      document.getElementById('todayCompleted').textContent = completedToday;
+      document.getElementById('totalTasks').textContent = tasks.length;
+      document.getElementById('currentStreak').textContent = calculateStreak();
+      
+      const totalCompleted = Object.values(checkinData).reduce((total, dayData) => {
+        return total + Object.values(dayData).filter(Boolean).length;
+      }, 0);
+      
+      const totalPossible = tasks.length * Object.keys(checkinData).length;
+      const completionRate = totalPossible > 0 ? Math.round((totalCompleted / totalPossible) * 100) : 0;
+      document.getElementById('completionRate').textContent = completionRate + '%';
+    }
+    
+    // 更新任务列表
+    function updateTaskList() {
+      const taskList = document.getElementById('taskList');
+      const emptyState = document.getElementById('emptyState');
+      
+      if (tasks.length === 0) {
+        taskList.style.display = 'none';
+        emptyState.style.display = 'block';
+        return;
+      }
+      
+      taskList.style.display = 'block';
+      emptyState.style.display = 'none';
+      
+      const today = getDateKey(new Date());
+      if (!checkinData[today]) {
+        checkinData[today] = {};
+      }
+      
+      taskList.innerHTML = tasks.map(task => {
+        const isCompleted = checkinData[today][task.id] || false;
+        const statusClass = isCompleted ? 'status-completed' : 'status-pending';
+        const statusText = isCompleted ? '已完成' : '待完成';
+        
+        return `
+          <div class="task-item">
+            <input type="checkbox" 
+                   class="task-checkbox" 
+                   id="task-${task.id}" 
+                   ${isCompleted ? 'checked' : ''}
+                   onchange="toggleTask(${task.id})">
+            <div class="task-content">
+              <h4 class="task-title">${task.title}</h4>
+              <p class="task-description">${task.description || '无描述'}</p>
+            </div>
+            <span class="task-status ${statusClass}">${statusText}</span>
+          </div>
+        `;
+      }).join('');
+    }
+    
+    // 切换任务状态
+    function toggleTask(taskId) {
+      const today = getDateKey(new Date());
+      if (!checkinData[today]) {
+        checkinData[today] = {};
+      }
+      
+      checkinData[today][taskId] = !checkinData[today][taskId];
+      saveData();
+      updateDisplay();
+    }
+    
+    // 添加任务
+    function addTask() {
+      const title = document.getElementById('taskTitle').value.trim();
+      const description = document.getElementById('taskDescription').value.trim();
+      
+      if (!title) {
+        alert('请输入任务名称');
+        return;
+      }
+      
+      const newTask = {
+        id: Date.now(),
+        title: title,
+        description: description,
+        createdAt: new Date().toISOString()
+      };
+      
+      tasks.push(newTask);
+      saveData();
+      updateDisplay();
+      
+      // 清空表单
+      document.getElementById('taskTitle').value = '';
+      document.getElementById('taskDescription').value = '';
+    }
+    
+    // 加载示例任务
+    function loadSampleTasks() {
+      if (tasks.length > 0) {
+        if (!confirm('这将覆盖现有任务，确定继续吗？')) {
+          return;
+        }
+      }
+      
+      tasks = [
+        {
+          id: 1,
+          title: '刷一道算法题',
+          description: '每天至少刷一道力扣题目，保持算法思维',
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: 2,
+          title: '阅读技术文章',
+          description: '阅读一篇技术博客或文档，学习新知识',
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: 3,
+          title: '写代码练习',
+          description: '动手写代码，巩固学习内容',
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: 4,
+          title: '学习新技能',
+          description: '学习一个新的编程语言或框架',
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: 5,
+          title: '整理学习笔记',
+          description: '整理今天学到的知识点，形成笔记',
+          createdAt: new Date().toISOString()
+        }
+      ];
+      
+      saveData();
+      updateDisplay();
+    }
+    
+    // 获取日期键
+    function getDateKey(date) {
+      return date.toISOString().split('T')[0];
+    }
+    
+    // 获取今日任务
+    function getTodayTasks() {
+      return tasks;
+    }
+    
+    // 计算连续天数
+    function calculateStreak() {
+      const dates = Object.keys(checkinData).sort().reverse();
+      let streak = 0;
+      
+      for (const date of dates) {
+        const dayTasks = getTodayTasks();
+        const completedCount = dayTasks.filter(task => 
+          checkinData[date] && checkinData[date][task.id]
+        ).length;
+        
+        if (completedCount > 0) {
+          streak++;
+        } else {
+          break;
+        }
+      }
+      
+      return streak;
+    }
+  </script>
+</body>
+</html>

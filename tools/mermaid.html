@@ -26,7 +26,45 @@
       .editor { height: 40vh; }
       .preview { min-height: 40vh; }
     }
-    .toolbar { display:flex; gap:8px; align-items:center; flex-wrap: wrap; }
+    .toolbar { display:flex; gap:12px; align-items:center; flex-wrap: wrap; margin-bottom: 16px; }
+    .theme-selector {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .theme-selector label {
+      font-weight: 500;
+      color: var(--fg);
+      white-space: nowrap;
+    }
+    .theme-selector select {
+      appearance: none;
+      background: var(--card);
+      border: 2px solid var(--border);
+      color: var(--fg);
+      padding: 8px 32px 8px 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+      background-position: right 8px center;
+      background-repeat: no-repeat;
+      background-size: 16px;
+    }
+    .theme-selector select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    .theme-selector select:hover {
+      border-color: var(--accent);
+    }
+    @media (prefers-color-scheme: dark) {
+      .theme-selector select {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23a1a1aa' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+      }
+    }
   </style>
 </head>
 <body>
@@ -43,15 +81,17 @@
       <div class="toolbar">
         <button id="btn-render">渲染</button>
         <button id="btn-format">格式化</button>
-        <label>主题
+        <button id="btn-clear">清空</button>
+        <div class="theme-selector">
+          <label for="theme">主题</label>
           <select id="theme">
-            <option value="default">default</option>
-            <option value="neutral">neutral</option>
-            <option value="dark">dark</option>
-            <option value="forest">forest</option>
-            <option value="base">base</option>
+            <option value="default">默认</option>
+            <option value="neutral">中性</option>
+            <option value="dark">深色</option>
+            <option value="forest">森林</option>
+            <option value="base">基础</option>
           </select>
-        </label>
+        </div>
         <span style="flex:1"></span>
         <button id="dl-png">下载 PNG</button>
         <button id="dl-svg">下载 SVG</button>
@@ -108,6 +148,14 @@
       input.value = cleaned;
     }
 
+    // 清空编辑器
+    function clearEditor() {
+      input.value = '';
+      graphContainer.innerHTML = '<em>请粘贴 Mermaid 代码</em>';
+      graphContainer.dataset.svg = '';
+      location.hash = '';
+    }
+
     function download(filename, blob) {
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
@@ -129,50 +177,155 @@
     function svgToCanvas(svgText, scale = 2) {
       return new Promise((resolve, reject) => {
         const img = new Image();
-        const svgBlob = new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' });
+        img.crossOrigin = 'anonymous';
+        
+        // 确保 SVG 有正确的尺寸信息
+        const parser = new DOMParser();
+        const svgDoc = parser.parseFromString(svgText, 'image/svg+xml');
+        const svgElement = svgDoc.documentElement;
+        
+        // 获取 SVG 的实际尺寸
+        const viewBox = svgElement.getAttribute('viewBox');
+        let width, height;
+        
+        if (viewBox) {
+          const [, , w, h] = viewBox.split(' ').map(Number);
+          width = w;
+          height = h;
+        } else {
+          width = parseInt(svgElement.getAttribute('width')) || 800;
+          height = parseInt(svgElement.getAttribute('height')) || 600;
+        }
+        
+        // 确保 SVG 有明确的尺寸
+        svgElement.setAttribute('width', width);
+        svgElement.setAttribute('height', height);
+        
+        const updatedSvgText = new XMLSerializer().serializeToString(svgElement);
+        const svgBlob = new Blob([updatedSvgText], { type: 'image/svg+xml;charset=utf-8' });
         const url = URL.createObjectURL(svgBlob);
+        
         img.onload = () => {
-          const width = img.width * scale;
-          const height = img.height * scale;
           const canvas = document.createElement('canvas');
-          canvas.width = width;
-          canvas.height = height;
+          canvas.width = width * scale;
+          canvas.height = height * scale;
           const ctx = canvas.getContext('2d');
-          ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--panel-bg') || '#fff8dc';
-          ctx.fillRect(0, 0, width, height);
-          ctx.drawImage(img, 0, 0, width, height);
+          
+          // 设置白色背景
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          
+          // 绘制图像
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
           URL.revokeObjectURL(url);
           resolve(canvas);
         };
-        img.onerror = reject;
+        
+        img.onerror = (error) => {
+          URL.revokeObjectURL(url);
+          reject(new Error('无法加载 SVG 图像'));
+        };
+        
         img.src = url;
       });
     }
 
     async function downloadPNG() {
       const svg = graphContainer.dataset.svg;
-      if (!svg) return;
-      const canvas = await svgToCanvas(svg, 2);
-      canvas.toBlob((blob) => download('diagram.png', blob), 'image/png');
+      if (!svg) {
+        alert('请先渲染图表');
+        return;
+      }
+      try {
+        const canvas = await svgToCanvas(svg, 2);
+        canvas.toBlob((blob) => {
+          if (blob) {
+            download('mermaid-diagram.png', blob);
+          } else {
+            alert('PNG 导出失败');
+          }
+        }, 'image/png', 0.95);
+      } catch (error) {
+        console.error('PNG 导出错误:', error);
+        alert('PNG 导出失败: ' + error.message);
+      }
     }
 
     async function downloadPDF() {
       const svg = graphContainer.dataset.svg;
-      if (!svg) return;
-      // 通过 canvas -> PNG -> 简易 PDF（使用浏览器打印）
-      const canvas = await svgToCanvas(svg, 2);
-      const dataUrl = canvas.toDataURL('image/png');
-      const w = window.open('', '_blank');
-      if (!w) return;
-      w.document.write(`<!doctype html><title>导出 PDF</title><style>body{margin:0}img{width:100%;height:auto}</style><img src="${dataUrl}">`);
-      w.document.close();
-      w.focus();
-      w.print();
+      if (!svg) {
+        alert('请先渲染图表');
+        return;
+      }
+      try {
+        const canvas = await svgToCanvas(svg, 2);
+        const imgData = canvas.toDataURL('image/png');
+        
+        // 创建一个简单的PDF页面用于打印
+        const printWindow = window.open('', '_blank');
+        if (!printWindow) {
+          alert('请允许弹出窗口以下载PDF');
+          return;
+        }
+        
+        const html = `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <title>Mermaid Diagram</title>
+            <style>
+              @media print {
+                body { margin: 0; padding: 20px; }
+                img { max-width: 100%; height: auto; page-break-inside: avoid; }
+                @page { margin: 1cm; }
+              }
+              body { 
+                font-family: Arial, sans-serif; 
+                text-align: center; 
+                background: white;
+              }
+              img { 
+                max-width: 100%; 
+                height: auto; 
+                border: 1px solid #ddd;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+              }
+              .no-print { display: block; margin: 20px 0; }
+              @media print { .no-print { display: none; } }
+            </style>
+          </head>
+          <body>
+            <h2>Mermaid 图表</h2>
+            <img src="${imgData}" alt="Mermaid Diagram" />
+            <div class="no-print">
+              <p>请使用浏览器的打印功能（Ctrl+P 或 Cmd+P）并选择"保存为PDF"</p>
+              <button onclick="window.print()">打印/保存为PDF</button>
+              <button onclick="window.close()">关闭</button>
+            </div>
+          </body>
+          </html>
+        `;
+        
+        printWindow.document.write(html);
+        printWindow.document.close();
+        
+        // 自动触发打印对话框
+        printWindow.onload = () => {
+          setTimeout(() => {
+            printWindow.print();
+          }, 500);
+        };
+        
+      } catch (error) {
+        console.error('PDF 导出错误:', error);
+        alert('PDF 导出失败: ' + error.message);
+      }
     }
 
     // 事件绑定
     document.getElementById('btn-render').addEventListener('click', render);
     document.getElementById('btn-format').addEventListener('click', formatCode);
+    document.getElementById('btn-clear').addEventListener('click', clearEditor);
     document.getElementById('dl-svg').addEventListener('click', downloadSVG);
     document.getElementById('dl-png').addEventListener('click', downloadPNG);
     document.getElementById('dl-pdf').addEventListener('click', downloadPDF);

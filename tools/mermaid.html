@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mermaid 可视化渲染器</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <meta name="color-scheme" content="light dark">
+  <style>
+    .split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+    .editor { height: 60vh; }
+    .preview {
+      min-height: 60vh;
+      background: var(--panel-bg);
+      padding: 12px;
+      border-radius: 8px;
+      overflow: auto;
+    }
+    @media (max-width: 900px) {
+      .split { grid-template-columns: 1fr; }
+      .editor { height: 40vh; }
+      .preview { min-height: 40vh; }
+    }
+    .toolbar { display:flex; gap:8px; align-items:center; flex-wrap: wrap; }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a class="back-link" href="/">← 返回首页</a>
+      <h1 class="site-title">Mermaid 可视化渲染器</h1>
+      <p class="site-subtitle">实时渲染 · 下载 PNG / SVG / PDF</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <section>
+      <div class="toolbar">
+        <button id="btn-render">渲染</button>
+        <button id="btn-format">格式化</button>
+        <label>主题
+          <select id="theme">
+            <option value="default">default</option>
+            <option value="neutral">neutral</option>
+            <option value="dark">dark</option>
+            <option value="forest">forest</option>
+            <option value="base">base</option>
+          </select>
+        </label>
+        <span style="flex:1"></span>
+        <button id="dl-png">下载 PNG</button>
+        <button id="dl-svg">下载 SVG</button>
+        <button id="dl-pdf">下载 PDF</button>
+      </div>
+    </section>
+
+    <section class="split">
+      <textarea id="input" class="editor" spellcheck="false" placeholder="在此粘贴 Mermaid 代码，例如:\ngraph TD\n  A[开始] --> B{条件?}\n  B -- 是 --> C[处理]\n  B -- 否 --> D[结束]"></textarea>
+      <div class="preview" id="preview"><div id="graph"></div></div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prettier@3/standalone.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prettier@3/parser-babel.js"></script>
+  <script>
+    const input = document.getElementById('input');
+    const graphContainer = document.getElementById('graph');
+    const themeSelect = document.getElementById('theme');
+
+    const defaultSample = `flowchart TD
+  A[开始] --> B{条件?}
+  B -- 是 --> C[处理]
+  B -- 否 --> D[结束]
+`;
+    input.value = defaultSample;
+
+    function initMermaid(theme) {
+      window.mermaid?.initialize({ startOnLoad: false, theme: theme || 'default' });
+    }
+
+    async function render() {
+      const theme = themeSelect.value || 'default';
+      initMermaid(theme);
+      const code = input.value.trim();
+      if (!code) { graphContainer.innerHTML = '<em>请粘贴 Mermaid 代码</em>'; return; }
+      const id = 'm' + Math.random().toString(36).slice(2);
+      try {
+        const { svg } = await mermaid.render(id, code);
+        graphContainer.innerHTML = svg;
+        // 保留原始 SVG 以便导出
+        graphContainer.dataset.svg = svg;
+      } catch (err) {
+        graphContainer.innerHTML = '<pre class="error">' + (err?.message || err) + '</pre>';
+        graphContainer.dataset.svg = '';
+      }
+    }
+
+    // 简易格式化：保持为原样（Mermaid 没有官方 Prettier 插件），这里只做去除多余空白
+    function formatCode() {
+      const lines = input.value.split('\n');
+      const cleaned = lines.map(l => l.replace(/\s+$/,'')).join('\n').trim() + '\n';
+      input.value = cleaned;
+    }
+
+    function download(filename, blob) {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        URL.revokeObjectURL(a.href);
+        a.remove();
+      }, 0);
+    }
+
+    function downloadSVG() {
+      const svg = graphContainer.dataset.svg;
+      if (!svg) return;
+      download('diagram.svg', new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }));
+    }
+
+    function svgToCanvas(svgText, scale = 2) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        const svgBlob = new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URL.createObjectURL(svgBlob);
+        img.onload = () => {
+          const width = img.width * scale;
+          const height = img.height * scale;
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--panel-bg') || '#fff8dc';
+          ctx.fillRect(0, 0, width, height);
+          ctx.drawImage(img, 0, 0, width, height);
+          URL.revokeObjectURL(url);
+          resolve(canvas);
+        };
+        img.onerror = reject;
+        img.src = url;
+      });
+    }
+
+    async function downloadPNG() {
+      const svg = graphContainer.dataset.svg;
+      if (!svg) return;
+      const canvas = await svgToCanvas(svg, 2);
+      canvas.toBlob((blob) => download('diagram.png', blob), 'image/png');
+    }
+
+    async function downloadPDF() {
+      const svg = graphContainer.dataset.svg;
+      if (!svg) return;
+      // 通过 canvas -> PNG -> 简易 PDF（使用浏览器打印）
+      const canvas = await svgToCanvas(svg, 2);
+      const dataUrl = canvas.toDataURL('image/png');
+      const w = window.open('', '_blank');
+      if (!w) return;
+      w.document.write(`<!doctype html><title>导出 PDF</title><style>body{margin:0}img{width:100%;height:auto}</style><img src="${dataUrl}">`);
+      w.document.close();
+      w.focus();
+      w.print();
+    }
+
+    // 事件绑定
+    document.getElementById('btn-render').addEventListener('click', render);
+    document.getElementById('btn-format').addEventListener('click', formatCode);
+    document.getElementById('dl-svg').addEventListener('click', downloadSVG);
+    document.getElementById('dl-png').addEventListener('click', downloadPNG);
+    document.getElementById('dl-pdf').addEventListener('click', downloadPDF);
+    themeSelect.addEventListener('change', render);
+    input.addEventListener('input', () => { render(); saveToHash(); });
+
+    // URL Hash 同步，便于分享链接
+    function saveToHash() {
+      const theme = themeSelect.value;
+      const encoded = encodeURIComponent(input.value);
+      location.hash = `t=${theme}&c=${encoded}`;
+    }
+    function loadFromHash() {
+      if (!location.hash) return;
+      const raw = location.hash.slice(1);
+      const params = new URLSearchParams(raw.replace(/&/g,'&'));
+      const t = params.get('t');
+      const c = params.get('c');
+      if (t) themeSelect.value = t;
+      if (c) input.value = decodeURIComponent(c);
+    }
+
+    loadFromHash();
+    render();
+  </script>
+</body>
+<noscript>需要启用 JavaScript 以进行渲染。</noscript>
+</html>
+

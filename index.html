@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>工具箱 · 首页</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <meta name="color-scheme" content="light dark">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <h1 class="site-title">🧰 网页工具箱</h1>
+      <p class="site-subtitle">轻量、开箱即用的多功能网页工具</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <section>
+      <h2 class="section-title">工具目录</h2>
+      <div class="tool-grid">
+        <a class="tool-card" href="/tools/mermaid.html">
+          <h3>Mermaid 可视化渲染器</h3>
+          <p>粘贴 Mermaid 语法，实时渲染，支持下载 PNG / SVG / PDF。</p>
+          <span class="tool-link">打开工具 →</span>
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <span>© <span id="year"></span> 工具箱</span>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+<noscript>本页面需要 JavaScript 以获得最佳体验。</noscript>
+</html>
+

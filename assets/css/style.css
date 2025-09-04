@@ -1,0 +1,57 @@
+:root{
+  --bg: #fff7d6; /* 柔和护眼黄 */
+  --fg: #2b2b2b;
+  --muted: #6b6b6b;
+  --accent: #b8860b;
+  --card: #fff9e6;
+  --panel-bg: #fffdf3;
+  --border: #e7d9a8;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg: #1e1a12;
+    --fg: #f0e7c3;
+    --muted: #c8b88a;
+    --accent: #e0c66d;
+    --card: #2a2418;
+    --panel-bg: #211c13;
+    --border: #3b311f;
+  }
+}
+*{ box-sizing: border-box; }
+html,body{ height:100%; }
+body{
+  margin:0;
+  font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+  background: var(--bg);
+  color: var(--fg);
+  line-height: 1.6;
+}
+.container{ max-width: 1080px; margin: 0 auto; padding: 16px; }
+.site-header{ background: var(--card); border-bottom: 1px solid var(--border); }
+.site-title{ margin: 4px 0 0; }
+.site-subtitle{ margin: 4px 0 0; color: var(--muted); }
+.site-footer{ border-top: 1px solid var(--border); margin-top: 32px; background: var(--card); }
+
+.section-title{ margin: 8px 0 12px; }
+.tool-grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(260px,1fr)); gap: 16px; }
+.tool-card{
+  display:block; text-decoration:none; color:inherit; background: var(--card); padding:16px; border:1px solid var(--border); border-radius:12px;
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+.tool-card:hover{ transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,.06); }
+.tool-card h3{ margin:0 0 6px; }
+.tool-card p{ margin:0 0 8px; color: var(--muted); }
+.tool-link{ color: var(--accent); }
+
+textarea.editor{
+  width:100%; padding:12px; border-radius:8px; border:1px solid var(--border); background: #fffef8; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+button{
+  appearance:none; border:1px solid var(--border); background: var(--card); color: var(--fg); padding:8px 12px; border-radius:8px; cursor:pointer;
+}
+button:hover{ filter: brightness(0.98); }
+.back-link{ color: var(--accent); text-decoration: none; }
+.error{ color: #b00020; white-space: pre-wrap; }
+

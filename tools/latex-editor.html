@@ -1,0 +1,538 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LaTeX 数学公式编辑器 · 工具箱</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <meta name="color-scheme" content="light dark">
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']],
+        processEscapes: true,
+        processEnvironments: true
+      },
+      options: {
+        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+      }
+    };
+  </script>
+  <style>
+    .latex-editor {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+    
+    @media (max-width: 768px) {
+      .latex-editor {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+    }
+    
+    .input-panel, .output-panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 2px 8px var(--shadow);
+    }
+    
+    .panel-title {
+      margin: 0 0 16px 0;
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--fg);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .latex-input {
+      width: 100%;
+      min-height: 200px;
+      padding: 16px;
+      border-radius: 12px;
+      border: 2px solid var(--border);
+      background: var(--panel-bg);
+      color: var(--fg);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 14px;
+      line-height: 1.5;
+      transition: border-color 0.2s ease;
+      resize: vertical;
+    }
+    
+    .latex-input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    
+    .output-display {
+      min-height: 200px;
+      padding: 16px;
+      border-radius: 12px;
+      border: 2px solid var(--border);
+      background: var(--panel-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: var(--muted);
+      font-size: 1.1rem;
+    }
+    
+    .output-display.has-content {
+      background: white;
+      border-color: var(--accent);
+    }
+    
+    .output-display.error {
+      background: rgba(239, 68, 68, 0.1);
+      border-color: #ef4444;
+      color: #ef4444;
+    }
+    
+    .controls {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+    
+    .examples {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-top: 24px;
+      box-shadow: 0 2px 8px var(--shadow);
+    }
+    
+    .examples h3 {
+      margin: 0 0 16px 0;
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--fg);
+    }
+    
+    .example-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 16px;
+    }
+    
+    .example-item {
+      background: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .example-item:hover {
+      border-color: var(--accent);
+      background: var(--card);
+      transform: translateY(-2px);
+    }
+    
+    .example-item h4 {
+      margin: 0 0 8px 0;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--fg);
+    }
+    
+    .example-item p {
+      margin: 0;
+      font-size: 0.9rem;
+      color: var(--muted);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+    
+    .copy-success {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #10b981;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      z-index: 1000;
+      animation: slideIn 0.3s ease;
+    }
+    
+    @keyframes slideIn {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+    
+    .math-display {
+      font-size: 1.2em;
+      line-height: 1.6;
+    }
+    
+    .inline-math {
+      font-size: 1em;
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <h1 class="site-title">🧮 LaTeX 数学公式编辑器</h1>
+      <p class="site-subtitle">输入LaTeX公式，实时渲染，支持复制markdown源码和导出PNG图片</p>
+      <a href="../index.html" class="back-link">← 返回工具箱</a>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="latex-editor">
+      <div class="input-panel">
+        <h2 class="panel-title">📝 输入LaTeX公式</h2>
+        <textarea 
+          id="latexInput" 
+          class="latex-input" 
+          placeholder="在此输入LaTeX数学公式...&#10;&#10;例如：&#10;\frac{-b \pm \sqrt{b^2-4ac}}{2a}&#10;&#10;或者：&#10;\int_{-\infty}^{\infty} e^{-x^2} dx = \sqrt{\pi}"
+        ></textarea>
+        <div style="margin-top: 8px; font-size: 0.9rem; color: var(--muted);">
+          💡 提示：输入普通公式将自动渲染为块级公式，使用 \\( \\) 或 $$ $$ 可指定渲染方式<br>
+          ⌨️ 快捷键：Ctrl+Enter(渲染) | Ctrl+Shift+C(复制Markdown) | Ctrl+Shift+I(复制行内) | Ctrl+Shift+P(导出PNG)
+        </div>
+        <div class="controls">
+          <button id="renderBtn">🔄 重新渲染</button>
+          <button id="copyMarkdownBtn">📋 复制Markdown</button>
+          <button id="copyInlineBtn">📋 复制行内公式</button>
+          <button id="exportPngBtn">🖼️ 导出PNG</button>
+          <button id="clearBtn">🗑️ 清空</button>
+        </div>
+      </div>
+      
+      <div class="output-panel">
+        <h2 class="panel-title">👁️ 实时预览</h2>
+        <div id="outputDisplay" class="output-display">
+          输入LaTeX公式后，这里将显示渲染结果
+        </div>
+      </div>
+    </div>
+
+    <div class="examples">
+      <h3>💡 常用公式示例</h3>
+      <div class="example-grid">
+        <div class="example-item" data-formula="\frac{-b \pm \sqrt{b^2-4ac}}{2a}">
+          <h4>二次方程求根公式</h4>
+          <p>\frac{-b \pm \sqrt{b^2-4ac}}{2a}</p>
+        </div>
+        <div class="example-item" data-formula="\int_{-\infty}^{\infty} e^{-x^2} dx = \sqrt{\pi}">
+          <h4>高斯积分</h4>
+          <p>\int_{-\infty}^{\infty} e^{-x^2} dx = \sqrt{\pi}</p>
+        </div>
+        <div class="example-item" data-formula="\sum_{n=1}^{\infty} \frac{1}{n^2} = \frac{\pi^2}{6}">
+          <h4>巴塞尔问题</h4>
+          <p>\sum_{n=1}^{\infty} \frac{1}{n^2} = \frac{\pi^2}{6}</p>
+        </div>
+        <div class="example-item" data-formula="\begin{pmatrix} a & b \\ c & d \end{pmatrix}">
+          <h4>2x2矩阵</h4>
+          <p>\begin{pmatrix} a & b \\ c & d \end{pmatrix}</p>
+        </div>
+        <div class="example-item" data-formula="\lim_{x \to 0} \frac{\sin x}{x} = 1">
+          <h4>重要极限</h4>
+          <p>\lim_{x \to 0} \frac{\sin x}{x} = 1</p>
+        </div>
+        <div class="example-item" data-formula="\nabla \cdot \vec{E} = \frac{\rho}{\epsilon_0}">
+          <h4>高斯定律</h4>
+          <p>\nabla \cdot \vec{E} = \frac{\rho}{\epsilon_0}</p>
+        </div>
+        <div class="example-item" data-formula="e^{i\pi} + 1 = 0">
+          <h4>欧拉恒等式</h4>
+          <p>e^{i\pi} + 1 = 0</p>
+        </div>
+        <div class="example-item" data-formula="\binom{n}{k} = \frac{n!}{k!(n-k)!}">
+          <h4>组合数</h4>
+          <p>\binom{n}{k} = \frac{n!}{k!(n-k)!}</p>
+        </div>
+        <div class="example-item" data-formula="\begin{cases} x + y = 1 \\ x - y = 2 \end{cases}">
+          <h4>方程组</h4>
+          <p>\begin{cases} x + y = 1 \\ x - y = 2 \end{cases}</p>
+        </div>
+        <div class="example-item" data-formula="\frac{d}{dx}\left(\int_0^x f(t) dt\right) = f(x)">
+          <h4>微积分基本定理</h4>
+          <p>\frac{d}{dx}\left(\int_0^x f(t) dt\right) = f(x)</p>
+        </div>
+        <div class="example-item" data-formula="\vec{F} = m\vec{a}">
+          <h4>牛顿第二定律</h4>
+          <p>\vec{F} = m\vec{a}</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <span>© <span id="year"></span> 工具箱</span>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    const latexInput = document.getElementById('latexInput');
+    const outputDisplay = document.getElementById('outputDisplay');
+    const renderBtn = document.getElementById('renderBtn');
+    const copyMarkdownBtn = document.getElementById('copyMarkdownBtn');
+    const copyInlineBtn = document.getElementById('copyInlineBtn');
+    const exportPngBtn = document.getElementById('exportPngBtn');
+    const clearBtn = document.getElementById('clearBtn');
+
+    // 示例点击事件
+    document.querySelectorAll('.example-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const formula = item.dataset.formula;
+        latexInput.value = formula;
+        renderFormula();
+      });
+    });
+
+    // 实时渲染
+    let renderTimeout;
+    latexInput.addEventListener('input', () => {
+      clearTimeout(renderTimeout);
+      renderTimeout = setTimeout(renderFormula, 300);
+    });
+
+    // 渲染公式
+    function renderFormula() {
+      const formula = latexInput.value.trim();
+      
+      if (!formula) {
+        outputDisplay.innerHTML = '输入LaTeX公式后，这里将显示渲染结果';
+        outputDisplay.className = 'output-display';
+        return;
+      }
+
+      try {
+        // 检测是否为行内公式
+        const isInline = !formula.includes('\\[') && !formula.includes('\\]') && 
+                        !formula.includes('$$') && !formula.includes('\\begin{');
+        
+        if (isInline) {
+          outputDisplay.innerHTML = `<div class="math-display inline-math">\\(${formula}\\)</div>`;
+        } else {
+          outputDisplay.innerHTML = `<div class="math-display">\\[${formula}\\]</div>`;
+        }
+        
+        outputDisplay.className = 'output-display has-content';
+        
+        // 重新渲染MathJax
+        if (window.MathJax) {
+          MathJax.typesetPromise([outputDisplay]).catch(err => {
+            console.error('MathJax渲染错误:', err);
+            showError('公式渲染失败，请检查语法');
+          });
+        }
+      } catch (error) {
+        console.error('渲染错误:', error);
+        showError('公式渲染失败，请检查语法');
+      }
+    }
+
+    // 显示错误
+    function showError(message) {
+      outputDisplay.innerHTML = message;
+      outputDisplay.className = 'output-display error';
+    }
+
+    // 重新渲染按钮
+    renderBtn.addEventListener('click', renderFormula);
+
+    // 复制Markdown源码
+    copyMarkdownBtn.addEventListener('click', () => {
+      const formula = latexInput.value.trim();
+      if (!formula) {
+        showNotification('请先输入公式');
+        return;
+      }
+
+      const markdown = `$$${formula}$$`;
+      navigator.clipboard.writeText(markdown).then(() => {
+        showNotification('Markdown源码已复制到剪贴板');
+      }).catch(() => {
+        // 降级方案
+        const textArea = document.createElement('textarea');
+        textArea.value = markdown;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        showNotification('Markdown源码已复制到剪贴板');
+      });
+    });
+
+    // 复制行内公式
+    copyInlineBtn.addEventListener('click', () => {
+      const formula = latexInput.value.trim();
+      if (!formula) {
+        showNotification('请先输入公式');
+        return;
+      }
+
+      const inlineMarkdown = `$${formula}$`;
+      navigator.clipboard.writeText(inlineMarkdown).then(() => {
+        showNotification('行内公式已复制到剪贴板');
+      }).catch(() => {
+        // 降级方案
+        const textArea = document.createElement('textarea');
+        textArea.value = inlineMarkdown;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        showNotification('行内公式已复制到剪贴板');
+      });
+    });
+
+    // 导出PNG图片
+    exportPngBtn.addEventListener('click', () => {
+      const formula = latexInput.value.trim();
+      if (!formula) {
+        showNotification('请先输入公式');
+        return;
+      }
+
+      // 等待MathJax渲染完成
+      if (window.MathJax) {
+        MathJax.typesetPromise([outputDisplay]).then(() => {
+          setTimeout(() => {
+            exportToPng();
+          }, 100);
+        }).catch(err => {
+          console.error('导出前渲染失败:', err);
+          showNotification('导出失败，请检查公式语法');
+        });
+      } else {
+        exportToPng();
+      }
+    });
+
+    // 导出PNG的具体实现
+    function exportToPng() {
+      try {
+        // 使用html2canvas库导出
+        if (typeof html2canvas !== 'undefined') {
+          // 临时设置背景为白色以确保导出效果
+          const originalBg = outputDisplay.style.backgroundColor;
+          outputDisplay.style.backgroundColor = '#ffffff';
+          
+          html2canvas(outputDisplay, {
+            backgroundColor: '#ffffff',
+            scale: 3, // 提高分辨率
+            useCORS: true,
+            allowTaint: true,
+            logging: false
+          }).then(canvas => {
+            // 恢复原始背景
+            outputDisplay.style.backgroundColor = originalBg;
+            
+            const link = document.createElement('a');
+            link.download = 'math-formula.png';
+            link.href = canvas.toDataURL('image/png', 1.0);
+            link.click();
+            
+            showNotification('PNG图片导出成功！');
+          }).catch(error => {
+            outputDisplay.style.backgroundColor = originalBg;
+            console.error('html2canvas导出失败:', error);
+            showNotification('导出失败，请手动截图保存');
+          });
+        } else {
+          showNotification('导出功能加载中，请稍后重试');
+        }
+      } catch (error) {
+        console.error('导出PNG失败:', error);
+        showNotification('导出失败，请手动截图保存');
+      }
+    }
+
+    // 清空按钮
+    clearBtn.addEventListener('click', () => {
+      latexInput.value = '';
+      outputDisplay.innerHTML = '输入LaTeX公式后，这里将显示渲染结果';
+      outputDisplay.className = 'output-display';
+    });
+
+    // 显示通知
+    function showNotification(message) {
+      const notification = document.createElement('div');
+      notification.className = 'copy-success';
+      notification.textContent = message;
+      document.body.appendChild(notification);
+      
+      setTimeout(() => {
+        notification.remove();
+      }, 3000);
+    }
+
+    // 加载html2canvas库（如果用户需要导出PNG）
+    function loadHtml2Canvas() {
+      if (typeof html2canvas === 'undefined') {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
+        script.onload = () => console.log('html2canvas加载完成');
+        script.onerror = () => console.log('html2canvas加载失败');
+        document.head.appendChild(script);
+      }
+    }
+
+    // 页面加载完成后加载必要的库
+    window.addEventListener('load', () => {
+      loadHtml2Canvas();
+    });
+
+    // 快捷键支持
+    document.addEventListener('keydown', (e) => {
+      // Ctrl+Enter: 重新渲染
+      if (e.ctrlKey && e.key === 'Enter') {
+        e.preventDefault();
+        renderFormula();
+      }
+      
+      // Ctrl+Shift+C: 复制Markdown
+      if (e.ctrlKey && e.shiftKey && e.key === 'C') {
+        e.preventDefault();
+        copyMarkdownBtn.click();
+      }
+      
+      // Ctrl+Shift+I: 复制行内公式
+      if (e.ctrlKey && e.shiftKey && e.key === 'I') {
+        e.preventDefault();
+        copyInlineBtn.click();
+      }
+      
+      // Ctrl+Shift+P: 导出PNG
+      if (e.ctrlKey && e.shiftKey && e.key === 'P') {
+        e.preventDefault();
+        exportPngBtn.click();
+      }
+    });
+
+    // 初始渲染
+    renderFormula();
+  </script>
+</body>
+</html>

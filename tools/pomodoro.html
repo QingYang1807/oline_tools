@@ -1,0 +1,690 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>番茄钟待办事项 · 工具箱</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <meta name="color-scheme" content="light dark">
+  <style>
+    .pomodoro-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      margin-top: 24px;
+    }
+    
+    .timer-section, .todo-section {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 2px 8px var(--shadow);
+    }
+    
+    .timer-display {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    
+    .timer-time {
+      font-size: 4rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin: 16px 0;
+      font-family: ui-monospace, monospace;
+    }
+    
+    .timer-mode {
+      font-size: 1.2rem;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    
+    .timer-controls {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      margin-bottom: 24px;
+    }
+    
+    .timer-settings {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    
+    .setting-item {
+      text-align: center;
+    }
+    
+    .setting-item label {
+      display: block;
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    
+    .setting-item input {
+      width: 60px;
+      padding: 8px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--panel-bg);
+      color: var(--fg);
+      text-align: center;
+    }
+    
+    .todo-input {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    
+    .todo-input input {
+      flex: 1;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--panel-bg);
+      color: var(--fg);
+    }
+    
+    .todo-list {
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    
+    .todo-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 8px;
+      background: var(--panel-bg);
+      transition: all 0.2s ease;
+    }
+    
+    .todo-item:hover {
+      border-color: var(--accent);
+    }
+    
+    .todo-item.completed {
+      opacity: 0.6;
+      text-decoration: line-through;
+    }
+    
+    .todo-text {
+      flex: 1;
+      color: var(--fg);
+    }
+    
+    .todo-actions {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .btn-small {
+      padding: 6px 12px;
+      font-size: 0.85rem;
+      border-radius: 6px;
+    }
+    
+    .btn-danger {
+      background: #ef4444;
+      border-color: #ef4444;
+    }
+    
+    .btn-danger:hover {
+      background: #dc2626;
+      border-color: #dc2626;
+    }
+    
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: var(--border);
+      border-radius: 4px;
+      margin: 16px 0;
+      overflow: hidden;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 4px;
+      transition: width 0.5s ease;
+    }
+    
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-top: 24px;
+    }
+    
+    .stat-item {
+      text-align: center;
+      padding: 16px;
+      background: var(--panel-bg);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+    
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+    
+    .stat-label {
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+    
+    @media (max-width: 768px) {
+      .pomodoro-container {
+        grid-template-columns: 1fr;
+        gap: 24px;
+      }
+      
+      .timer-time {
+        font-size: 3rem;
+      }
+      
+      .timer-settings {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+      }
+      
+      .stats {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="../index.html" class="back-link">← 返回工具箱</a>
+      <h1 class="site-title">🍅 番茄钟待办事项</h1>
+      <p class="site-subtitle">专注工作，高效管理任务</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="pomodoro-container">
+      <!-- 番茄钟部分 -->
+      <div class="timer-section">
+        <h2 class="section-title">番茄钟</h2>
+        
+        <div class="timer-display">
+          <div class="timer-mode" id="timerMode">工作时间</div>
+          <div class="timer-time" id="timerTime">25:00</div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+          </div>
+        </div>
+        
+        <div class="timer-controls">
+          <button id="startBtn">开始</button>
+          <button id="pauseBtn" disabled>暂停</button>
+          <button id="resetBtn">重置</button>
+        </div>
+        
+        <div class="timer-settings">
+          <div class="setting-item">
+            <label>工作(分钟)</label>
+            <input type="number" id="workTime" value="25" min="1" max="60">
+          </div>
+          <div class="setting-item">
+            <label>短休息(分钟)</label>
+            <input type="number" id="shortBreak" value="5" min="1" max="30">
+          </div>
+          <div class="setting-item">
+            <label>长休息(分钟)</label>
+            <input type="number" id="longBreak" value="15" min="1" max="60">
+          </div>
+        </div>
+        
+        <div class="stats">
+          <div class="stat-item">
+            <div class="stat-value" id="completedPomodoros">0</div>
+            <div class="stat-label">完成番茄</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="totalFocusTime">0</div>
+            <div class="stat-label">专注时间(分钟)</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="todayPomodoros">0</div>
+            <div class="stat-label">今日番茄</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 待办事项部分 -->
+      <div class="todo-section">
+        <h2 class="section-title">待办事项</h2>
+        
+        <div class="todo-input">
+          <input type="text" id="todoInput" placeholder="输入新任务..." maxlength="100">
+          <button id="addTodoBtn" class="btn-small">添加</button>
+        </div>
+        
+        <div class="todo-list" id="todoList">
+          <!-- 待办事项将在这里动态生成 -->
+        </div>
+        
+        <div class="stats">
+          <div class="stat-item">
+            <div class="stat-value" id="totalTodos">0</div>
+            <div class="stat-label">总任务</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="completedTodos">0</div>
+            <div class="stat-label">已完成</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="pendingTodos">0</div>
+            <div class="stat-label">待完成</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <span>© <span id="year"></span> 工具箱</span>
+    </div>
+  </footer>
+
+  <script>
+    // 番茄钟类
+    class PomodoroTimer {
+      constructor() {
+        this.isRunning = false;
+        this.isPaused = false;
+        this.currentMode = 'work'; // work, shortBreak, longBreak
+        this.timeLeft = 25 * 60; // 秒
+        this.totalTime = 25 * 60;
+        this.completedPomodoros = 0;
+        this.totalFocusTime = 0;
+        this.todayPomodoros = 0;
+        this.interval = null;
+        
+        this.workTime = 25;
+        this.shortBreakTime = 5;
+        this.longBreakTime = 15;
+        
+        this.initElements();
+        this.loadStats();
+        this.updateDisplay();
+        this.bindEvents();
+        
+        // 检查是否是新的一天
+        this.checkNewDay();
+      }
+      
+      initElements() {
+        this.timerModeEl = document.getElementById('timerMode');
+        this.timerTimeEl = document.getElementById('timerTime');
+        this.progressFillEl = document.getElementById('progressFill');
+        this.startBtn = document.getElementById('startBtn');
+        this.pauseBtn = document.getElementById('pauseBtn');
+        this.resetBtn = document.getElementById('resetBtn');
+        this.workTimeInput = document.getElementById('workTime');
+        this.shortBreakInput = document.getElementById('shortBreak');
+        this.longBreakInput = document.getElementById('longBreak');
+        this.completedPomodorosEl = document.getElementById('completedPomodoros');
+        this.totalFocusTimeEl = document.getElementById('totalFocusTime');
+        this.todayPomodorosEl = document.getElementById('todayPomodoros');
+      }
+      
+      bindEvents() {
+        this.startBtn.addEventListener('click', () => this.start());
+        this.pauseBtn.addEventListener('click', () => this.pause());
+        this.resetBtn.addEventListener('click', () => this.reset());
+        
+        this.workTimeInput.addEventListener('change', () => {
+          this.workTime = parseInt(this.workTimeInput.value);
+          if (this.currentMode === 'work' && !this.isRunning) {
+            this.timeLeft = this.workTime * 60;
+            this.totalTime = this.workTime * 60;
+            this.updateDisplay();
+          }
+        });
+        
+        this.shortBreakInput.addEventListener('change', () => {
+          this.shortBreakTime = parseInt(this.shortBreakInput.value);
+        });
+        
+        this.longBreakInput.addEventListener('change', () => {
+          this.longBreakTime = parseInt(this.longBreakInput.value);
+        });
+      }
+      
+      start() {
+        this.isRunning = true;
+        this.isPaused = false;
+        this.startBtn.disabled = true;
+        this.pauseBtn.disabled = false;
+        
+        this.interval = setInterval(() => {
+          this.timeLeft--;
+          this.updateDisplay();
+          
+          if (this.timeLeft <= 0) {
+            this.complete();
+          }
+        }, 1000);
+      }
+      
+      pause() {
+        this.isRunning = false;
+        this.isPaused = true;
+        this.startBtn.disabled = false;
+        this.pauseBtn.disabled = true;
+        
+        clearInterval(this.interval);
+      }
+      
+      reset() {
+        this.isRunning = false;
+        this.isPaused = false;
+        this.startBtn.disabled = false;
+        this.pauseBtn.disabled = true;
+        
+        clearInterval(this.interval);
+        
+        if (this.currentMode === 'work') {
+          this.timeLeft = this.workTime * 60;
+          this.totalTime = this.workTime * 60;
+        } else if (this.currentMode === 'shortBreak') {
+          this.timeLeft = this.shortBreakTime * 60;
+          this.totalTime = this.shortBreakTime * 60;
+        } else {
+          this.timeLeft = this.longBreakTime * 60;
+          this.totalTime = this.longBreakTime * 60;
+        }
+        
+        this.updateDisplay();
+      }
+      
+      complete() {
+        this.isRunning = false;
+        this.startBtn.disabled = false;
+        this.pauseBtn.disabled = true;
+        
+        clearInterval(this.interval);
+        
+        // 播放提示音（如果浏览器支持）
+        this.playNotificationSound();
+        
+        if (this.currentMode === 'work') {
+          this.completedPomodoros++;
+          this.todayPomodoros++;
+          this.totalFocusTime += this.workTime;
+          
+          // 每4个番茄钟后是长休息
+          if (this.completedPomodoros % 4 === 0) {
+            this.switchToMode('longBreak');
+          } else {
+            this.switchToMode('shortBreak');
+          }
+          
+          this.showNotification('工作时间结束！', '该休息一下了~');
+        } else {
+          this.switchToMode('work');
+          this.showNotification('休息时间结束！', '开始新的工作吧！');
+        }
+        
+        this.saveStats();
+        this.updateStatsDisplay();
+      }
+      
+      switchToMode(mode) {
+        this.currentMode = mode;
+        
+        if (mode === 'work') {
+          this.timeLeft = this.workTime * 60;
+          this.totalTime = this.workTime * 60;
+          this.timerModeEl.textContent = '工作时间';
+        } else if (mode === 'shortBreak') {
+          this.timeLeft = this.shortBreakTime * 60;
+          this.totalTime = this.shortBreakTime * 60;
+          this.timerModeEl.textContent = '短休息';
+        } else {
+          this.timeLeft = this.longBreakTime * 60;
+          this.totalTime = this.longBreakTime * 60;
+          this.timerModeEl.textContent = '长休息';
+        }
+        
+        this.updateDisplay();
+      }
+      
+      updateDisplay() {
+        const minutes = Math.floor(this.timeLeft / 60);
+        const seconds = this.timeLeft % 60;
+        this.timerTimeEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        
+        const progress = ((this.totalTime - this.timeLeft) / this.totalTime) * 100;
+        this.progressFillEl.style.width = `${progress}%`;
+      }
+      
+      updateStatsDisplay() {
+        this.completedPomodorosEl.textContent = this.completedPomodoros;
+        this.totalFocusTimeEl.textContent = this.totalFocusTime;
+        this.todayPomodorosEl.textContent = this.todayPomodoros;
+      }
+      
+      saveStats() {
+        const stats = {
+          completedPomodoros: this.completedPomodoros,
+          totalFocusTime: this.totalFocusTime,
+          todayPomodoros: this.todayPomodoros,
+          lastDate: new Date().toDateString()
+        };
+        localStorage.setItem('pomodoroStats', JSON.stringify(stats));
+      }
+      
+      loadStats() {
+        const saved = localStorage.getItem('pomodoroStats');
+        if (saved) {
+          const stats = JSON.parse(saved);
+          this.completedPomodoros = stats.completedPomodoros || 0;
+          this.totalFocusTime = stats.totalFocusTime || 0;
+          this.todayPomodoros = stats.todayPomodoros || 0;
+          this.updateStatsDisplay();
+        }
+      }
+      
+      checkNewDay() {
+        const saved = localStorage.getItem('pomodoroStats');
+        if (saved) {
+          const stats = JSON.parse(saved);
+          const lastDate = stats.lastDate;
+          const today = new Date().toDateString();
+          
+          if (lastDate !== today) {
+            this.todayPomodoros = 0;
+            this.saveStats();
+            this.updateStatsDisplay();
+          }
+        }
+      }
+      
+      playNotificationSound() {
+        try {
+          const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+          const oscillator = audioContext.createOscillator();
+          const gainNode = audioContext.createGain();
+          
+          oscillator.connect(gainNode);
+          gainNode.connect(audioContext.destination);
+          
+          oscillator.frequency.value = 800;
+          oscillator.type = 'sine';
+          
+          gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1);
+          
+          oscillator.start(audioContext.currentTime);
+          oscillator.stop(audioContext.currentTime + 1);
+        } catch (e) {
+          console.log('无法播放提示音');
+        }
+      }
+      
+      showNotification(title, body) {
+        if ('Notification' in window && Notification.permission === 'granted') {
+          new Notification(title, { body, icon: '/favicon.ico' });
+        } else if ('Notification' in window && Notification.permission !== 'denied') {
+          Notification.requestPermission().then(permission => {
+            if (permission === 'granted') {
+              new Notification(title, { body, icon: '/favicon.ico' });
+            }
+          });
+        }
+      }
+    }
+    
+    // 待办事项类
+    class TodoList {
+      constructor() {
+        this.todos = [];
+        this.nextId = 1;
+        
+        this.initElements();
+        this.loadTodos();
+        this.bindEvents();
+        this.updateDisplay();
+      }
+      
+      initElements() {
+        this.todoInput = document.getElementById('todoInput');
+        this.addTodoBtn = document.getElementById('addTodoBtn');
+        this.todoList = document.getElementById('todoList');
+        this.totalTodosEl = document.getElementById('totalTodos');
+        this.completedTodosEl = document.getElementById('completedTodos');
+        this.pendingTodosEl = document.getElementById('pendingTodos');
+      }
+      
+      bindEvents() {
+        this.addTodoBtn.addEventListener('click', () => this.addTodo());
+        this.todoInput.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            this.addTodo();
+          }
+        });
+      }
+      
+      addTodo() {
+        const text = this.todoInput.value.trim();
+        if (!text) return;
+        
+        const todo = {
+          id: this.nextId++,
+          text: text,
+          completed: false,
+          createdAt: new Date().toISOString()
+        };
+        
+        this.todos.push(todo);
+        this.todoInput.value = '';
+        this.saveTodos();
+        this.updateDisplay();
+      }
+      
+      toggleTodo(id) {
+        const todo = this.todos.find(t => t.id === id);
+        if (todo) {
+          todo.completed = !todo.completed;
+          this.saveTodos();
+          this.updateDisplay();
+        }
+      }
+      
+      deleteTodo(id) {
+        this.todos = this.todos.filter(t => t.id !== id);
+        this.saveTodos();
+        this.updateDisplay();
+      }
+      
+      updateDisplay() {
+        this.todoList.innerHTML = '';
+        
+        this.todos.forEach(todo => {
+          const todoEl = document.createElement('div');
+          todoEl.className = `todo-item ${todo.completed ? 'completed' : ''}`;
+          
+          todoEl.innerHTML = `
+            <input type="checkbox" ${todo.completed ? 'checked' : ''} 
+                   onchange="todoList.toggleTodo(${todo.id})">
+            <span class="todo-text">${this.escapeHtml(todo.text)}</span>
+            <div class="todo-actions">
+              <button class="btn-small btn-danger" onclick="todoList.deleteTodo(${todo.id})">删除</button>
+            </div>
+          `;
+          
+          this.todoList.appendChild(todoEl);
+        });
+        
+        this.updateStats();
+      }
+      
+      updateStats() {
+        const total = this.todos.length;
+        const completed = this.todos.filter(t => t.completed).length;
+        const pending = total - completed;
+        
+        this.totalTodosEl.textContent = total;
+        this.completedTodosEl.textContent = completed;
+        this.pendingTodosEl.textContent = pending;
+      }
+      
+      saveTodos() {
+        const data = {
+          todos: this.todos,
+          nextId: this.nextId
+        };
+        localStorage.setItem('pomodoroTodos', JSON.stringify(data));
+      }
+      
+      loadTodos() {
+        const saved = localStorage.getItem('pomodoroTodos');
+        if (saved) {
+          const data = JSON.parse(saved);
+          this.todos = data.todos || [];
+          this.nextId = data.nextId || 1;
+        }
+      }
+      
+      escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+      }
+    }
+    
+    // 初始化应用
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('year').textContent = new Date().getFullYear();
+      
+      // 请求通知权限
+      if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+      }
+      
+      // 初始化番茄钟和待办事项
+      window.pomodoroTimer = new PomodoroTimer();
+      window.todoList = new TodoList();
+    });
+  </script>
+</body>
+</html>

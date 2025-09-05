@@ -1,0 +1,595 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>轻量化日历 · 工具箱</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <meta name="color-scheme" content="light dark">
+  <style>
+    .calendar-container {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 2px 8px var(--shadow);
+    }
+    
+    .calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+    
+    .calendar-nav {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+    
+    .calendar-nav button {
+      padding: 8px 12px;
+      font-size: 14px;
+    }
+    
+    .current-month {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--fg);
+    }
+    
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    
+    .calendar-day-header {
+      background: var(--panel-bg);
+      padding: 12px 8px;
+      text-align: center;
+      font-weight: 600;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    
+    .calendar-day {
+      background: var(--card);
+      min-height: 80px;
+      padding: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+    
+    .calendar-day:hover {
+      background: var(--panel-bg);
+    }
+    
+    .calendar-day.other-month {
+      color: var(--muted);
+      opacity: 0.5;
+    }
+    
+    .calendar-day.today {
+      background: var(--accent);
+      color: white;
+    }
+    
+    .calendar-day.today:hover {
+      background: var(--accent-hover);
+    }
+    
+    .day-number {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    
+    .day-events {
+      font-size: 12px;
+      line-height: 1.2;
+    }
+    
+    .event-dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      background: var(--accent);
+      border-radius: 50%;
+      margin-right: 4px;
+    }
+    
+    .calendar-day.today .event-dot {
+      background: white;
+    }
+    
+    .plans-panel {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 2px 8px var(--shadow);
+    }
+    
+    .plans-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    
+    .selected-date {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--fg);
+    }
+    
+    .plans-input {
+      width: 100%;
+      min-height: 100px;
+      padding: 16px;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      background: var(--panel-bg);
+      color: var(--fg);
+      font-family: inherit;
+      font-size: 14px;
+      line-height: 1.5;
+      resize: vertical;
+      transition: border-color 0.2s ease;
+    }
+    
+    .plans-input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    
+    .plans-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+    }
+    
+    .plans-actions button {
+      flex: 1;
+    }
+    
+    .plans-actions button.secondary {
+      background: transparent;
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+    
+    .plans-actions button.secondary:hover {
+      background: var(--accent);
+      color: white;
+    }
+    
+    .quick-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+    
+    .quick-action {
+      padding: 6px 12px;
+      background: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      color: var(--muted);
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .quick-action:hover {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+    
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-top: 24px;
+    }
+    
+    .stat-card {
+      background: var(--panel-bg);
+      padding: 16px;
+      border-radius: 12px;
+      text-align: center;
+    }
+    
+    .stat-number {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+    
+    .stat-label {
+      color: var(--muted);
+      font-size: 14px;
+    }
+    
+    @media (max-width: 768px) {
+      .calendar-container,
+      .plans-panel {
+        padding: 16px;
+      }
+      
+      .calendar-header {
+        flex-direction: column;
+        gap: 16px;
+        align-items: stretch;
+      }
+      
+      .calendar-nav {
+        justify-content: center;
+      }
+      
+      .calendar-day {
+        min-height: 60px;
+        padding: 6px;
+      }
+      
+      .day-number {
+        font-size: 14px;
+      }
+      
+      .day-events {
+        font-size: 11px;
+      }
+      
+      .stats {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <a href="../index.html" class="back-link">← 返回工具箱</a>
+        <h1 class="site-title">📅 轻量化日历</h1>
+      </div>
+      <p class="site-subtitle">简洁的日历应用，支持在网页中写下计划</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="calendar-container">
+      <div class="calendar-header">
+        <div class="calendar-nav">
+          <button onclick="previousMonth()">← 上月</button>
+          <button onclick="goToToday()">今天</button>
+          <button onclick="nextMonth()">下月 →</button>
+        </div>
+        <div class="current-month" id="currentMonth"></div>
+      </div>
+      
+      <div class="calendar-grid" id="calendarGrid">
+        <!-- 日历内容将通过JavaScript生成 -->
+      </div>
+    </div>
+
+    <div class="plans-panel">
+      <div class="plans-header">
+        <div class="selected-date" id="selectedDate">选择日期</div>
+        <div id="dateInfo"></div>
+      </div>
+      
+      <textarea 
+        class="plans-input" 
+        id="plansInput" 
+        placeholder="在这里写下你的计划..."
+      ></textarea>
+      
+      <div class="plans-actions">
+        <button onclick="savePlans()">💾 保存计划</button>
+        <button class="secondary" onclick="clearPlans()">🗑️ 清空</button>
+      </div>
+      
+      <div class="quick-actions">
+        <span class="quick-action" onclick="addQuickPlan('开会')">开会</span>
+        <span class="quick-action" onclick="addQuickPlan('写代码')">写代码</span>
+        <span class="quick-action" onclick="addQuickPlan('学习')">学习</span>
+        <span class="quick-action" onclick="addQuickPlan('运动')">运动</span>
+        <span class="quick-action" onclick="addQuickPlan('休息')">休息</span>
+        <span class="quick-action" onclick="addQuickPlan('购物')">购物</span>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-number" id="totalPlans">0</div>
+        <div class="stat-label">总计划数</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="thisMonthPlans">0</div>
+        <div class="stat-label">本月计划</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="completedPlans">0</div>
+        <div class="stat-label">已完成</div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <span>© <span id="year"></span> 工具箱</span>
+    </div>
+  </footer>
+
+  <script>
+    // 全局变量
+    let currentDate = new Date();
+    let selectedDate = new Date();
+    let plans = {};
+
+    // 初始化
+    document.addEventListener('DOMContentLoaded', function() {
+      document.getElementById('year').textContent = new Date().getFullYear();
+      loadPlans();
+      renderCalendar();
+      updateStats();
+    });
+
+    // 加载计划数据
+    function loadPlans() {
+      const saved = localStorage.getItem('calendar_plans');
+      if (saved) {
+        plans = JSON.parse(saved);
+      }
+    }
+
+    // 保存计划数据
+    function savePlans() {
+      const dateKey = formatDateKey(selectedDate);
+      const plansText = document.getElementById('plansInput').value.trim();
+      
+      if (plansText) {
+        plans[dateKey] = {
+          text: plansText,
+          timestamp: Date.now(),
+          completed: false
+        };
+      } else {
+        delete plans[dateKey];
+      }
+      
+      localStorage.setItem('calendar_plans', JSON.stringify(plans));
+      renderCalendar();
+      updateStats();
+      
+      // 显示保存成功提示
+      const button = document.querySelector('.plans-actions button');
+      const originalText = button.textContent;
+      button.textContent = '✅ 已保存';
+      button.style.background = '#10b981';
+      button.style.borderColor = '#10b981';
+      
+      setTimeout(() => {
+        button.textContent = originalText;
+        button.style.background = '';
+        button.style.borderColor = '';
+      }, 2000);
+    }
+
+    // 清空计划
+    function clearPlans() {
+      if (confirm('确定要清空这个日期的所有计划吗？')) {
+        document.getElementById('plansInput').value = '';
+        const dateKey = formatDateKey(selectedDate);
+        delete plans[dateKey];
+        localStorage.setItem('calendar_plans', JSON.stringify(plans));
+        renderCalendar();
+        updateStats();
+      }
+    }
+
+    // 添加快速计划
+    function addQuickPlan(planText) {
+      const input = document.getElementById('plansInput');
+      const currentValue = input.value.trim();
+      if (currentValue) {
+        input.value = currentValue + '\n• ' + planText;
+      } else {
+        input.value = '• ' + planText;
+      }
+      input.focus();
+    }
+
+    // 渲染日历
+    function renderCalendar() {
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth();
+      
+      // 更新月份显示
+      const monthNames = ['一月', '二月', '三月', '四月', '五月', '六月', 
+                         '七月', '八月', '九月', '十月', '十一月', '十二月'];
+      document.getElementById('currentMonth').textContent = `${year}年 ${monthNames[month]}`;
+      
+      // 生成日历网格
+      const grid = document.getElementById('calendarGrid');
+      grid.innerHTML = '';
+      
+      // 添加星期标题
+      const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+      weekdays.forEach(day => {
+        const dayHeader = document.createElement('div');
+        dayHeader.className = 'calendar-day-header';
+        dayHeader.textContent = day;
+        grid.appendChild(dayHeader);
+      });
+      
+      // 计算日历数据
+      const firstDay = new Date(year, month, 1);
+      const lastDay = new Date(year, month + 1, 0);
+      const startDate = new Date(firstDay);
+      startDate.setDate(startDate.getDate() - firstDay.getDay());
+      
+      // 生成日期单元格
+      for (let i = 0; i < 42; i++) {
+        const date = new Date(startDate);
+        date.setDate(startDate.getDate() + i);
+        
+        const dayCell = document.createElement('div');
+        dayCell.className = 'calendar-day';
+        
+        // 判断是否是当前月份
+        if (date.getMonth() !== month) {
+          dayCell.classList.add('other-month');
+        }
+        
+        // 判断是否是今天
+        const today = new Date();
+        if (date.toDateString() === today.toDateString()) {
+          dayCell.classList.add('today');
+        }
+        
+        // 判断是否是选中的日期
+        if (date.toDateString() === selectedDate.toDateString()) {
+          dayCell.style.border = '2px solid var(--accent)';
+        }
+        
+        // 添加日期数字
+        const dayNumber = document.createElement('div');
+        dayNumber.className = 'day-number';
+        dayNumber.textContent = date.getDate();
+        dayCell.appendChild(dayNumber);
+        
+        // 添加计划指示器
+        const dateKey = formatDateKey(date);
+        if (plans[dateKey] && plans[dateKey].text) {
+          const eventDot = document.createElement('div');
+          eventDot.className = 'event-dot';
+          dayCell.appendChild(eventDot);
+          
+          const dayEvents = document.createElement('div');
+          dayEvents.className = 'day-events';
+          const planText = plans[dateKey].text;
+          const shortText = planText.length > 20 ? planText.substring(0, 20) + '...' : planText;
+          dayEvents.textContent = shortText;
+          dayCell.appendChild(dayEvents);
+        }
+        
+        // 添加点击事件
+        dayCell.addEventListener('click', () => selectDate(date));
+        
+        grid.appendChild(dayCell);
+      }
+    }
+
+    // 选择日期
+    function selectDate(date) {
+      selectedDate = date;
+      renderCalendar();
+      updatePlansDisplay();
+    }
+
+    // 更新计划显示
+    function updatePlansDisplay() {
+      const dateKey = formatDateKey(selectedDate);
+      const input = document.getElementById('plansInput');
+      
+      if (plans[dateKey]) {
+        input.value = plans[dateKey].text;
+      } else {
+        input.value = '';
+      }
+      
+      // 更新选中日期显示
+      const dateStr = selectedDate.toLocaleDateString('zh-CN', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        weekday: 'long'
+      });
+      document.getElementById('selectedDate').textContent = dateStr;
+      
+      // 更新日期信息
+      const today = new Date();
+      const diffTime = Math.abs(selectedDate - today);
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      let dateInfo = '';
+      if (diffDays === 0) {
+        dateInfo = '今天';
+      } else if (diffDays === 1) {
+        dateInfo = selectedDate > today ? '明天' : '昨天';
+      } else if (diffDays <= 7) {
+        dateInfo = selectedDate > today ? `${diffDays}天后` : `${diffDays}天前`;
+      }
+      
+      document.getElementById('dateInfo').textContent = dateInfo;
+    }
+
+    // 更新统计信息
+    function updateStats() {
+      const totalPlans = Object.keys(plans).length;
+      const thisMonth = currentDate.getFullYear() + '-' + String(currentDate.getMonth() + 1).padStart(2, '0');
+      const thisMonthPlans = Object.keys(plans).filter(key => key.startsWith(thisMonth)).length;
+      const completedPlans = Object.values(plans).filter(plan => plan.completed).length;
+      
+      document.getElementById('totalPlans').textContent = totalPlans;
+      document.getElementById('thisMonthPlans').textContent = thisMonthPlans;
+      document.getElementById('completedPlans').textContent = completedPlans;
+    }
+
+    // 导航函数
+    function previousMonth() {
+      currentDate.setMonth(currentDate.getMonth() - 1);
+      renderCalendar();
+    }
+
+    function nextMonth() {
+      currentDate.setMonth(currentDate.getMonth() + 1);
+      renderCalendar();
+    }
+
+    function goToToday() {
+      currentDate = new Date();
+      selectedDate = new Date();
+      renderCalendar();
+      updatePlansDisplay();
+    }
+
+    // 工具函数
+    function formatDateKey(date) {
+      return date.getFullYear() + '-' + 
+             String(date.getMonth() + 1).padStart(2, '0') + '-' + 
+             String(date.getDate()).padStart(2, '0');
+    }
+
+    // 键盘快捷键
+    document.addEventListener('keydown', function(e) {
+      if (e.ctrlKey || e.metaKey) {
+        switch(e.key) {
+          case 's':
+            e.preventDefault();
+            savePlans();
+            break;
+          case 'ArrowLeft':
+            e.preventDefault();
+            previousMonth();
+            break;
+          case 'ArrowRight':
+            e.preventDefault();
+            nextMonth();
+            break;
+        }
+      }
+    });
+  </script>
+</body>
+</html>

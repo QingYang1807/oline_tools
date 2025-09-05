@@ -4,6 +4,7 @@
 
 - Mermaid 可视化渲染器：`/tools/mermaid.html`
 - Markdown 在线编辑器：`/tools/markdown-editor.html`
+- 轻量化日历：`/tools/calendar.html`
 
 ## 使用
 
@@ -17,6 +18,7 @@
 - 护眼黄主题（自动适配系统暗色）
 - Mermaid 实时渲染、下载 PNG / SVG / PDF
 - Markdown 编辑器：实时预览、PDF 导出、本地保存
+- 轻量化日历：支持计划管理、LocalStorage 存储
 
 ## 部署
 
@@ -35,6 +37,7 @@
 ├── tools/
 │   ├── mermaid.html          # Mermaid 工具页面
 │   └── markdown-editor.html  # Markdown 编辑器
+│   └── calendar.html         # 轻量化日历工具
 └── assets/
     └── css/
         ├── style.css         # 主题与样式

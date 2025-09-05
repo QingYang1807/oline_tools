@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mermaid 可视化渲染器</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            min-height: 600px;
+        }
+
+        .editor-panel {
+            padding: 30px;
+            background: #f8f9fa;
+            border-right: 1px solid #e9ecef;
+        }
+
+        .preview-panel {
+            padding: 30px;
+            background: white;
+            position: relative;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+            font-size: 1.1em;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 400px;
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #4facfe;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(79, 172, 254, 0.3);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(86, 171, 47, 0.3);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .preview-container {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            min-height: 400px;
+            position: relative;
+            overflow: auto;
+        }
+
+        .mermaid {
+            text-align: center;
+        }
+
+        .status-message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 500;
+            display: none;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .examples {
+            margin-top: 20px;
+        }
+
+        .example-btn {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            color: #495057;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            cursor: pointer;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .example-btn:hover {
+            background: #e9ecef;
+            transform: translateY(-1px);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #4facfe;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .copy-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+
+        .copy-notification.show {
+            transform: translateX(0);
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .editor-panel {
+                border-right: none;
+                border-bottom: 1px solid #e9ecef;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎨 Mermaid 可视化渲染器</h1>
+            <p>支持将 Mermaid 图表渲染为白色背景图片并直接复制到剪贴板</p>
+        </div>
+
+        <div class="main-content">
+            <div class="editor-panel">
+                <div class="form-group">
+                    <label for="mermaidCode">Mermaid 代码</label>
+                    <textarea id="mermaidCode" placeholder="在此输入您的 Mermaid 代码...">graph TD
+    A[开始] --> B{是否登录?}
+    B -->|是| C[显示主页]
+    B -->|否| D[显示登录页]
+    D --> E[用户登录]
+    E --> F{登录成功?}
+    F -->|是| C
+    F -->|否| G[显示错误信息]
+    G --> D
+    C --> H[结束]</textarea>
+                </div>
+
+                <div class="examples">
+                    <label>快速示例：</label>
+                    <button class="example-btn" onclick="loadExample('flowchart')">流程图</button>
+                    <button class="example-btn" onclick="loadExample('sequence')">时序图</button>
+                    <button class="example-btn" onclick="loadExample('gantt')">甘特图</button>
+                    <button class="example-btn" onclick="loadExample('pie')">饼图</button>
+                    <button class="example-btn" onclick="loadExample('mindmap')">思维导图</button>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="renderMermaid()">
+                        <span>🔄</span> 渲染图表
+                    </button>
+                    <button class="btn btn-success" onclick="copyAsImage()">
+                        <span>📋</span> 复制为图片
+                    </button>
+                    <button class="btn btn-secondary" onclick="downloadImage()">
+                        <span>💾</span> 下载图片
+                    </button>
+                </div>
+
+                <div id="statusMessage" class="status-message"></div>
+            </div>
+
+            <div class="preview-panel">
+                <label>预览</label>
+                <div class="preview-container">
+                    <div id="loading" class="loading">
+                        <div class="spinner"></div>
+                        <p>正在渲染图表...</p>
+                    </div>
+                    <div id="mermaidContainer"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="copyNotification" class="copy-notification">
+        ✅ 图片已复制到剪贴板！
+    </div>
+
+    <script>
+        // 初始化 Mermaid
+        mermaid.initialize({
+            startOnLoad: false,
+            theme: 'default',
+            themeVariables: {
+                primaryColor: '#4facfe',
+                primaryTextColor: '#333',
+                primaryBorderColor: '#4facfe',
+                lineColor: '#666',
+                sectionBkgColor: '#f8f9fa',
+                altSectionBkgColor: '#e9ecef',
+                gridColor: '#dee2e6',
+                secondaryColor: '#00f2fe',
+                tertiaryColor: '#ffffff'
+            },
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true
+            }
+        });
+
+        // 示例代码
+        const examples = {
+            flowchart: `graph TD
+    A[开始] --> B{是否登录?}
+    B -->|是| C[显示主页]
+    B -->|否| D[显示登录页]
+    D --> E[用户登录]
+    E --> F{登录成功?}
+    F -->|是| C
+    F -->|否| G[显示错误信息]
+    G --> D
+    C --> H[结束]`,
+            
+            sequence: `sequenceDiagram
+    participant U as 用户
+    participant F as 前端
+    participant B as 后端
+    participant D as 数据库
+    
+    U->>F: 登录请求
+    F->>B: 验证用户信息
+    B->>D: 查询用户数据
+    D-->>B: 返回用户信息
+    B-->>F: 返回验证结果
+    F-->>U: 显示登录状态`,
+            
+            gantt: `gantt
+    title 项目开发计划
+    dateFormat  YYYY-MM-DD
+    section 需求分析
+    需求收集           :done,    des1, 2024-01-01,2024-01-05
+    需求分析           :done,    des2, 2024-01-06, 3d
+    section 设计阶段
+    系统设计           :active,  des3, 2024-01-10, 5d
+    界面设计           :         des4, after des3, 3d
+    section 开发阶段
+    后端开发           :         des5, 2024-01-20, 10d
+    前端开发           :         des6, 2024-01-25, 8d
+    测试               :         des7, 2024-02-05, 5d`,
+            
+            pie: `pie title 技术栈使用情况
+    "JavaScript" : 35
+    "Python" : 25
+    "Java" : 20
+    "Go" : 10
+    "其他" : 10`,
+            
+            mindmap: `mindmap
+  root((Mermaid 图表类型))
+    流程图
+      基础流程图
+      子图
+      样式
+    时序图
+      参与者
+      消息
+      激活
+    甘特图
+      任务
+      里程碑
+      依赖关系
+    饼图
+      数据展示
+      百分比
+    思维导图
+      节点
+      连接
+      层级`
+        };
+
+        function loadExample(type) {
+            document.getElementById('mermaidCode').value = examples[type];
+            renderMermaid();
+        }
+
+        function showStatus(message, type = 'success') {
+            const statusEl = document.getElementById('statusMessage');
+            statusEl.textContent = message;
+            statusEl.className = `status-message status-${type}`;
+            statusEl.style.display = 'block';
+            
+            setTimeout(() => {
+                statusEl.style.display = 'none';
+            }, 3000);
+        }
+
+        function showLoading(show = true) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+        }
+
+        async function renderMermaid() {
+            const code = document.getElementById('mermaidCode').value.trim();
+            const container = document.getElementById('mermaidContainer');
+            
+            if (!code) {
+                showStatus('请输入 Mermaid 代码', 'error');
+                return;
+            }
+
+            showLoading(true);
+            container.innerHTML = '';
+
+            try {
+                // 生成唯一ID
+                const id = 'mermaid-' + Date.now();
+                
+                // 渲染 Mermaid 图表
+                const { svg } = await mermaid.render(id, code);
+                container.innerHTML = svg;
+                
+                showStatus('图表渲染成功！', 'success');
+            } catch (error) {
+                console.error('Mermaid 渲染错误:', error);
+                container.innerHTML = `<div style="color: #dc3545; padding: 20px; text-align: center;">
+                    <h3>渲染错误</h3>
+                    <p>${error.message}</p>
+                    <p>请检查您的 Mermaid 语法是否正确。</p>
+                </div>`;
+                showStatus('渲染失败：' + error.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function copyAsImage() {
+            const container = document.getElementById('mermaidContainer');
+            
+            if (!container.innerHTML || container.innerHTML.trim() === '') {
+                showStatus('请先渲染图表', 'error');
+                return;
+            }
+
+            try {
+                showLoading(true);
+                
+                // 使用 html2canvas 将 SVG 转换为图片
+                const canvas = await html2canvas(container, {
+                    backgroundColor: '#ffffff',
+                    scale: 2, // 提高图片质量
+                    useCORS: true,
+                    allowTaint: true,
+                    width: container.scrollWidth,
+                    height: container.scrollHeight
+                });
+
+                // 将 canvas 转换为 blob
+                canvas.toBlob(async (blob) => {
+                    try {
+                        // 复制到剪贴板
+                        await navigator.clipboard.write([
+                            new ClipboardItem({
+                                'image/png': blob
+                            })
+                        ]);
+                        
+                        showCopyNotification();
+                        showStatus('图片已复制到剪贴板！', 'success');
+                    } catch (clipboardError) {
+                        console.error('复制失败:', clipboardError);
+                        showStatus('复制失败，请尝试下载图片', 'error');
+                    }
+                }, 'image/png', 0.95);
+
+            } catch (error) {
+                console.error('生成图片失败:', error);
+                showStatus('生成图片失败：' + error.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function downloadImage() {
+            const container = document.getElementById('mermaidContainer');
+            
+            if (!container.innerHTML || container.innerHTML.trim() === '') {
+                showStatus('请先渲染图表', 'error');
+                return;
+            }
+
+            try {
+                showLoading(true);
+                
+                // 使用 html2canvas 将 SVG 转换为图片
+                const canvas = await html2canvas(container, {
+                    backgroundColor: '#ffffff',
+                    scale: 2,
+                    useCORS: true,
+                    allowTaint: true,
+                    width: container.scrollWidth,
+                    height: container.scrollHeight
+                });
+
+                // 下载图片
+                const link = document.createElement('a');
+                link.download = `mermaid-diagram-${Date.now()}.png`;
+                link.href = canvas.toDataURL('image/png', 0.95);
+                link.click();
+                
+                showStatus('图片下载成功！', 'success');
+            } catch (error) {
+                console.error('下载失败:', error);
+                showStatus('下载失败：' + error.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function showCopyNotification() {
+            const notification = document.getElementById('copyNotification');
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 2000);
+        }
+
+        // 页面加载完成后自动渲染默认示例
+        document.addEventListener('DOMContentLoaded', function() {
+            renderMermaid();
+        });
+
+        // 添加键盘快捷键
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey || e.metaKey) {
+                switch(e.key) {
+                    case 'Enter':
+                        e.preventDefault();
+                        renderMermaid();
+                        break;
+                    case 's':
+                        e.preventDefault();
+                        copyAsImage();
+                        break;
+                }
+            }
+        });
+    </script>
+</body>
+</html>

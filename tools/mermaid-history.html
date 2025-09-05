@@ -1,0 +1,1187 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mermaid 可视化渲染器 - 历史记录版</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 10px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 8px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1em;
+            opacity: 0.9;
+        }
+
+        .history-toggle {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,0.2);
+            border: 2px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .history-toggle:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0;
+            min-height: 600px;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+        }
+
+        .editor-panel {
+            padding: 20px;
+            background: #f8f9fa;
+            border-right: 1px solid #e9ecef;
+        }
+
+        .preview-panel {
+            padding: 20px;
+            background: white;
+            position: relative;
+        }
+
+        .history-panel {
+            display: none;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            padding: 20px;
+        }
+
+        .history-panel.show {
+            display: block;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .history-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .history-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .history-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .history-item:hover {
+            border-color: #4facfe;
+            box-shadow: 0 2px 8px rgba(79, 172, 254, 0.1);
+        }
+
+        .history-item.active {
+            border-color: #4facfe;
+            background: #f0f8ff;
+        }
+
+        .history-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .history-item-title {
+            font-weight: 600;
+            color: #495057;
+            font-size: 14px;
+            flex: 1;
+            margin-right: 10px;
+        }
+
+        .history-item-date {
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .history-item-preview {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 12px;
+            color: #6c757d;
+            background: #f8f9fa;
+            padding: 8px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .history-item-actions {
+            display: flex;
+            gap: 5px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .history-item:hover .history-item-actions {
+            opacity: 1;
+        }
+
+        .history-action-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 5px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .history-action-btn:hover {
+            background: #495057;
+        }
+
+        .history-action-btn.edit {
+            background: #28a745;
+        }
+
+        .history-action-btn.edit:hover {
+            background: #218838;
+        }
+
+        .history-action-btn.delete {
+            background: #dc3545;
+        }
+
+        .history-action-btn.delete:hover {
+            background: #c82333;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+            font-size: 1em;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 350px;
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #4facfe;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+        }
+
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(79, 172, 254, 0.3);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .preview-container {
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            min-height: 400px;
+            background: #ffffff;
+            position: relative;
+            overflow: auto;
+        }
+
+        #mermaidContainer {
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 360px;
+        }
+
+        .status-message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+
+        .status-message.show {
+            transform: translateX(0);
+        }
+
+        .status-message.success {
+            background: #28a745;
+        }
+
+        .status-message.error {
+            background: #dc3545;
+        }
+
+        .status-message.info {
+            background: #17a2b8;
+        }
+
+        .loading {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            z-index: 100;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4facfe;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 手机端适配 */
+        @media (max-width: 768px) {
+            body {
+                padding: 5px;
+            }
+
+            .header {
+                padding: 15px;
+            }
+
+            .header h1 {
+                font-size: 1.5em;
+            }
+
+            .history-toggle {
+                position: static;
+                transform: none;
+                margin-top: 10px;
+                display: block;
+                width: 100%;
+                text-align: center;
+            }
+
+            .content-grid {
+                grid-template-columns: 1fr;
+                gap: 0;
+            }
+
+            .editor-panel,
+            .preview-panel {
+                padding: 15px;
+                border-right: none;
+                border-bottom: 1px solid #e9ecef;
+            }
+
+            .history-list {
+                grid-template-columns: 1fr;
+                max-height: 300px;
+            }
+
+            .history-item {
+                padding: 12px;
+            }
+
+            textarea {
+                min-height: 200px;
+                font-size: 12px;
+            }
+
+            .btn {
+                padding: 10px 15px;
+                font-size: 12px;
+            }
+
+            .button-group {
+                gap: 8px;
+            }
+
+            .preview-container {
+                min-height: 300px;
+            }
+
+            #mermaidContainer {
+                padding: 15px;
+                min-height: 260px;
+            }
+
+            .status-message {
+                position: fixed;
+                top: 10px;
+                left: 10px;
+                right: 10px;
+                transform: translateY(-100px);
+            }
+
+            .status-message.show {
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1.3em;
+            }
+
+            .editor-panel,
+            .preview-panel,
+            .history-panel {
+                padding: 10px;
+            }
+
+            textarea {
+                min-height: 150px;
+            }
+
+            .btn {
+                padding: 8px 12px;
+                font-size: 11px;
+            }
+        }
+
+        /* 全屏模式样式 */
+        .fullscreen-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .fullscreen-content {
+            max-width: 90%;
+            max-height: 90%;
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            overflow: auto;
+            position: relative;
+        }
+
+        .fullscreen-close {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #6c757d;
+            padding: 40px 20px;
+        }
+
+        .empty-state-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>🎨 Mermaid 可视化渲染器</h1>
+            <p>支持历史记录、手机端适配的增强版本</p>
+            <button class="history-toggle" onclick="toggleHistory()">
+                📚 历史记录
+            </button>
+        </header>
+
+        <main class="main-content">
+            <!-- 历史记录面板 -->
+            <div id="historyPanel" class="history-panel">
+                <div class="history-header">
+                    <div class="history-title">历史记录</div>
+                    <div class="history-actions">
+                        <button class="btn btn-secondary" onclick="exportHistory()">导出</button>
+                        <button class="btn btn-danger" onclick="clearAllHistory()">清空</button>
+                    </div>
+                </div>
+                <div id="historyList" class="history-list">
+                    <!-- 历史记录项将在这里动态生成 -->
+                </div>
+            </div>
+
+            <!-- 主要内容区域 -->
+            <div class="content-grid">
+                <!-- 编辑器面板 -->
+                <div class="editor-panel">
+                    <div class="form-group">
+                        <label for="mermaidCode">Mermaid 代码：</label>
+                        <textarea id="mermaidCode" placeholder="在这里输入 Mermaid 代码...
+
+示例：
+graph TD
+    A[开始] --> B{是否登录?}
+    B -->|是| C[显示主页]
+    B -->|否| D[显示登录页]
+    C --> E[结束]
+    D --> E">graph TD
+    A[开始] --> B{是否登录?}
+    B -->|是| C[显示主页]
+    B -->|否| D[显示登录页]
+    C --> E[结束]
+    D --> E</textarea>
+                    </div>
+
+                    <div class="button-group">
+                        <button class="btn btn-primary" onclick="renderMermaid()">
+                            🎨 渲染图表
+                        </button>
+                        <button class="btn btn-success" onclick="saveToHistory()">
+                            💾 保存到历史
+                        </button>
+                        <button class="btn btn-secondary" onclick="copyAsImage()">
+                            📋 复制图片
+                        </button>
+                        <button class="btn btn-secondary" onclick="downloadPNG()">
+                            📥 下载 PNG
+                        </button>
+                        <button class="btn btn-secondary" onclick="downloadSVG()">
+                            📥 下载 SVG
+                        </button>
+                        <button class="btn btn-secondary" onclick="openFullscreen()">
+                            🔍 全屏查看
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 预览面板 -->
+                <div class="preview-panel">
+                    <div class="preview-container">
+                        <div id="mermaidContainer">
+                            <div class="empty-state">
+                                <div class="empty-state-icon">🎨</div>
+                                <p>点击"渲染图表"按钮查看效果</p>
+                            </div>
+                        </div>
+                        <div id="loading" class="loading">
+                            <div class="spinner"></div>
+                            <p>正在渲染...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- 全屏预览覆盖层 -->
+    <div id="fullscreenOverlay" class="fullscreen-overlay">
+        <div class="fullscreen-content">
+            <button class="fullscreen-close" onclick="closeFullscreen()">×</button>
+            <div id="fullscreenContainer"></div>
+        </div>
+    </div>
+
+    <!-- 状态消息 -->
+    <div id="statusMessage" class="status-message"></div>
+
+    <script>
+        // 历史记录管理
+        class HistoryManager {
+            constructor() {
+                this.storageKey = 'mermaid-history';
+                this.maxHistoryItems = 50;
+            }
+
+            // 获取历史记录
+            getHistory() {
+                try {
+                    const history = localStorage.getItem(this.storageKey);
+                    return history ? JSON.parse(history) : [];
+                } catch (error) {
+                    console.error('获取历史记录失败:', error);
+                    return [];
+                }
+            }
+
+            // 保存历史记录项
+            saveItem(code, title = '') {
+                try {
+                    const history = this.getHistory();
+                    const timestamp = new Date().toISOString();
+                    const id = Date.now().toString();
+                    
+                    // 生成标题
+                    if (!title) {
+                        const firstLine = code.split('\n')[0].trim();
+                        title = firstLine.length > 30 ? firstLine.substring(0, 30) + '...' : firstLine;
+                        if (!title) title = '未命名图表';
+                    }
+
+                    const newItem = {
+                        id,
+                        title,
+                        code,
+                        timestamp,
+                        preview: code.length > 100 ? code.substring(0, 100) + '...' : code
+                    };
+
+                    // 检查是否已存在相同代码
+                    const existingIndex = history.findIndex(item => item.code === code);
+                    if (existingIndex !== -1) {
+                        // 更新现有项目的时间戳
+                        history[existingIndex].timestamp = timestamp;
+                        history.unshift(history.splice(existingIndex, 1)[0]);
+                    } else {
+                        // 添加新项目
+                        history.unshift(newItem);
+                    }
+
+                    // 限制历史记录数量
+                    if (history.length > this.maxHistoryItems) {
+                        history.splice(this.maxHistoryItems);
+                    }
+
+                    localStorage.setItem(this.storageKey, JSON.stringify(history));
+                    this.renderHistoryList();
+                    return true;
+                } catch (error) {
+                    console.error('保存历史记录失败:', error);
+                    return false;
+                }
+            }
+
+            // 删除历史记录项
+            deleteItem(id) {
+                try {
+                    const history = this.getHistory();
+                    const filteredHistory = history.filter(item => item.id !== id);
+                    localStorage.setItem(this.storageKey, JSON.stringify(filteredHistory));
+                    this.renderHistoryList();
+                    return true;
+                } catch (error) {
+                    console.error('删除历史记录失败:', error);
+                    return false;
+                }
+            }
+
+            // 清空所有历史记录
+            clearAll() {
+                try {
+                    localStorage.removeItem(this.storageKey);
+                    this.renderHistoryList();
+                    return true;
+                } catch (error) {
+                    console.error('清空历史记录失败:', error);
+                    return false;
+                }
+            }
+
+            // 更新历史记录项
+            updateItem(id, newTitle, newCode) {
+                try {
+                    const history = this.getHistory();
+                    const itemIndex = history.findIndex(item => item.id === id);
+                    if (itemIndex !== -1) {
+                        history[itemIndex].title = newTitle;
+                        history[itemIndex].code = newCode;
+                        history[itemIndex].timestamp = new Date().toISOString();
+                        history[itemIndex].preview = newCode.length > 100 ? newCode.substring(0, 100) + '...' : newCode;
+                        localStorage.setItem(this.storageKey, JSON.stringify(history));
+                        this.renderHistoryList();
+                        return true;
+                    }
+                    return false;
+                } catch (error) {
+                    console.error('更新历史记录失败:', error);
+                    return false;
+                }
+            }
+
+            // 渲染历史记录列表
+            renderHistoryList() {
+                const historyList = document.getElementById('historyList');
+                const history = this.getHistory();
+
+                if (history.length === 0) {
+                    historyList.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📚</div>
+                            <p>暂无历史记录</p>
+                            <p>渲染图表后点击"保存到历史"按钮</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                historyList.innerHTML = history.map(item => `
+                    <div class="history-item" data-id="${item.id}" onclick="loadHistoryItem('${item.id}')">
+                        <div class="history-item-header">
+                            <div class="history-item-title">${item.title}</div>
+                            <div class="history-item-date">${this.formatDate(item.timestamp)}</div>
+                        </div>
+                        <div class="history-item-preview">${item.preview}</div>
+                        <div class="history-item-actions">
+                            <button class="history-action-btn edit" onclick="event.stopPropagation(); editHistoryItem('${item.id}')">编辑</button>
+                            <button class="history-action-btn delete" onclick="event.stopPropagation(); deleteHistoryItem('${item.id}')">删除</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            // 格式化日期
+            formatDate(timestamp) {
+                const date = new Date(timestamp);
+                const now = new Date();
+                const diff = now - date;
+                const minutes = Math.floor(diff / 60000);
+                const hours = Math.floor(diff / 3600000);
+                const days = Math.floor(diff / 86400000);
+
+                if (minutes < 1) return '刚刚';
+                if (minutes < 60) return `${minutes}分钟前`;
+                if (hours < 24) return `${hours}小时前`;
+                if (days < 7) return `${days}天前`;
+                return date.toLocaleDateString('zh-CN');
+            }
+
+            // 导出历史记录
+            exportHistory() {
+                try {
+                    const history = this.getHistory();
+                    const exportData = {
+                        version: '1.0',
+                        exportDate: new Date().toISOString(),
+                        count: history.length,
+                        data: history
+                    };
+                    
+                    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `mermaid-history-${new Date().toISOString().split('T')[0]}.json`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    
+                    showStatus('历史记录导出成功', 'success');
+                    return true;
+                } catch (error) {
+                    console.error('导出历史记录失败:', error);
+                    showStatus('导出失败: ' + error.message, 'error');
+                    return false;
+                }
+            }
+        }
+
+        // 初始化历史管理器
+        const historyManager = new HistoryManager();
+
+        // 初始化 Mermaid
+        mermaid.initialize({
+            startOnLoad: false,
+            theme: 'default',
+            securityLevel: 'loose',
+            fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif'
+        });
+
+        // 页面加载完成后的初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            historyManager.renderHistoryList();
+            renderMermaid();
+        });
+
+        // 显示状态消息
+        function showStatus(message, type = 'info') {
+            const statusElement = document.getElementById('statusMessage');
+            statusElement.textContent = message;
+            statusElement.className = `status-message ${type} show`;
+            
+            setTimeout(() => {
+                statusElement.classList.remove('show');
+            }, 3000);
+        }
+
+        // 显示/隐藏加载状态
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+        }
+
+        // 渲染 Mermaid 图表
+        async function renderMermaid() {
+            const code = document.getElementById('mermaidCode').value.trim();
+            const container = document.getElementById('mermaidContainer');
+            
+            if (!code) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🎨</div>
+                        <p>请输入 Mermaid 代码</p>
+                    </div>
+                `;
+                return;
+            }
+
+            showLoading(true);
+            container.innerHTML = '';
+
+            try {
+                // 生成唯一ID
+                const id = 'mermaid-' + Date.now();
+                
+                // 渲染 Mermaid 图表
+                const { svg } = await mermaid.render(id, code);
+                container.innerHTML = svg;
+                
+                showStatus('图表渲染成功！', 'success');
+            } catch (error) {
+                console.error('Mermaid 渲染错误:', error);
+                container.innerHTML = `
+                    <div style="color: #dc3545; padding: 20px; text-align: center;">
+                        <h3>渲染错误</h3>
+                        <p>${error.message}</p>
+                        <p>请检查您的 Mermaid 语法是否正确。</p>
+                    </div>
+                `;
+                showStatus('渲染失败：' + error.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // 保存到历史记录
+        function saveToHistory() {
+            const code = document.getElementById('mermaidCode').value.trim();
+            if (!code) {
+                showStatus('请输入 Mermaid 代码', 'error');
+                return;
+            }
+
+            const title = prompt('请输入图表标题（可选）：');
+            if (title === null) return; // 用户取消
+
+            if (historyManager.saveItem(code, title)) {
+                showStatus('保存到历史记录成功', 'success');
+            } else {
+                showStatus('保存失败', 'error');
+            }
+        }
+
+        // 切换历史记录面板
+        function toggleHistory() {
+            const panel = document.getElementById('historyPanel');
+            const button = document.querySelector('.history-toggle');
+            
+            if (panel.classList.contains('show')) {
+                panel.classList.remove('show');
+                button.textContent = '📚 历史记录';
+            } else {
+                panel.classList.add('show');
+                button.textContent = '❌ 关闭历史';
+                historyManager.renderHistoryList();
+            }
+        }
+
+        // 加载历史记录项
+        function loadHistoryItem(id) {
+            const history = historyManager.getHistory();
+            const item = history.find(h => h.id === id);
+            if (item) {
+                document.getElementById('mermaidCode').value = item.code;
+                renderMermaid();
+                showStatus('已加载历史记录', 'success');
+                
+                // 高亮当前项
+                document.querySelectorAll('.history-item').forEach(el => el.classList.remove('active'));
+                document.querySelector(`[data-id="${id}"]`).classList.add('active');
+            }
+        }
+
+        // 编辑历史记录项
+        function editHistoryItem(id) {
+            const history = historyManager.getHistory();
+            const item = history.find(h => h.id === id);
+            if (!item) return;
+
+            const newTitle = prompt('编辑标题：', item.title);
+            if (newTitle === null) return;
+
+            const newCode = prompt('编辑代码：', item.code);
+            if (newCode === null) return;
+
+            if (historyManager.updateItem(id, newTitle, newCode)) {
+                showStatus('历史记录更新成功', 'success');
+            } else {
+                showStatus('更新失败', 'error');
+            }
+        }
+
+        // 删除历史记录项
+        function deleteHistoryItem(id) {
+            if (confirm('确定要删除这个历史记录吗？')) {
+                if (historyManager.deleteItem(id)) {
+                    showStatus('历史记录删除成功', 'success');
+                } else {
+                    showStatus('删除失败', 'error');
+                }
+            }
+        }
+
+        // 清空所有历史记录
+        function clearAllHistory() {
+            if (confirm('确定要清空所有历史记录吗？此操作不可恢复。')) {
+                if (historyManager.clearAll()) {
+                    showStatus('历史记录已清空', 'success');
+                } else {
+                    showStatus('清空失败', 'error');
+                }
+            }
+        }
+
+        // 导出历史记录
+        function exportHistory() {
+            historyManager.exportHistory();
+        }
+
+        // 复制图片到剪贴板
+        async function copyAsImage() {
+            const container = document.getElementById('mermaidContainer');
+            
+            if (!container.innerHTML || container.innerHTML.includes('empty-state')) {
+                showStatus('请先渲染图表', 'error');
+                return;
+            }
+
+            try {
+                showLoading(true);
+                
+                // 使用 html2canvas 将 SVG 转换为图片
+                const canvas = await html2canvas(container, {
+                    backgroundColor: '#ffffff',
+                    scale: 2, // 提高图片质量
+                    useCORS: true,
+                    allowTaint: true,
+                    width: container.scrollWidth,
+                    height: container.scrollHeight
+                });
+
+                // 将 canvas 转换为 blob
+                canvas.toBlob(async (blob) => {
+                    try {
+                        // 复制到剪贴板
+                        await navigator.clipboard.write([
+                            new ClipboardItem({
+                                'image/png': blob
+                            })
+                        ]);
+                        
+                        showStatus('图片已复制到剪贴板', 'success');
+                    } catch (clipboardError) {
+                        console.error('复制到剪贴板失败:', clipboardError);
+                        showStatus('复制失败，请尝试下载图片', 'error');
+                    }
+                });
+                
+            } catch (error) {
+                console.error('生成图片失败:', error);
+                showStatus('生成图片失败: ' + error.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // 下载 PNG 图片
+        async function downloadPNG() {
+            const container = document.getElementById('mermaidContainer');
+            
+            if (!container.innerHTML || container.innerHTML.includes('empty-state')) {
+                showStatus('请先渲染图表', 'error');
+                return;
+            }
+
+            try {
+                showLoading(true);
+                
+                const canvas = await html2canvas(container, {
+                    backgroundColor: '#ffffff',
+                    scale: 2,
+                    useCORS: true,
+                    allowTaint: true
+                });
+
+                // 创建下载链接
+                canvas.toBlob((blob) => {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `mermaid-diagram-${new Date().getTime()}.png`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    
+                    showStatus('PNG 图片下载成功', 'success');
+                });
+                
+            } catch (error) {
+                console.error('下载 PNG 失败:', error);
+                showStatus('下载失败: ' + error.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // 下载 SVG 图片
+        function downloadSVG() {
+            const container = document.getElementById('mermaidContainer');
+            const svgElement = container.querySelector('svg');
+            
+            if (!svgElement) {
+                showStatus('请先渲染图表', 'error');
+                return;
+            }
+
+            try {
+                // 获取 SVG 内容
+                const svgData = new XMLSerializer().serializeToString(svgElement);
+                const blob = new Blob([svgData], { type: 'image/svg+xml' });
+                
+                // 创建下载链接
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `mermaid-diagram-${new Date().getTime()}.svg`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                showStatus('SVG 图片下载成功', 'success');
+            } catch (error) {
+                console.error('下载 SVG 失败:', error);
+                showStatus('下载失败: ' + error.message, 'error');
+            }
+        }
+
+        // 全屏查看
+        function openFullscreen() {
+            const container = document.getElementById('mermaidContainer');
+            
+            if (!container.innerHTML || container.innerHTML.includes('empty-state')) {
+                showStatus('请先渲染图表', 'error');
+                return;
+            }
+
+            const overlay = document.getElementById('fullscreenOverlay');
+            const fullscreenContainer = document.getElementById('fullscreenContainer');
+            
+            // 复制内容到全屏容器
+            fullscreenContainer.innerHTML = container.innerHTML;
+            overlay.style.display = 'flex';
+            
+            // 防止页面滚动
+            document.body.style.overflow = 'hidden';
+        }
+
+        // 关闭全屏
+        function closeFullscreen() {
+            const overlay = document.getElementById('fullscreenOverlay');
+            overlay.style.display = 'none';
+            
+            // 恢复页面滚动
+            document.body.style.overflow = 'auto';
+        }
+
+        // 键盘快捷键
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + Enter 渲染图表
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                renderMermaid();
+            }
+            
+            // Ctrl/Cmd + S 保存到历史
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault();
+                saveToHistory();
+            }
+            
+            // ESC 关闭全屏
+            if (e.key === 'Escape') {
+                closeFullscreen();
+            }
+        });
+
+        // 自动保存功能（可选）
+        let autoSaveTimer;
+        document.getElementById('mermaidCode').addEventListener('input', function() {
+            clearTimeout(autoSaveTimer);
+            autoSaveTimer = setTimeout(() => {
+                const code = this.value.trim();
+                if (code && code.length > 10) {
+                    // 自动渲染（节流）
+                    renderMermaid();
+                }
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LaTeX 数学公式编辑器 - 演示</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    .demo-section {
+      margin: 30px 0;
+      padding: 20px;
+      border: 1px solid #e1e5e9;
+      border-radius: 8px;
+      background: #f8f9fa;
+    }
+    .formula {
+      background: white;
+      padding: 15px;
+      border-radius: 6px;
+      margin: 10px 0;
+      border-left: 4px solid #007bff;
+    }
+    .latex-code {
+      font-family: 'Courier New', monospace;
+      background: #f1f3f4;
+      padding: 8px;
+      border-radius: 4px;
+      margin: 5px 0;
+    }
+    h1, h2 {
+      color: #2c3e50;
+    }
+    .feature {
+      background: white;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 6px;
+      border: 1px solid #dee2e6;
+    }
+    .feature h3 {
+      margin-top: 0;
+      color: #495057;
+    }
+  </style>
+</head>
+<body>
+  <h1>🧮 LaTeX 数学公式编辑器 - 功能演示</h1>
+  
+  <div class="demo-section">
+    <h2>✨ 主要功能</h2>
+    
+    <div class="feature">
+      <h3>📝 实时渲染</h3>
+      <p>输入LaTeX公式后，右侧会实时显示渲染结果，支持行内和块级两种显示方式。</p>
+    </div>
+    
+    <div class="feature">
+      <h3>📋 多种复制格式</h3>
+      <p>支持复制块级公式格式 <code>$$公式$$</code> 和行内公式格式 <code>$公式$</code></p>
+    </div>
+    
+    <div class="feature">
+      <h3>🖼️ PNG图片导出</h3>
+      <p>将渲染后的公式导出为高质量PNG图片，分辨率可调。</p>
+    </div>
+    
+    <div class="feature">
+      <h3>⌨️ 快捷键支持</h3>
+      <p>支持多种快捷键操作，提高编辑效率。</p>
+    </div>
+  </div>
+
+  <div class="demo-section">
+    <h2>📚 公式示例</h2>
+    
+    <div class="formula">
+      <h4>二次方程求根公式</h4>
+      <div class="latex-code">\frac{-b \pm \sqrt{b^2-4ac}}{2a}</div>
+      <p>渲染结果：二次方程的通用求根公式</p>
+    </div>
+    
+    <div class="formula">
+      <h4>高斯积分</h4>
+      <div class="latex-code">\int_{-\infty}^{\infty} e^{-x^2} dx = \sqrt{\pi}</div>
+      <p>渲染结果：概率论中的重要积分</p>
+    </div>
+    
+    <div class="formula">
+      <h4>巴塞尔问题</h4>
+      <div class="latex-code">\sum_{n=1}^{\infty} \frac{1}{n^2} = \frac{\pi^2}{6}</div>
+      <p>渲染结果：数学分析中的经典级数</p>
+    </div>
+    
+    <div class="formula">
+      <h4>2x2矩阵</h4>
+      <div class="latex-code">\begin{pmatrix} a & b \\ c & d \end{pmatrix}</div>
+      <p>渲染结果：线性代数中的矩阵表示</p>
+    </div>
+    
+    <div class="formula">
+      <h4>重要极限</h4>
+      <div class="latex-code">\lim_{x \to 0} \frac{\sin x}{x} = 1</div>
+      <p>渲染结果：微积分中的经典极限</p>
+    </div>
+    
+    <div class="formula">
+      <h4>高斯定律</h4>
+      <div class="latex-code">\nabla \cdot \vec{E} = \frac{\rho}{\epsilon_0}</div>
+      <p>渲染结果：电磁学中的基本定律</p>
+    </div>
+    
+    <div class="formula">
+      <h4>欧拉恒等式</h4>
+      <div class="latex-code">e^{i\pi} + 1 = 0</div>
+      <p>渲染结果：数学中最美的公式</p>
+    </div>
+    
+    <div class="formula">
+      <h4>组合数</h4>
+      <div class="latex-code">\binom{n}{k} = \frac{n!}{k!(n-k)!}</div>
+      <p>渲染结果：组合数学中的基本概念</p>
+    </div>
+  </div>
+
+  <div class="demo-section">
+    <h2>🎯 使用场景</h2>
+    
+    <ul>
+      <li><strong>学术写作</strong>：论文、报告中的数学公式</li>
+      <li><strong>教学材料</strong>：课件、教材中的数学内容</li>
+      <li><strong>技术文档</strong>：API文档、技术说明中的公式</li>
+      <li><strong>社交媒体</strong>：分享数学知识和公式</li>
+      <li><strong>个人笔记</strong>：记录学习过程中的数学公式</li>
+    </ul>
+  </div>
+
+  <div class="demo-section">
+    <h2>🚀 开始使用</h2>
+    
+    <p>点击下面的按钮，开始使用LaTeX数学公式编辑器：</p>
+    
+    <a href="./tools/latex-editor.html" style="
+      display: inline-block;
+      background: #007bff;
+      color: white;
+      padding: 12px 24px;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: 500;
+      margin: 10px 0;
+    ">打开LaTeX编辑器</a>
+    
+    <p>或者返回工具箱首页：</p>
+    
+    <a href="./index.html" style="
+      display: inline-block;
+      background: #6c757d;
+      color: white;
+      padding: 10px 20px;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: 500;
+    ">返回工具箱</a>
+  </div>
+
+  <div class="demo-section">
+    <h2>💡 使用技巧</h2>
+    
+    <div class="feature">
+      <h3>公式类型选择</h3>
+      <ul>
+        <li><strong>行内公式</strong>：使用 <code>$公式$</code> 或 <code>\(公式\)</code></li>
+        <li><strong>块级公式</strong>：使用 <code>$$公式$$</code> 或 <code>\[公式\]</code></li>
+        <li><strong>自动检测</strong>：直接输入公式，系统会自动判断</li>
+      </ul>
+    </div>
+    
+    <div class="feature">
+      <h3>常用命令</h3>
+      <ul>
+        <li><code>\frac{分子}{分母}</code> - 分数</li>
+        <li><code>\sqrt{内容}</code> - 根号</li>
+        <li><code>^{上标}</code> 和 <code>_{下标}</code> - 上下标</li>
+        <li><code>\sum_{下限}^{上限}</code> - 求和</li>
+        <li><code>\int_{下限}^{上限}</code> - 积分</li>
+      </ul>
+    </div>
+  </div>
+
+  <footer style="text-align: center; margin-top: 40px; color: #6c757d;">
+    <p>© 2024 LaTeX数学公式编辑器 - 让数学公式编辑更简单</p>
+  </footer>
+</body>
+</html>

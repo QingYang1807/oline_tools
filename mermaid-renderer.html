@@ -241,6 +241,110 @@
             transform: translateX(0);
         }
 
+        /* 全屏模态框样式 */
+        .fullscreen-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 2000;
+            flex-direction: column;
+        }
+
+        .fullscreen-modal.show {
+            display: flex;
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.2em;
+            font-weight: 500;
+        }
+
+        .modal-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .control-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .modal-content {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+            background: white;
+        }
+
+        .fullscreen-container {
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            cursor: grab;
+            transition: transform 0.1s ease;
+        }
+
+        .fullscreen-container:active {
+            cursor: grabbing;
+        }
+
+        .fullscreen-container svg {
+            max-width: none;
+            max-height: none;
+            transition: transform 0.3s ease;
+            transform-origin: center center;
+        }
+
+        .zoom-info {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            font-weight: 500;
+            backdrop-filter: blur(10px);
+        }
+
+        /* 拖拽状态 */
+        .fullscreen-container.dragging {
+            cursor: grabbing;
+        }
+
+        /* 响应式设计 */
         @media (max-width: 768px) {
             .main-content {
                 grid-template-columns: 1fr;
@@ -249,6 +353,19 @@
             .editor-panel {
                 border-right: none;
                 border-bottom: 1px solid #e9ecef;
+            }
+
+            .modal-controls {
+                gap: 5px;
+            }
+
+            .control-btn {
+                padding: 6px 10px;
+                font-size: 0.9em;
+            }
+
+            .modal-header h3 {
+                font-size: 1em;
             }
         }
     </style>
@@ -301,7 +418,12 @@
             </div>
 
             <div class="preview-panel">
-                <label>预览</label>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <label>预览</label>
+                    <button class="btn btn-secondary" onclick="openFullscreen()" id="zoomBtn" style="padding: 8px 16px; font-size: 0.9em;" disabled>
+                        <span>🔍</span> 放大查看
+                    </button>
+                </div>
                 <div class="preview-container">
                     <div id="loading" class="loading">
                         <div class="spinner"></div>
@@ -315,6 +437,35 @@
 
     <div id="copyNotification" class="copy-notification">
         ✅ 图片已复制到剪贴板！
+    </div>
+
+    <!-- 全屏放大模态框 -->
+    <div id="fullscreenModal" class="fullscreen-modal">
+        <div class="modal-header">
+            <h3>🔍 图表放大查看</h3>
+            <div class="modal-controls">
+                <button class="control-btn" onclick="zoomIn()" title="放大">
+                    <span>🔍+</span>
+                </button>
+                <button class="control-btn" onclick="zoomOut()" title="缩小">
+                    <span>🔍-</span>
+                </button>
+                <button class="control-btn" onclick="resetZoom()" title="重置缩放">
+                    <span>🔄</span>
+                </button>
+                <button class="control-btn" onclick="closeFullscreen()" title="关闭">
+                    <span>❌</span>
+                </button>
+            </div>
+        </div>
+        <div class="modal-content">
+            <div id="fullscreenContainer" class="fullscreen-container">
+                <!-- 放大的图表将在这里显示 -->
+            </div>
+        </div>
+        <div class="zoom-info">
+            <span id="zoomLevel">100%</span>
+        </div>
     </div>
 
     <script>
@@ -449,6 +600,9 @@
                 const { svg } = await mermaid.render(id, code);
                 container.innerHTML = svg;
                 
+                // 启用放大按钮
+                document.getElementById('zoomBtn').disabled = false;
+                
                 showStatus('图表渲染成功！', 'success');
             } catch (error) {
                 console.error('Mermaid 渲染错误:', error);
@@ -555,6 +709,161 @@
             }, 2000);
         }
 
+        // 全屏查看相关变量
+        let currentZoom = 1;
+        let isDragging = false;
+        let dragStart = { x: 0, y: 0 };
+        let dragOffset = { x: 0, y: 0 };
+
+        // 打开全屏查看
+        function openFullscreen() {
+            const container = document.getElementById('mermaidContainer');
+            const fullscreenContainer = document.getElementById('fullscreenContainer');
+            
+            if (!container.innerHTML || container.innerHTML.trim() === '') {
+                showStatus('请先渲染图表', 'error');
+                return;
+            }
+
+            // 复制图表内容到全屏容器
+            fullscreenContainer.innerHTML = container.innerHTML;
+            
+            // 显示模态框
+            const modal = document.getElementById('fullscreenModal');
+            modal.classList.add('show');
+            
+            // 重置缩放和位置
+            currentZoom = 1;
+            dragOffset = { x: 0, y: 0 };
+            updateZoom();
+            
+            // 添加拖拽事件监听
+            addDragListeners();
+            
+            // 阻止背景滚动
+            document.body.style.overflow = 'hidden';
+        }
+
+        // 关闭全屏查看
+        function closeFullscreen() {
+            const modal = document.getElementById('fullscreenModal');
+            modal.classList.remove('show');
+            
+            // 恢复背景滚动
+            document.body.style.overflow = 'auto';
+            
+            // 移除拖拽事件监听
+            removeDragListeners();
+        }
+
+        // 放大
+        function zoomIn() {
+            currentZoom = Math.min(currentZoom * 1.2, 5);
+            updateZoom();
+        }
+
+        // 缩小
+        function zoomOut() {
+            currentZoom = Math.max(currentZoom / 1.2, 0.1);
+            updateZoom();
+        }
+
+        // 重置缩放
+        function resetZoom() {
+            currentZoom = 1;
+            dragOffset = { x: 0, y: 0 };
+            updateZoom();
+        }
+
+        // 更新缩放
+        function updateZoom() {
+            const svg = document.querySelector('#fullscreenContainer svg');
+            const zoomLevel = document.getElementById('zoomLevel');
+            
+            if (svg) {
+                svg.style.transform = `scale(${currentZoom}) translate(${dragOffset.x}px, ${dragOffset.y}px)`;
+            }
+            
+            if (zoomLevel) {
+                zoomLevel.textContent = Math.round(currentZoom * 100) + '%';
+            }
+        }
+
+        // 添加拖拽事件监听
+        function addDragListeners() {
+            const container = document.getElementById('fullscreenContainer');
+            
+            container.addEventListener('mousedown', startDrag);
+            container.addEventListener('mousemove', drag);
+            container.addEventListener('mouseup', endDrag);
+            container.addEventListener('mouseleave', endDrag);
+            
+            // 触摸事件支持
+            container.addEventListener('touchstart', startDragTouch);
+            container.addEventListener('touchmove', dragTouch);
+            container.addEventListener('touchend', endDrag);
+        }
+
+        // 移除拖拽事件监听
+        function removeDragListeners() {
+            const container = document.getElementById('fullscreenContainer');
+            
+            container.removeEventListener('mousedown', startDrag);
+            container.removeEventListener('mousemove', drag);
+            container.removeEventListener('mouseup', endDrag);
+            container.removeEventListener('mouseleave', endDrag);
+            
+            container.removeEventListener('touchstart', startDragTouch);
+            container.removeEventListener('touchmove', dragTouch);
+            container.removeEventListener('touchend', endDrag);
+        }
+
+        // 开始拖拽
+        function startDrag(e) {
+            isDragging = true;
+            dragStart.x = e.clientX - dragOffset.x;
+            dragStart.y = e.clientY - dragOffset.y;
+            document.getElementById('fullscreenContainer').classList.add('dragging');
+            e.preventDefault();
+        }
+
+        // 拖拽中
+        function drag(e) {
+            if (!isDragging) return;
+            
+            dragOffset.x = e.clientX - dragStart.x;
+            dragOffset.y = e.clientY - dragStart.y;
+            updateZoom();
+            e.preventDefault();
+        }
+
+        // 结束拖拽
+        function endDrag() {
+            isDragging = false;
+            document.getElementById('fullscreenContainer').classList.remove('dragging');
+        }
+
+        // 触摸开始拖拽
+        function startDragTouch(e) {
+            if (e.touches.length === 1) {
+                isDragging = true;
+                dragStart.x = e.touches[0].clientX - dragOffset.x;
+                dragStart.y = e.touches[0].clientY - dragOffset.y;
+                document.getElementById('fullscreenContainer').classList.add('dragging');
+                e.preventDefault();
+            }
+        }
+
+        // 触摸拖拽中
+        function dragTouch(e) {
+            if (!isDragging || e.touches.length !== 1) return;
+            
+            dragOffset.x = e.touches[0].clientX - dragStart.x;
+            dragOffset.y = e.touches[0].clientY - dragStart.y;
+            updateZoom();
+            e.preventDefault();
+        }
+
         // 页面加载完成后自动渲染默认示例
         document.addEventListener('DOMContentLoaded', function() {
             renderMermaid();
@@ -562,16 +871,47 @@
 
         // 添加键盘快捷键
         document.addEventListener('keydown', function(e) {
-            if (e.ctrlKey || e.metaKey) {
+            // 检查是否在全屏模式
+            const isFullscreen = document.getElementById('fullscreenModal').classList.contains('show');
+            
+            if (isFullscreen) {
+                // 全屏模式下的快捷键
                 switch(e.key) {
-                    case 'Enter':
+                    case 'Escape':
                         e.preventDefault();
-                        renderMermaid();
+                        closeFullscreen();
                         break;
-                    case 's':
+                    case '+':
+                    case '=':
                         e.preventDefault();
-                        copyAsImage();
+                        zoomIn();
                         break;
+                    case '-':
+                        e.preventDefault();
+                        zoomOut();
+                        break;
+                    case '0':
+                        e.preventDefault();
+                        resetZoom();
+                        break;
+                }
+            } else {
+                // 普通模式下的快捷键
+                if (e.ctrlKey || e.metaKey) {
+                    switch(e.key) {
+                        case 'Enter':
+                            e.preventDefault();
+                            renderMermaid();
+                            break;
+                        case 's':
+                            e.preventDefault();
+                            copyAsImage();
+                            break;
+                        case 'f':
+                            e.preventDefault();
+                            openFullscreen();
+                            break;
+                    }
                 }
             }
         });

@@ -97,6 +97,46 @@
             box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
         }
 
+        .quality-selector {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+        }
+
+        .quality-selector label {
+            margin-bottom: 10px;
+            font-size: 1em;
+        }
+
+        .quality-options {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .quality-option {
+            padding: 8px 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 20px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+        }
+
+        .quality-option:hover {
+            border-color: #4facfe;
+            background: #f0f8ff;
+        }
+
+        .quality-option.active {
+            border-color: #4facfe;
+            background: #4facfe;
+            color: white;
+        }
+
         .button-group {
             display: flex;
             gap: 15px;
@@ -154,6 +194,24 @@
             min-height: 400px;
             position: relative;
             overflow: auto;
+        }
+
+        #mermaidContainer {
+            width: 100%;
+            height: auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 200px;
+        }
+
+        #mermaidContainer svg {
+            max-width: 100%;
+            height: auto;
+            /* 确保SVG渲染清晰 */
+            shape-rendering: geometricPrecision;
+            text-rendering: geometricPrecision;
+            image-rendering: -webkit-optimize-contrast;
         }
 
         .mermaid {
@@ -379,6 +437,14 @@
 
         <div class="main-content">
             <div class="editor-panel">
+                <div class="quality-selector">
+                    <label>图片质量</label>
+                    <div class="quality-options">
+                        <div class="quality-option" data-quality="standard" onclick="setQuality('standard')">标准 (2x)</div>
+                        <div class="quality-option active" data-quality="high" onclick="setQuality('high')">高清 (4x)</div>
+                        <div class="quality-option" data-quality="ultra" onclick="setQuality('ultra')">超高清 (8x)</div>
+                    </div>
+                </div>
                 <div class="form-group">
                     <label for="mermaidCode">Mermaid 代码</label>
                     <textarea id="mermaidCode" placeholder="在此输入您的 Mermaid 代码...">graph TD
@@ -486,7 +552,16 @@
             },
             flowchart: {
                 useMaxWidth: true,
-                htmlLabels: true
+                htmlLabels: true,
+                curve: 'basis' // 更平滑的曲线
+            },
+            // 提高渲染质量
+            securityLevel: 'loose',
+            maxTextSize: 90000,
+            maxEdges: 500,
+            // SVG 渲染优化
+            svg: {
+                fontFamily: 'Arial, sans-serif'
             }
         });
 
@@ -629,13 +704,17 @@
                 showLoading(true);
                 
                 // 使用 html2canvas 将 SVG 转换为图片
+                const settings = qualitySettings[currentQuality];
                 const canvas = await html2canvas(container, {
                     backgroundColor: '#ffffff',
-                    scale: 2, // 提高图片质量
+                    scale: settings.scale, // 使用选择的缩放比例
                     useCORS: true,
                     allowTaint: true,
                     width: container.scrollWidth,
-                    height: container.scrollHeight
+                    height: container.scrollHeight,
+                    logging: false, // 禁用日志以提高性能
+                    foreignObjectRendering: true, // 更好的SVG渲染
+                    removeContainer: true // 清理临时容器
                 });
 
                 // 将 canvas 转换为 blob
@@ -654,7 +733,7 @@
                         console.error('复制失败:', clipboardError);
                         showStatus('复制失败，请尝试下载图片', 'error');
                     }
-                }, 'image/png', 0.95);
+                }, 'image/png', settings.quality);
 
             } catch (error) {
                 console.error('生成图片失败:', error);
@@ -676,19 +755,23 @@
                 showLoading(true);
                 
                 // 使用 html2canvas 将 SVG 转换为图片
+                const settings = qualitySettings[currentQuality];
                 const canvas = await html2canvas(container, {
                     backgroundColor: '#ffffff',
-                    scale: 2,
+                    scale: settings.scale, // 使用选择的缩放比例
                     useCORS: true,
                     allowTaint: true,
                     width: container.scrollWidth,
-                    height: container.scrollHeight
+                    height: container.scrollHeight,
+                    logging: false, // 禁用日志以提高性能
+                    foreignObjectRendering: true, // 更好的SVG渲染
+                    removeContainer: true // 清理临时容器
                 });
 
                 // 下载图片
                 const link = document.createElement('a');
                 link.download = `mermaid-diagram-${Date.now()}.png`;
-                link.href = canvas.toDataURL('image/png', 0.95);
+                link.href = canvas.toDataURL('image/png', settings.quality);
                 link.click();
                 
                 showStatus('图片下载成功！', 'success');
@@ -714,6 +797,29 @@
         let isDragging = false;
         let dragStart = { x: 0, y: 0 };
         let dragOffset = { x: 0, y: 0 };
+        
+        // 图片质量设置
+        let currentQuality = 'high';
+        const qualitySettings = {
+            standard: { scale: 2, quality: 0.9 },
+            high: { scale: 4, quality: 0.95 },
+            ultra: { scale: 8, quality: 1.0 }
+        };
+
+        // 设置图片质量
+        function setQuality(quality) {
+            currentQuality = quality;
+            
+            // 更新UI
+            document.querySelectorAll('.quality-option').forEach(option => {
+                option.classList.remove('active');
+            });
+            document.querySelector(`[data-quality="${quality}"]`).classList.add('active');
+            
+            // 显示质量信息
+            const settings = qualitySettings[quality];
+            showStatus(`已切换到${quality === 'standard' ? '标准' : quality === 'high' ? '高清' : '超高清'}模式 (${settings.scale}x缩放)`, 'info');
+        }
 
         // 打开全屏查看
         function openFullscreen() {

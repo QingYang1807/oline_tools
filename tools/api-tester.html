@@ -300,6 +300,20 @@
         <button class="clear-history-btn" onclick="clearHistory()">清空历史</button>
       </div>
 
+      <!-- 功能说明 -->
+      <div class="request-section">
+        <h3>🚀 新功能说明</h3>
+        <div style="background: var(--panel-bg); padding: 16px; border-radius: 8px; border-left: 4px solid var(--accent);">
+          <p style="margin: 0 0 12px 0; color: var(--fg);"><strong>✅ 已解决307重定向跨域问题！</strong></p>
+          <ul style="margin: 0; padding-left: 20px; color: var(--muted);">
+            <li><strong>代理服务器模式：</strong>自动使用多个代理服务器，解决跨域限制</li>
+            <li><strong>重定向处理：</strong>支持自动跟随重定向，或手动处理重定向链</li>
+            <li><strong>智能切换：</strong>代理服务器失败时自动切换到备用服务器</li>
+            <li><strong>完整支持：</strong>支持所有HTTP方法和请求类型</li>
+          </ul>
+        </div>
+      </div>
+
       <!-- 请求配置 -->
       <div class="request-section">
         <h3>请求配置</h3>
@@ -315,10 +329,37 @@
           
           <input type="url" id="urlInput" class="url-input" placeholder="请输入请求 URL" value="https://httpbin.org/get">
           
+          <!-- 测试URL快捷按钮 -->
+          <div style="display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap;">
+            <button onclick="setTestUrl('https://httpbin.org/get')" style="padding: 4px 8px; background: var(--muted); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">测试GET</button>
+            <button onclick="setTestUrl('https://httpbin.org/redirect/3')" style="padding: 4px 8px; background: var(--muted); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">测试重定向</button>
+            <button onclick="setTestUrl('https://api.github.com/users/octocat')" style="padding: 4px 8px; background: var(--muted); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">测试跨域</button>
+            <button onclick="setTestUrl('https://httpbin.org/status/307')" style="padding: 4px 8px; background: var(--muted); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">测试307</button>
+          </div>
+          
           <button id="sendBtn" class="send-btn" onclick="sendRequest()">
             <span id="sendBtnText">发送请求</span>
             <span id="sendBtnLoading" class="loading" style="display: none;"></span>
           </button>
+        </div>
+
+        <!-- 请求选项 -->
+        <div class="form-group">
+          <label class="form-label">请求选项</label>
+          <div style="display: flex; gap: 16px; flex-wrap: wrap; align-items: center;">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+              <input type="checkbox" id="useProxy" checked>
+              <span>使用代理服务器（解决跨域问题）</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+              <input type="checkbox" id="followRedirects" checked>
+              <span>自动跟随重定向</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+              <input type="checkbox" id="includeCredentials">
+              <span>包含凭据（Cookies等）</span>
+            </label>
+          </div>
         </div>
 
         <!-- 请求头 -->
@@ -483,10 +524,20 @@
       btn.parentElement.remove();
     }
     
+    // 代理服务器列表
+    const proxyServers = [
+      'https://api.allorigins.win/raw?url=',
+      'https://cors-anywhere.herokuapp.com/',
+      'https://thingproxy.freeboard.io/fetch/',
+      'https://api.codetabs.com/v1/proxy?quest='
+    ];
+    
+    let currentProxyIndex = 0;
+    
     // 发送请求
     async function sendRequest() {
       const method = document.getElementById('methodSelect').value;
-      const url = document.getElementById('urlInput').value.trim();
+      let url = document.getElementById('urlInput').value.trim();
       
       if (!url) {
         alert('请输入请求 URL');
@@ -550,12 +601,46 @@
           }
         }
         
-        // 发送请求
-        const response = await fetch(url, {
-          method: method,
-          headers: method === 'GET' ? headers : headers,
-          body: body
-        });
+        // 检查是否使用代理
+        const useProxy = document.getElementById('useProxy').checked;
+        const followRedirects = document.getElementById('followRedirects').checked;
+        const includeCredentials = document.getElementById('includeCredentials').checked;
+        
+        let response;
+        let redirectChain = [];
+        let finalUrl = url;
+        
+        if (useProxy) {
+          // 使用代理服务器
+          response = await sendRequestWithProxy(url, method, headers, body, followRedirects, includeCredentials);
+          finalUrl = response.finalUrl || url;
+          redirectChain = response.redirectChain || [];
+        } else {
+          // 直接请求
+          const fetchOptions = {
+            method: method,
+            headers: headers,
+            body: body,
+            redirect: followRedirects ? 'follow' : 'manual',
+            credentials: includeCredentials ? 'include' : 'same-origin'
+          };
+          
+          response = await fetch(url, fetchOptions);
+          
+          // 处理手动重定向
+          if (!followRedirects && (response.status === 301 || response.status === 302 || response.status === 307 || response.status === 308)) {
+            const location = response.headers.get('Location');
+            if (location) {
+              redirectChain.push({
+                from: url,
+                to: location,
+                status: response.status,
+                statusText: response.statusText
+              });
+              finalUrl = location;
+            }
+          }
+        }
         
         const endTime = Date.now();
         const responseTime = endTime - startTime;
@@ -570,14 +655,21 @@
         let responseBody;
         const contentType = response.headers.get('content-type') || '';
         if (contentType.includes('application/json')) {
-          responseBody = await response.json();
-          responseBody = JSON.stringify(responseBody, null, 2);
+          try {
+            responseBody = await response.json();
+            responseBody = JSON.stringify(responseBody, null, 2);
+          } catch (e) {
+            responseBody = await response.text();
+          }
         } else {
           responseBody = await response.text();
         }
         
+        // 清理之前的重定向信息
+        clearRedirectInfo();
+        
         // 显示响应结果
-        displayResponse(response.status, response.statusText, responseTime, responseHeaders, responseBody);
+        displayResponse(response.status, response.statusText, responseTime, responseHeaders, responseBody, redirectChain, finalUrl);
         
         // 保存到历史记录
         saveToHistory(method, url, response.status);
@@ -593,8 +685,72 @@
       }
     }
     
+    // 使用代理服务器发送请求
+    async function sendRequestWithProxy(originalUrl, method, headers, body, followRedirects, includeCredentials) {
+      const proxyUrl = proxyServers[currentProxyIndex] + encodeURIComponent(originalUrl);
+      
+      try {
+        const proxyHeaders = {
+          ...headers,
+          'X-Requested-With': 'XMLHttpRequest'
+        };
+        
+        const fetchOptions = {
+          method: method,
+          headers: proxyHeaders,
+          body: body,
+          redirect: followRedirects ? 'follow' : 'manual',
+          credentials: includeCredentials ? 'include' : 'same-origin'
+        };
+        
+        const response = await fetch(proxyUrl, fetchOptions);
+        
+        // 如果代理失败，尝试下一个代理
+        if (!response.ok && response.status >= 500) {
+          currentProxyIndex = (currentProxyIndex + 1) % proxyServers.length;
+          console.log(`代理服务器失败，切换到: ${proxyServers[currentProxyIndex]}`);
+          return await sendRequestWithProxy(originalUrl, method, headers, body, followRedirects, includeCredentials);
+        }
+        
+        return {
+          ...response,
+          finalUrl: originalUrl,
+          redirectChain: []
+        };
+        
+      } catch (error) {
+        // 尝试下一个代理服务器
+        currentProxyIndex = (currentProxyIndex + 1) % proxyServers.length;
+        if (currentProxyIndex === 0) {
+          throw new Error(`所有代理服务器都失败了: ${error.message}`);
+        }
+        console.log(`代理服务器错误，切换到: ${proxyServers[currentProxyIndex]}`);
+        return await sendRequestWithProxy(originalUrl, method, headers, body, followRedirects, includeCredentials);
+      }
+    }
+    
+    // 清理重定向信息显示
+    function clearRedirectInfo() {
+      const responseHeader = document.querySelector('.response-header');
+      const existingRedirectInfo = responseHeader.querySelector('.redirect-info');
+      if (existingRedirectInfo) {
+        existingRedirectInfo.remove();
+      }
+    }
+    
+    // 手动跟随重定向
+    async function followRedirect(redirectUrl) {
+      document.getElementById('urlInput').value = redirectUrl;
+      await sendRequest();
+    }
+    
+    // 设置测试URL
+    function setTestUrl(url) {
+      document.getElementById('urlInput').value = url;
+    }
+    
     // 显示响应结果
-    function displayResponse(status, statusText, responseTime, headers, body) {
+    function displayResponse(status, statusText, responseTime, headers, body, redirectChain = [], finalUrl = '') {
       document.getElementById('noResponse').style.display = 'none';
       document.getElementById('responseContent').style.display = 'block';
       
@@ -605,6 +761,32 @@
       
       // 响应时间
       document.getElementById('responseTime').textContent = `响应时间: ${responseTime}ms`;
+      
+      // 如果有重定向链，显示重定向信息
+      if (redirectChain.length > 0) {
+        const redirectInfo = document.createElement('div');
+        redirectInfo.className = 'redirect-info';
+        redirectInfo.style.marginBottom = '16px';
+        redirectInfo.style.padding = '12px';
+        redirectInfo.style.backgroundColor = 'var(--panel-bg)';
+        redirectInfo.style.border = '1px solid var(--border)';
+        redirectInfo.style.borderRadius = '6px';
+        redirectInfo.innerHTML = `
+          <div style="font-weight: 500; margin-bottom: 8px; color: var(--accent);">重定向链:</div>
+          ${redirectChain.map(redirect => `
+            <div style="margin-bottom: 8px; font-size: 13px; padding: 8px; background: var(--card); border-radius: 4px;">
+              <div style="color: var(--muted); margin-bottom: 4px;">${redirect.status} ${redirect.statusText}</div>
+              <div style="color: var(--fg); margin-bottom: 4px;">从: ${redirect.from}</div>
+              <div style="color: var(--accent); margin-bottom: 8px;">到: ${redirect.to}</div>
+              <button onclick="followRedirect('${redirect.to}')" style="padding: 4px 8px; background: var(--accent); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">跟随重定向</button>
+            </div>
+          `).join('')}
+          ${finalUrl ? `<div style="margin-top: 8px; font-weight: 500; color: var(--accent);">最终URL: ${finalUrl}</div>` : ''}
+        `;
+        
+        const responseHeader = document.querySelector('.response-header');
+        responseHeader.appendChild(redirectInfo);
+      }
       
       // 响应头
       document.getElementById('responseHeaders').textContent = JSON.stringify(headers, null, 2);

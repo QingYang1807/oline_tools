@@ -1,0 +1,649 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>数据计算工具 · 网页工具箱</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <meta name="color-scheme" content="light dark">
+  <style>
+    .tool-tabs {
+      display: flex;
+      border-bottom: 2px solid var(--border);
+      margin-bottom: 24px;
+      overflow-x: auto;
+    }
+    
+    .tab-button {
+      background: none;
+      border: none;
+      padding: 12px 24px;
+      cursor: pointer;
+      color: var(--muted);
+      font-weight: 500;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+    
+    .tab-button.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+    
+    .tab-button:hover {
+      color: var(--fg);
+    }
+    
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+    
+    .input-group {
+      margin-bottom: 20px;
+    }
+    
+    .input-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: var(--fg);
+    }
+    
+    .input-row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    
+    .input-row input,
+    .input-row select {
+      padding: 8px 12px;
+      border: 2px solid var(--border);
+      border-radius: 6px;
+      background: var(--panel-bg);
+      color: var(--fg);
+      font-size: 14px;
+    }
+    
+    .input-row input:focus,
+    .input-row select:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    
+    .result-box {
+      background: var(--panel-bg);
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 16px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 14px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    
+    .regex-flags {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+    
+    .flag-checkbox {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 14px;
+    }
+    
+    .flag-checkbox input[type="checkbox"] {
+      margin: 0;
+    }
+    
+    .unit-categories {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    
+    .unit-category {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+    }
+    
+    .unit-category h4 {
+      margin: 0 0 12px 0;
+      color: var(--accent);
+      font-size: 16px;
+    }
+    
+    .unit-category select {
+      width: 100%;
+      margin-bottom: 8px;
+    }
+    
+    .timestamp-inputs {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    
+    .copy-button {
+      background: var(--muted);
+      border-color: var(--muted);
+      font-size: 12px;
+      padding: 6px 12px;
+      margin-left: 8px;
+    }
+    
+    .copy-button:hover {
+      background: var(--fg);
+      border-color: var(--fg);
+    }
+    
+    .success-message {
+      color: #10b981;
+      font-size: 12px;
+      margin-left: 8px;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+    
+    .success-message.show {
+      opacity: 1;
+    }
+    
+    .error-message {
+      color: #ef4444;
+      font-size: 14px;
+      margin-top: 8px;
+    }
+    
+    .regex-matches {
+      margin-top: 16px;
+    }
+    
+    .match-item {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 8px;
+    }
+    
+    .match-text {
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+    
+    .match-details {
+      font-size: 12px;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="../index.html" class="back-link">← 返回首页</a>
+      <h1 class="site-title">📊 数据计算工具</h1>
+      <p class="site-subtitle">JSON格式化、正则测试、单位换算、时间戳转换</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="tool-tabs">
+      <button class="tab-button active" data-tab="json">JSON 格式化</button>
+      <button class="tab-button" data-tab="regex">正则表达式测试器</button>
+      <button class="tab-button" data-tab="unit">单位换算器</button>
+      <button class="tab-button" data-tab="timestamp">时间戳转换器</button>
+    </div>
+
+    <!-- JSON 格式化 -->
+    <div id="json" class="tab-content active">
+      <h2>JSON 格式化</h2>
+      <div class="input-group">
+        <label for="json-input">输入 JSON 数据：</label>
+        <textarea id="json-input" class="editor" rows="10" placeholder='{"name": "示例", "value": 123, "items": [1, 2, 3]}'></textarea>
+      </div>
+      <div class="input-row">
+        <button id="format-json">格式化</button>
+        <button id="minify-json">压缩</button>
+        <button id="validate-json">验证</button>
+        <button id="clear-json">清空</button>
+      </div>
+      <div id="json-result" class="result-box" style="display: none;"></div>
+    </div>
+
+    <!-- 正则表达式测试器 -->
+    <div id="regex" class="tab-content">
+      <h2>正则表达式测试器</h2>
+      <div class="input-group">
+        <label for="regex-pattern">正则表达式：</label>
+        <input type="text" id="regex-pattern" placeholder="输入正则表达式，如：\d+" />
+        <div class="regex-flags">
+          <label class="flag-checkbox">
+            <input type="checkbox" id="flag-g" checked> g (全局)
+          </label>
+          <label class="flag-checkbox">
+            <input type="checkbox" id="flag-i"> i (忽略大小写)
+          </label>
+          <label class="flag-checkbox">
+            <input type="checkbox" id="flag-m"> m (多行)
+          </label>
+          <label class="flag-checkbox">
+            <input type="checkbox" id="flag-s"> s (点号匹配换行)
+          </label>
+          <label class="flag-checkbox">
+            <input type="checkbox" id="flag-u"> u (Unicode)
+          </label>
+          <label class="flag-checkbox">
+            <input type="checkbox" id="flag-y"> y (粘性)
+          </label>
+        </div>
+      </div>
+      <div class="input-group">
+        <label for="regex-text">测试文本：</label>
+        <textarea id="regex-text" class="editor" rows="8" placeholder="输入要测试的文本内容"></textarea>
+      </div>
+      <button id="test-regex">测试正则表达式</button>
+      <div id="regex-result" class="result-box" style="display: none;"></div>
+      <div id="regex-matches"></div>
+    </div>
+
+    <!-- 单位换算器 -->
+    <div id="unit" class="tab-content">
+      <h2>单位换算器</h2>
+      <div class="unit-categories">
+        <div class="unit-category">
+          <h4>长度</h4>
+          <select id="length-from">
+            <option value="m">米 (m)</option>
+            <option value="km">千米 (km)</option>
+            <option value="cm">厘米 (cm)</option>
+            <option value="mm">毫米 (mm)</option>
+            <option value="mi">英里 (mi)</option>
+            <option value="yd">码 (yd)</option>
+            <option value="ft">英尺 (ft)</option>
+            <option value="in">英寸 (in)</option>
+          </select>
+          <select id="length-to">
+            <option value="km">千米 (km)</option>
+            <option value="m" selected>米 (m)</option>
+            <option value="cm">厘米 (cm)</option>
+            <option value="mm">毫米 (mm)</option>
+            <option value="mi">英里 (mi)</option>
+            <option value="yd">码 (yd)</option>
+            <option value="ft">英尺 (ft)</option>
+            <option value="in">英寸 (in)</option>
+          </select>
+        </div>
+        
+        <div class="unit-category">
+          <h4>重量</h4>
+          <select id="weight-from">
+            <option value="kg">千克 (kg)</option>
+            <option value="g">克 (g)</option>
+            <option value="mg">毫克 (mg)</option>
+            <option value="lb">磅 (lb)</option>
+            <option value="oz">盎司 (oz)</option>
+          </select>
+          <select id="weight-to">
+            <option value="g">克 (g)</option>
+            <option value="kg" selected>千克 (kg)</option>
+            <option value="mg">毫克 (mg)</option>
+            <option value="lb">磅 (lb)</option>
+            <option value="oz">盎司 (oz)</option>
+          </select>
+        </div>
+        
+        <div class="unit-category">
+          <h4>面积</h4>
+          <select id="area-from">
+            <option value="m2">平方米 (m²)</option>
+            <option value="km2">平方千米 (km²)</option>
+            <option value="cm2">平方厘米 (cm²)</option>
+            <option value="ha">公顷 (ha)</option>
+            <option value="ac">英亩 (ac)</option>
+            <option value="sqft">平方英尺 (sq ft)</option>
+          </select>
+          <select id="area-to">
+            <option value="km2">平方千米 (km²)</option>
+            <option value="m2" selected>平方米 (m²)</option>
+            <option value="cm2">平方厘米 (cm²)</option>
+            <option value="ha">公顷 (ha)</option>
+            <option value="ac">英亩 (ac)</option>
+            <option value="sqft">平方英尺 (sq ft)</option>
+          </select>
+        </div>
+        
+        <div class="unit-category">
+          <h4>体积</h4>
+          <select id="volume-from">
+            <option value="m3">立方米 (m³)</option>
+            <option value="l">升 (L)</option>
+            <option value="ml">毫升 (mL)</option>
+            <option value="gal">加仑 (gal)</option>
+            <option value="qt">夸脱 (qt)</option>
+          </select>
+          <select id="volume-to">
+            <option value="l">升 (L)</option>
+            <option value="m3" selected>立方米 (m³)</option>
+            <option value="ml">毫升 (mL)</option>
+            <option value="gal">加仑 (gal)</option>
+            <option value="qt">夸脱 (qt)</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="input-group">
+        <label for="unit-value">数值：</label>
+        <input type="number" id="unit-value" placeholder="输入数值" step="any" />
+        <button id="convert-unit">换算</button>
+      </div>
+      
+      <div id="unit-result" class="result-box" style="display: none;"></div>
+    </div>
+
+    <!-- 时间戳转换器 -->
+    <div id="timestamp" class="tab-content">
+      <h2>时间戳转换器</h2>
+      
+      <div class="timestamp-inputs">
+        <div class="input-group">
+          <label for="timestamp-input">时间戳：</label>
+          <input type="text" id="timestamp-input" placeholder="输入时间戳（秒或毫秒）" />
+          <button id="timestamp-to-date">转换为日期</button>
+        </div>
+        
+        <div class="input-group">
+          <label for="date-input">日期时间：</label>
+          <input type="datetime-local" id="date-input" />
+          <button id="date-to-timestamp">转换为时间戳</button>
+        </div>
+      </div>
+      
+      <div class="input-group">
+        <label for="current-time">当前时间：</label>
+        <div class="input-row">
+          <span id="current-time"></span>
+          <button id="copy-current-timestamp" class="copy-button">复制时间戳</button>
+          <span id="copy-success" class="success-message">已复制！</span>
+        </div>
+      </div>
+      
+      <div id="timestamp-result" class="result-box" style="display: none;"></div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <span>© <span id="year"></span> 数据计算工具</span>
+    </div>
+  </footer>
+
+  <script>
+    // 工具切换
+    document.querySelectorAll('.tab-button').forEach(button => {
+      button.addEventListener('click', () => {
+        // 移除所有活动状态
+        document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        
+        // 添加当前活动状态
+        button.classList.add('active');
+        document.getElementById(button.dataset.tab).classList.add('active');
+      });
+    });
+
+    // JSON 格式化功能
+    document.getElementById('format-json').addEventListener('click', () => {
+      const input = document.getElementById('json-input').value.trim();
+      if (!input) return;
+      
+      try {
+        const parsed = JSON.parse(input);
+        const formatted = JSON.stringify(parsed, null, 2);
+        showResult('json-result', formatted);
+      } catch (error) {
+        showResult('json-result', `❌ JSON 格式错误：${error.message}`);
+      }
+    });
+
+    document.getElementById('minify-json').addEventListener('click', () => {
+      const input = document.getElementById('json-input').value.trim();
+      if (!input) return;
+      
+      try {
+        const parsed = JSON.parse(input);
+        const minified = JSON.stringify(parsed);
+        showResult('json-result', minified);
+      } catch (error) {
+        showResult('json-result', `❌ JSON 格式错误：${error.message}`);
+      }
+    });
+
+    document.getElementById('validate-json').addEventListener('click', () => {
+      const input = document.getElementById('json-input').value.trim();
+      if (!input) return;
+      
+      try {
+        JSON.parse(input);
+        showResult('json-result', '✅ JSON 格式正确！');
+      } catch (error) {
+        showResult('json-result', `❌ JSON 格式错误：${error.message}`);
+      }
+    });
+
+    document.getElementById('clear-json').addEventListener('click', () => {
+      document.getElementById('json-input').value = '';
+      document.getElementById('json-result').style.display = 'none';
+    });
+
+    // 正则表达式测试器
+    document.getElementById('test-regex').addEventListener('click', () => {
+      const pattern = document.getElementById('regex-pattern').value.trim();
+      const text = document.getElementById('regex-text').value;
+      
+      if (!pattern || !text) return;
+      
+      try {
+        const flags = getRegexFlags();
+        const regex = new RegExp(pattern, flags);
+        const matches = [...text.matchAll(regex)];
+        
+        if (matches.length === 0) {
+          showResult('regex-result', '❌ 没有找到匹配项');
+        } else {
+          showResult('regex-result', `✅ 找到 ${matches.length} 个匹配项`);
+          displayMatches(matches);
+        }
+      } catch (error) {
+        showResult('regex-result', `❌ 正则表达式错误：${error.message}`);
+      }
+    });
+
+    function getRegexFlags() {
+      const flags = [];
+      if (document.getElementById('flag-g').checked) flags.push('g');
+      if (document.getElementById('flag-i').checked) flags.push('i');
+      if (document.getElementById('flag-m').checked) flags.push('m');
+      if (document.getElementById('flag-s').checked) flags.push('s');
+      if (document.getElementById('flag-u').checked) flags.push('u');
+      if (document.getElementById('flag-y').checked) flags.push('y');
+      return flags.join('');
+    }
+
+    function displayMatches(matches) {
+      const container = document.getElementById('regex-matches');
+      container.innerHTML = '';
+      
+      matches.forEach((match, index) => {
+        const matchDiv = document.createElement('div');
+        matchDiv.className = 'match-item';
+        matchDiv.innerHTML = `
+          <div class="match-text">匹配 ${index + 1}: "${match[0]}"</div>
+          <div class="match-details">位置: ${match.index}, 长度: ${match[0].length}</div>
+        `;
+        container.appendChild(matchDiv);
+      });
+    }
+
+    // 单位换算器
+    const unitConversions = {
+      // 长度
+      length: {
+        m: 1,
+        km: 1000,
+        cm: 0.01,
+        mm: 0.001,
+        mi: 1609.344,
+        yd: 0.9144,
+        ft: 0.3048,
+        in: 0.0254
+      },
+      // 重量
+      weight: {
+        kg: 1,
+        g: 0.001,
+        mg: 0.000001,
+        lb: 0.45359237,
+        oz: 0.028349523125
+      },
+      // 面积
+      area: {
+        m2: 1,
+        km2: 1000000,
+        cm2: 0.0001,
+        ha: 10000,
+        ac: 4046.8564224,
+        sqft: 0.09290304
+      },
+      // 体积
+      volume: {
+        m3: 1,
+        l: 0.001,
+        ml: 0.000001,
+        gal: 0.003785411784,
+        qt: 0.000946352946
+      }
+    };
+
+    document.getElementById('convert-unit').addEventListener('click', () => {
+      const value = parseFloat(document.getElementById('unit-value').value);
+      if (isNaN(value)) return;
+      
+      // 确定单位类型
+      let unitType = 'length';
+      let fromUnit = document.getElementById('length-from').value;
+      let toUnit = document.getElementById('length-to').value;
+      
+      if (document.getElementById('weight-from').value && document.getElementById('weight-to').value) {
+        unitType = 'weight';
+        fromUnit = document.getElementById('weight-from').value;
+        toUnit = document.getElementById('weight-to').value;
+      } else if (document.getElementById('area-from').value && document.getElementById('area-to').value) {
+        unitType = 'area';
+        fromUnit = document.getElementById('area-from').value;
+        toUnit = document.getElementById('area-to').value;
+      } else if (document.getElementById('volume-from').value && document.getElementById('volume-to').value) {
+        unitType = 'volume';
+        fromUnit = document.getElementById('volume-from').value;
+        toUnit = document.getElementById('volume-to').value;
+      }
+      
+      const conversions = unitConversions[unitType];
+      if (conversions && conversions[fromUnit] && conversions[toUnit]) {
+        const baseValue = value * conversions[fromUnit];
+        const result = baseValue / conversions[toUnit];
+        showResult('unit-result', `${value} ${fromUnit} = ${result.toFixed(6)} ${toUnit}`);
+      }
+    });
+
+    // 时间戳转换器
+    document.getElementById('timestamp-to-date').addEventListener('click', () => {
+      const input = document.getElementById('timestamp-input').value.trim();
+      if (!input) return;
+      
+      let timestamp = parseFloat(input);
+      if (isNaN(timestamp)) return;
+      
+      // 如果时间戳是10位（秒），转换为毫秒
+      if (timestamp.toString().length === 10) {
+        timestamp *= 1000;
+      }
+      
+      try {
+        const date = new Date(timestamp);
+        if (isNaN(date.getTime())) {
+          showResult('timestamp-result', '❌ 无效的时间戳');
+          return;
+        }
+        
+        const result = `时间戳: ${timestamp}\n日期: ${date.toLocaleString('zh-CN')}\nUTC: ${date.toUTCString()}\nISO: ${date.toISOString()}`;
+        showResult('timestamp-result', result);
+      } catch (error) {
+        showResult('timestamp-result', `❌ 转换错误：${error.message}`);
+      }
+    });
+
+    document.getElementById('date-to-timestamp').addEventListener('click', () => {
+      const input = document.getElementById('date-input').value;
+      if (!input) return;
+      
+      try {
+        const date = new Date(input);
+        const timestamp = date.getTime();
+        const result = `日期: ${input}\n时间戳 (毫秒): ${timestamp}\n时间戳 (秒): ${Math.floor(timestamp / 1000)}`;
+        showResult('timestamp-result', result);
+      } catch (error) {
+        showResult('timestamp-result', `❌ 转换错误：${error.message}`);
+      }
+    });
+
+    // 当前时间显示
+    function updateCurrentTime() {
+      const now = new Date();
+      const timestamp = now.getTime();
+      document.getElementById('current-time').textContent = 
+        `${now.toLocaleString('zh-CN')} (${timestamp} 毫秒)`;
+    }
+
+    setInterval(updateCurrentTime, 1000);
+    updateCurrentTime();
+
+    // 复制当前时间戳
+    document.getElementById('copy-current-timestamp').addEventListener('click', () => {
+      const now = new Date();
+      const timestamp = now.getTime();
+      navigator.clipboard.writeText(timestamp.toString()).then(() => {
+        const successMsg = document.getElementById('copy-success');
+        successMsg.classList.add('show');
+        setTimeout(() => successMsg.classList.remove('show'), 2000);
+      });
+    });
+
+    // 通用函数
+    function showResult(elementId, content) {
+      const element = document.getElementById(elementId);
+      element.textContent = content;
+      element.style.display = 'block';
+    }
+
+    // 设置年份
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>

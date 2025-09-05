@@ -1,0 +1,693 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>接口请求工具 · 网页工具箱</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <meta name="color-scheme" content="light dark">
+  <style>
+    .api-tester {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    
+    .request-section {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 2px 8px var(--shadow);
+    }
+    
+    .request-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    
+    .method-select {
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--card);
+      color: var(--fg);
+      font-size: 14px;
+      min-width: 80px;
+    }
+    
+    .url-input {
+      flex: 1;
+      min-width: 300px;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--card);
+      color: var(--fg);
+      font-size: 14px;
+    }
+    
+    .send-btn {
+      padding: 8px 20px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+    
+    .send-btn:hover {
+      background: var(--accent-hover);
+    }
+    
+    .send-btn:disabled {
+      background: var(--muted);
+      cursor: not-allowed;
+    }
+    
+    .form-group {
+      margin-bottom: 16px;
+    }
+    
+    .form-label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: var(--fg);
+    }
+    
+    .form-input {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--card);
+      color: var(--fg);
+      font-size: 14px;
+      font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    }
+    
+    .form-textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+    
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+    
+    .tab {
+      padding: 8px 16px;
+      border: none;
+      background: none;
+      color: var(--muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+    
+    .tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+    
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+    
+    .response-section {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 2px 8px var(--shadow);
+    }
+    
+    .response-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .status-badge {
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    
+    .status-success {
+      background: #10b981;
+      color: white;
+    }
+    
+    .status-error {
+      background: #ef4444;
+      color: white;
+    }
+    
+    .status-info {
+      background: #3b82f6;
+      color: white;
+    }
+    
+    .response-time {
+      color: var(--muted);
+      font-size: 14px;
+    }
+    
+    .response-content {
+      background: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 16px;
+      font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-all;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    
+    .headers-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 8px;
+      align-items: center;
+    }
+    
+    .add-header-btn {
+      padding: 6px 12px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    
+    .remove-header-btn {
+      padding: 4px 8px;
+      background: #ef4444;
+      color: white;
+      border: none;
+          border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    
+    .loading {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid var(--border);
+      border-radius: 50%;
+      border-top-color: var(--accent);
+      animation: spin 1s ease-in-out infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .history-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .history-item:hover {
+      background: var(--panel-bg);
+    }
+    
+    .history-method {
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 500;
+      min-width: 40px;
+      text-align: center;
+    }
+    
+    .method-get { background: #10b981; color: white; }
+    .method-post { background: #3b82f6; color: white; }
+    .method-put { background: #f59e0b; color: white; }
+    .method-delete { background: #ef4444; color: white; }
+    .method-patch { background: #8b5cf6; color: white; }
+    
+    .history-url {
+      flex: 1;
+      font-size: 13px;
+      color: var(--fg);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    
+    .history-time {
+      font-size: 12px;
+      color: var(--muted);
+    }
+    
+    .clear-history-btn {
+      padding: 6px 12px;
+      background: var(--muted);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      margin-left: auto;
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <h1 class="site-title">🔌 接口请求工具</h1>
+      <p class="site-subtitle">简易的 API 测试工具，支持 GET/POST 等多种请求方法</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="api-tester">
+      <!-- 请求历史 -->
+      <div class="request-section">
+        <h3>请求历史</h3>
+        <div id="requestHistory"></div>
+        <button class="clear-history-btn" onclick="clearHistory()">清空历史</button>
+      </div>
+
+      <!-- 请求配置 -->
+      <div class="request-section">
+        <h3>请求配置</h3>
+        
+        <div class="request-header">
+          <select id="methodSelect" class="method-select">
+            <option value="GET">GET</option>
+            <option value="POST">POST</option>
+            <option value="PUT">PUT</option>
+            <option value="DELETE">DELETE</option>
+            <option value="PATCH">PATCH</option>
+          </select>
+          
+          <input type="url" id="urlInput" class="url-input" placeholder="请输入请求 URL" value="https://httpbin.org/get">
+          
+          <button id="sendBtn" class="send-btn" onclick="sendRequest()">
+            <span id="sendBtnText">发送请求</span>
+            <span id="sendBtnLoading" class="loading" style="display: none;"></span>
+          </button>
+        </div>
+
+        <!-- 请求头 -->
+        <div class="form-group">
+          <label class="form-label">请求头</label>
+          <div id="headersContainer">
+            <div class="headers-grid">
+              <input type="text" class="form-input header-key" placeholder="Header 名称" value="Content-Type">
+              <input type="text" class="form-input header-value" placeholder="Header 值" value="application/json">
+              <button class="remove-header-btn" onclick="removeHeader(this)">删除</button>
+            </div>
+          </div>
+          <button class="add-header-btn" onclick="addHeader()">添加请求头</button>
+        </div>
+
+        <!-- 请求体 -->
+        <div class="form-group">
+          <label class="form-label">请求体</label>
+          <div class="tabs">
+            <button class="tab active" onclick="switchTab('json')">JSON</button>
+            <button class="tab" onclick="switchTab('form')">Form Data</button>
+            <button class="tab" onclick="switchTab('raw')">Raw</button>
+          </div>
+          
+          <div id="jsonTab" class="tab-content active">
+            <textarea id="jsonBody" class="form-input form-textarea" placeholder='{"key": "value"}'>{
+  "name": "test",
+  "message": "Hello World"
+}</textarea>
+          </div>
+          
+          <div id="formTab" class="tab-content">
+            <div id="formDataContainer">
+              <div class="headers-grid">
+                <input type="text" class="form-input form-key" placeholder="参数名" value="name">
+                <input type="text" class="form-input form-value" placeholder="参数值" value="test">
+                <button class="remove-header-btn" onclick="removeFormField(this)">删除</button>
+              </div>
+            </div>
+            <button class="add-header-btn" onclick="addFormField()">添加参数</button>
+          </div>
+          
+          <div id="rawTab" class="tab-content">
+            <textarea id="rawBody" class="form-input form-textarea" placeholder="输入原始请求体内容"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- 响应结果 -->
+      <div class="response-section">
+        <h3>响应结果</h3>
+        <div id="responseContent" style="display: none;">
+          <div class="response-header">
+            <div>
+              <span id="statusBadge" class="status-badge status-info">200 OK</span>
+              <span id="responseTime" class="response-time">响应时间: 0ms</span>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">响应头</label>
+            <pre id="responseHeaders" class="response-content"></pre>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">响应体</label>
+            <pre id="responseBody" class="response-content"></pre>
+          </div>
+        </div>
+        
+        <div id="noResponse" style="text-align: center; color: var(--muted); padding: 40px;">
+          点击"发送请求"开始测试接口
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <span>© <span id="year"></span> 网页工具箱</span>
+    </div>
+  </footer>
+
+  <script>
+    // 请求历史
+    let requestHistory = JSON.parse(localStorage.getItem('apiTesterHistory') || '[]');
+    
+    // 初始化
+    document.addEventListener('DOMContentLoaded', function() {
+      document.getElementById('year').textContent = new Date().getFullYear();
+      renderHistory();
+      
+      // 监听方法变化，自动显示/隐藏请求体
+      document.getElementById('methodSelect').addEventListener('change', function() {
+        const method = this.value;
+        const bodySection = document.querySelector('.form-group:last-child');
+        if (method === 'GET') {
+          bodySection.style.display = 'none';
+        } else {
+          bodySection.style.display = 'block';
+        }
+      });
+      
+      // 初始隐藏 GET 方法的请求体
+      if (document.getElementById('methodSelect').value === 'GET') {
+        document.querySelector('.form-group:last-child').style.display = 'none';
+      }
+    });
+    
+    // 切换标签页
+    function switchTab(tabName) {
+      // 隐藏所有标签页内容
+      document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+      });
+      
+      // 移除所有标签页的激活状态
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.classList.remove('active');
+      });
+      
+      // 显示选中的标签页内容
+      document.getElementById(tabName + 'Tab').classList.add('active');
+      
+      // 激活对应的标签
+      event.target.classList.add('active');
+    }
+    
+    // 添加请求头
+    function addHeader() {
+      const container = document.getElementById('headersContainer');
+      const headerDiv = document.createElement('div');
+      headerDiv.className = 'headers-grid';
+      headerDiv.innerHTML = `
+        <input type="text" class="form-input header-key" placeholder="Header 名称">
+        <input type="text" class="form-input header-value" placeholder="Header 值">
+        <button class="remove-header-btn" onclick="removeHeader(this)">删除</button>
+      `;
+      container.appendChild(headerDiv);
+    }
+    
+    // 删除请求头
+    function removeHeader(btn) {
+      btn.parentElement.remove();
+    }
+    
+    // 添加表单字段
+    function addFormField() {
+      const container = document.getElementById('formDataContainer');
+      const fieldDiv = document.createElement('div');
+      fieldDiv.className = 'headers-grid';
+      fieldDiv.innerHTML = `
+        <input type="text" class="form-input form-key" placeholder="参数名">
+        <input type="text" class="form-input form-value" placeholder="参数值">
+        <button class="remove-header-btn" onclick="removeFormField(this)">删除</button>
+      `;
+      container.appendChild(fieldDiv);
+    }
+    
+    // 删除表单字段
+    function removeFormField(btn) {
+      btn.parentElement.remove();
+    }
+    
+    // 发送请求
+    async function sendRequest() {
+      const method = document.getElementById('methodSelect').value;
+      const url = document.getElementById('urlInput').value.trim();
+      
+      if (!url) {
+        alert('请输入请求 URL');
+        return;
+      }
+      
+      // 显示加载状态
+      const sendBtn = document.getElementById('sendBtn');
+      const sendBtnText = document.getElementById('sendBtnText');
+      const sendBtnLoading = document.getElementById('sendBtnLoading');
+      
+      sendBtn.disabled = true;
+      sendBtnText.style.display = 'none';
+      sendBtnLoading.style.display = 'inline-block';
+      
+      try {
+        const startTime = Date.now();
+        
+        // 构建请求头
+        const headers = {};
+        document.querySelectorAll('.header-key').forEach((keyInput, index) => {
+          const key = keyInput.value.trim();
+          const value = document.querySelectorAll('.header-value')[index].value.trim();
+          if (key && value) {
+            headers[key] = value;
+          }
+        });
+        
+        // 构建请求体
+        let body = null;
+        if (method !== 'GET') {
+          const activeTab = document.querySelector('.tab.active').textContent.toLowerCase();
+          
+          if (activeTab === 'json') {
+            const jsonBody = document.getElementById('jsonBody').value.trim();
+            if (jsonBody) {
+              try {
+                body = JSON.stringify(JSON.parse(jsonBody));
+                headers['Content-Type'] = 'application/json';
+              } catch (e) {
+                alert('JSON 格式错误');
+                return;
+              }
+            }
+          } else if (activeTab === 'form') {
+            const formData = new FormData();
+            document.querySelectorAll('.form-key').forEach((keyInput, index) => {
+              const key = keyInput.value.trim();
+              const value = document.querySelectorAll('.form-value')[index].value.trim();
+              if (key && value) {
+                formData.append(key, value);
+              }
+            });
+            body = formData;
+            // FormData 会自动设置 Content-Type
+          } else if (activeTab === 'raw') {
+            const rawBody = document.getElementById('rawBody').value.trim();
+            if (rawBody) {
+              body = rawBody;
+            }
+          }
+        }
+        
+        // 发送请求
+        const response = await fetch(url, {
+          method: method,
+          headers: method === 'GET' ? headers : headers,
+          body: body
+        });
+        
+        const endTime = Date.now();
+        const responseTime = endTime - startTime;
+        
+        // 获取响应头
+        const responseHeaders = {};
+        response.headers.forEach((value, key) => {
+          responseHeaders[key] = value;
+        });
+        
+        // 获取响应体
+        let responseBody;
+        const contentType = response.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+          responseBody = await response.json();
+          responseBody = JSON.stringify(responseBody, null, 2);
+        } else {
+          responseBody = await response.text();
+        }
+        
+        // 显示响应结果
+        displayResponse(response.status, response.statusText, responseTime, responseHeaders, responseBody);
+        
+        // 保存到历史记录
+        saveToHistory(method, url, response.status);
+        
+      } catch (error) {
+        console.error('请求失败:', error);
+        displayError(error.message);
+      } finally {
+        // 恢复按钮状态
+        sendBtn.disabled = false;
+        sendBtnText.style.display = 'inline';
+        sendBtnLoading.style.display = 'none';
+      }
+    }
+    
+    // 显示响应结果
+    function displayResponse(status, statusText, responseTime, headers, body) {
+      document.getElementById('noResponse').style.display = 'none';
+      document.getElementById('responseContent').style.display = 'block';
+      
+      // 状态码
+      const statusBadge = document.getElementById('statusBadge');
+      statusBadge.textContent = `${status} ${statusText}`;
+      statusBadge.className = 'status-badge ' + (status >= 200 && status < 300 ? 'status-success' : 'status-error');
+      
+      // 响应时间
+      document.getElementById('responseTime').textContent = `响应时间: ${responseTime}ms`;
+      
+      // 响应头
+      document.getElementById('responseHeaders').textContent = JSON.stringify(headers, null, 2);
+      
+      // 响应体
+      document.getElementById('responseBody').textContent = body;
+    }
+    
+    // 显示错误
+    function displayError(message) {
+      document.getElementById('noResponse').style.display = 'none';
+      document.getElementById('responseContent').style.display = 'block';
+      
+      document.getElementById('statusBadge').textContent = 'Error';
+      document.getElementById('statusBadge').className = 'status-badge status-error';
+      document.getElementById('responseTime').textContent = '请求失败';
+      document.getElementById('responseHeaders').textContent = '';
+      document.getElementById('responseBody').textContent = `请求失败: ${message}`;
+    }
+    
+    // 保存到历史记录
+    function saveToHistory(method, url, status) {
+      const historyItem = {
+        method: method,
+        url: url,
+        status: status,
+        timestamp: new Date().toLocaleString()
+      };
+      
+      // 避免重复记录
+      const existingIndex = requestHistory.findIndex(item => 
+        item.method === method && item.url === url
+      );
+      
+      if (existingIndex !== -1) {
+        requestHistory.splice(existingIndex, 1);
+      }
+      
+      requestHistory.unshift(historyItem);
+      
+      // 限制历史记录数量
+      if (requestHistory.length > 20) {
+        requestHistory = requestHistory.slice(0, 20);
+      }
+      
+      localStorage.setItem('apiTesterHistory', JSON.stringify(requestHistory));
+      renderHistory();
+    }
+    
+    // 渲染历史记录
+    function renderHistory() {
+      const container = document.getElementById('requestHistory');
+      if (requestHistory.length === 0) {
+        container.innerHTML = '<p style="color: var(--muted); text-align: center;">暂无请求历史</p>';
+        return;
+      }
+      
+      container.innerHTML = requestHistory.map(item => `
+        <div class="history-item" onclick="loadFromHistory('${item.method}', '${item.url}')">
+          <span class="history-method method-${item.method.toLowerCase()}">${item.method}</span>
+          <span class="history-url">${item.url}</span>
+          <span class="history-time">${item.timestamp}</span>
+        </div>
+      `).join('');
+    }
+    
+    // 从历史记录加载
+    function loadFromHistory(method, url) {
+      document.getElementById('methodSelect').value = method;
+      document.getElementById('urlInput').value = url;
+      
+      // 滚动到请求配置区域
+      document.querySelector('.request-section:nth-child(2)').scrollIntoView({ behavior: 'smooth' });
+    }
+    
+    // 清空历史记录
+    function clearHistory() {
+      if (confirm('确定要清空所有请求历史吗？')) {
+        requestHistory = [];
+        localStorage.removeItem('apiTesterHistory');
+        renderHistory();
+      }
+    }
+  </script>
+</body>
+</html>

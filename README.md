@@ -3,6 +3,7 @@
 一个轻量的静态网页工具集合。当前内置：
 
 - Mermaid 可视化渲染器：`/tools/mermaid.html`
+- Markdown 在线编辑器：`/tools/markdown-editor.html`
 - 轻量化日历：`/tools/calendar.html`
 
 ## 使用
@@ -16,6 +17,7 @@
 - 单页工具：每个工具都有独立 URL
 - 护眼黄主题（自动适配系统暗色）
 - Mermaid 实时渲染、下载 PNG / SVG / PDF
+- Markdown 编辑器：实时预览、PDF 导出、本地保存
 - 轻量化日历：支持计划管理、LocalStorage 存储
 
 ## 部署
@@ -34,10 +36,12 @@
 ├── index.html                # 首页（目录）
 ├── tools/
 │   ├── mermaid.html          # Mermaid 工具页面
+│   └── markdown-editor.html  # Markdown 编辑器
 │   └── calendar.html         # 轻量化日历工具
 └── assets/
     └── css/
-        └── style.css         # 主题与样式
+        ├── style.css         # 主题与样式
+        └── markdown-editor.css # Markdown 编辑器样式
 ```
 
 ## 开发

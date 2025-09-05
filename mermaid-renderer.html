@@ -848,7 +848,7 @@
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                     <label>实时预览</label>
                     <button class="btn btn-secondary" onclick="openFullscreen()" id="zoomBtn" style="padding: 8px 16px; font-size: 0.9em;" disabled>
-                        <span>🔍</span> 全屏查看
+                        <span>🔍</span> 放大查看
                     </button>
                 </div>
                 <div class="preview-container">
@@ -869,7 +869,7 @@
     <!-- 全屏放大模态框 - 来自V2 -->
     <div id="fullscreenModal" class="fullscreen-modal">
         <div class="modal-header">
-            <h3>🔍 图表全屏查看</h3>
+            <h3>🔍 图表放大查看</h3>
             <div class="modal-controls">
                 <button class="control-btn" onclick="zoomIn()" title="放大">
                     <span>🔍+</span>
@@ -1285,16 +1285,22 @@
                 return;
             }
 
+            // 复制图表内容到全屏容器
             fullscreenContainer.innerHTML = container.innerHTML;
             
+            // 显示模态框
             const modal = document.getElementById('fullscreenModal');
             modal.classList.add('show');
             
+            // 重置缩放和位置
             currentZoom = 1;
             dragOffset = { x: 0, y: 0 };
             updateZoom();
             
+            // 添加拖拽事件监听
             addDragListeners();
+            
+            // 阻止背景滚动
             document.body.style.overflow = 'hidden';
         }
 
@@ -1302,26 +1308,33 @@
             const modal = document.getElementById('fullscreenModal');
             modal.classList.remove('show');
             
+            // 恢复背景滚动
             document.body.style.overflow = 'auto';
+            
+            // 移除拖拽事件监听
             removeDragListeners();
         }
 
+        // 放大
         function zoomIn() {
             currentZoom = Math.min(currentZoom * 1.2, 5);
             updateZoom();
         }
 
+        // 缩小
         function zoomOut() {
             currentZoom = Math.max(currentZoom / 1.2, 0.1);
             updateZoom();
         }
 
+        // 重置缩放
         function resetZoom() {
             currentZoom = 1;
             dragOffset = { x: 0, y: 0 };
             updateZoom();
         }
 
+        // 更新缩放
         function updateZoom() {
             const svg = document.querySelector('#fullscreenContainer svg');
             const zoomLevel = document.getElementById('zoomLevel');
@@ -1335,6 +1348,7 @@
             }
         }
 
+        // 添加拖拽事件监听
         function addDragListeners() {
             const container = document.getElementById('fullscreenContainer');
             
@@ -1348,6 +1362,7 @@
             container.addEventListener('touchend', endDrag);
         }
 
+        // 移除拖拽事件监听
         function removeDragListeners() {
             const container = document.getElementById('fullscreenContainer');
             
@@ -1361,6 +1376,7 @@
             container.removeEventListener('touchend', endDrag);
         }
 
+        // 开始拖拽
         function startDrag(e) {
             isDragging = true;
             dragStart.x = e.clientX - dragOffset.x;
@@ -1369,6 +1385,7 @@
             e.preventDefault();
         }
 
+        // 拖拽中
         function drag(e) {
             if (!isDragging) return;
             
@@ -1378,11 +1395,13 @@
             e.preventDefault();
         }
 
+        // 结束拖拽
         function endDrag() {
             isDragging = false;
             document.getElementById('fullscreenContainer').classList.remove('dragging');
         }
 
+        // 触摸开始拖拽
         function startDragTouch(e) {
             if (e.touches.length === 1) {
                 isDragging = true;
@@ -1393,6 +1412,7 @@
             }
         }
 
+        // 触摸拖拽中
         function dragTouch(e) {
             if (!isDragging || e.touches.length !== 1) return;
             

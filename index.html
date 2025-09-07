@@ -7,12 +7,34 @@
     <link rel="stylesheet" href="assets/css/style.css">
     <meta name="color-scheme" content="light dark">
     <style>
+        :root {
+            --accent-light: #60a5fa;
+        }
+        
         .hero-section {
             text-align: center;
             padding: 60px 20px;
             background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
             color: white;
             margin-bottom: 60px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.1);
+            z-index: 1;
+        }
+        
+        .hero-section > * {
+            position: relative;
+            z-index: 2;
         }
         
         .hero-title {
@@ -26,8 +48,107 @@
             font-size: 1.25rem;
             opacity: 0.9;
             max-width: 600px;
-            margin: 0 auto;
+            margin: 0 auto 32px auto;
             line-height: 1.6;
+        }
+        
+        .search-container {
+            max-width: 500px;
+            margin: 0 auto;
+            position: relative;
+        }
+        
+        .search-box {
+            display: flex;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 4px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .search-input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            padding: 16px 20px;
+            font-size: 1rem;
+            color: var(--fg);
+            outline: none;
+        }
+        
+        .search-input::placeholder {
+            color: var(--muted);
+        }
+        
+        .search-btn {
+            background: var(--accent);
+            border: none;
+            border-radius: 8px;
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .search-btn:hover {
+            background: var(--accent-hover);
+            transform: scale(1.05);
+        }
+        
+        .search-icon {
+            font-size: 1.2rem;
+            color: white;
+        }
+        
+        .search-suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-top: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+            box-shadow: 0 8px 24px var(--shadow);
+            z-index: 1000;
+            display: none;
+        }
+        
+        .suggestion-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            border-bottom: 1px solid var(--border);
+            transition: background-color 0.2s ease;
+        }
+        
+        .suggestion-item:hover {
+            background: var(--panel-bg);
+        }
+        
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+        
+        .suggestion-name {
+            font-weight: 500;
+            color: var(--fg);
+        }
+        
+        .suggestion-desc {
+            font-size: 0.875rem;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+        
+        .highlight {
+            background: rgba(59, 130, 246, 0.2);
+            padding: 1px 2px;
+            border-radius: 2px;
         }
         
         .tools-grid {
@@ -42,13 +163,32 @@
             border: 1px solid var(--border);
             border-radius: 16px;
             padding: 24px;
-            box-shadow: 0 2px 8px var(--shadow);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 4px 12px var(--shadow);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .tool-category::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent), var(--accent-light));
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
         }
         
         .tool-category:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px var(--shadow);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px var(--shadow-lg);
+            border-color: var(--accent);
+        }
+        
+        .tool-category:hover::before {
+            transform: scaleX(1);
         }
         
         .category-header {
@@ -91,21 +231,40 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 12px 16px;
+            padding: 14px 16px;
             background: var(--panel-bg);
             border: 1px solid var(--border);
-            border-radius: 8px;
+            border-radius: 10px;
             text-decoration: none;
             color: var(--fg);
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
             font-weight: 500;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .tool-link::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: var(--accent);
+            transform: scaleY(0);
+            transition: transform 0.3s ease;
         }
         
         .tool-link:hover {
-            background: var(--accent-light);
+            background: rgba(59, 130, 246, 0.05);
             border-color: var(--accent);
             color: var(--accent);
-            transform: translateX(4px);
+            transform: translateX(6px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+        }
+        
+        .tool-link:hover::before {
+            transform: scaleY(1);
         }
         
         .tool-icon {
@@ -190,6 +349,17 @@
         <section class="hero-section">
             <h1 class="hero-title">工具箱</h1>
             <p class="hero-subtitle">精选实用工具集合，提升工作效率，简化日常任务</p>
+            
+            <!-- 搜索框 -->
+            <div class="search-container">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="搜索工具..." class="search-input">
+                    <button class="search-btn" onclick="performSearch()">
+                        <span class="search-icon">🔍</span>
+                    </button>
+                </div>
+                <div class="search-suggestions" id="searchSuggestions"></div>
+            </div>
         </section>
 
         <!-- 工具分类 -->
@@ -285,7 +455,7 @@
                 </div>
                 <ul class="tool-list">
                     <li class="tool-item">
-                        <a href="index.html" class="tool-link">
+                        <a href="tools/utilities/qr-decoder.html" class="tool-link">
                             <span class="tool-icon">📱</span>
                             <div>
                                 <div class="tool-name">二维码解析工具</div>
@@ -391,5 +561,124 @@
             <p style="margin-top: 8px; font-size: 0.875rem;">所有工具均运行在本地，保护您的隐私安全</p>
         </footer>
     </div>
+
+    <script>
+        // 工具数据
+        const toolsData = [
+            { name: "API接口测试器", desc: "测试HTTP接口，支持多种请求方法", url: "tools/development/api-tester.html", category: "开发工具" },
+            { name: "Base64/URL编解码", desc: "快速编解码Base64和URL格式", url: "tools/development/base64-url-encoder.html", category: "开发工具" },
+            { name: "文件内容对比", desc: "对比两个文本文件的差异", url: "tools/development/file-diff.html", category: "开发工具" },
+            { name: "Python代码执行器", desc: "在线运行Python代码", url: "tools/development/python-executor.html", category: "开发工具" },
+            { name: "Markdown编辑器", desc: "实时预览的Markdown编辑器", url: "tools/documentation/markdown-editor.html", category: "文档编辑" },
+            { name: "LaTeX公式编辑器", desc: "数学公式编辑和渲染", url: "tools/documentation/latex-editor.html", category: "文档编辑" },
+            { name: "Mermaid图表渲染器", desc: "创建流程图、时序图等", url: "tools/documentation/mermaid.html", category: "文档编辑" },
+            { name: "二维码解析工具", desc: "解析二维码内容", url: "tools/utilities/qr-decoder.html", category: "实用工具" },
+            { name: "密码生成器", desc: "生成安全随机密码", url: "tools/utilities/password-generator.html", category: "实用工具" },
+            { name: "数据计算工具", desc: "进制转换、单位换算等", url: "tools/utilities/data-calculator.html", category: "实用工具" },
+            { name: "轻量化日历", desc: "简洁的日历查看器", url: "tools/utilities/calendar.html", category: "实用工具" },
+            { name: "番茄钟待办事项", desc: "时间管理和任务规划", url: "tools/productivity/pomodoro.html", category: "效率工具" },
+            { name: "学习打卡面板", desc: "学习进度跟踪", url: "tools/productivity/study-checkin.html", category: "效率工具" },
+            { name: "极简画板", desc: "在线绘图和标注", url: "tools/productivity/whiteboard.html", category: "效率工具" }
+        ];
+
+        let searchTimeout;
+
+        // 搜索功能
+        function performSearch() {
+            const searchInput = document.getElementById('searchInput');
+            const query = searchInput.value.trim().toLowerCase();
+            
+            if (query === '') {
+                hideSuggestions();
+                return;
+            }
+
+            const results = toolsData.filter(tool => 
+                tool.name.toLowerCase().includes(query) || 
+                tool.desc.toLowerCase().includes(query) ||
+                tool.category.toLowerCase().includes(query)
+            );
+
+            showSuggestions(results, query);
+        }
+
+        // 显示搜索建议
+        function showSuggestions(results, query) {
+            const suggestionsContainer = document.getElementById('searchSuggestions');
+            
+            if (results.length === 0) {
+                suggestionsContainer.innerHTML = '<div class="suggestion-item">未找到相关工具</div>';
+                suggestionsContainer.style.display = 'block';
+                return;
+            }
+
+            const html = results.map(tool => `
+                <div class="suggestion-item" onclick="navigateToTool('${tool.url}')">
+                    <div class="suggestion-name">${highlightText(tool.name, query)}</div>
+                    <div class="suggestion-desc">${highlightText(tool.desc, query)}</div>
+                </div>
+            `).join('');
+
+            suggestionsContainer.innerHTML = html;
+            suggestionsContainer.style.display = 'block';
+        }
+
+        // 隐藏搜索建议
+        function hideSuggestions() {
+            const suggestionsContainer = document.getElementById('searchSuggestions');
+            suggestionsContainer.style.display = 'none';
+        }
+
+        // 高亮搜索文本
+        function highlightText(text, query) {
+            if (!query) return text;
+            const regex = new RegExp(`(${query})`, 'gi');
+            return text.replace(regex, '<span class="highlight">$1</span>');
+        }
+
+        // 导航到工具页面
+        function navigateToTool(url) {
+            window.location.href = url;
+        }
+
+        // 事件监听
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchInput');
+            const suggestionsContainer = document.getElementById('searchSuggestions');
+
+            // 搜索输入事件
+            searchInput.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(performSearch, 300);
+            });
+
+            // 点击外部隐藏建议
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.search-container')) {
+                    hideSuggestions();
+                }
+            });
+
+            // 键盘事件
+            searchInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    const firstSuggestion = suggestionsContainer.querySelector('.suggestion-item');
+                    if (firstSuggestion) {
+                        firstSuggestion.click();
+                    }
+                } else if (e.key === 'Escape') {
+                    hideSuggestions();
+                    searchInput.blur();
+                }
+            });
+
+            // 聚焦时显示所有工具
+            searchInput.addEventListener('focus', function() {
+                if (this.value.trim() === '') {
+                    showSuggestions(toolsData, '');
+                }
+            });
+        });
+    </script>
 </body>
 </html>

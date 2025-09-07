@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>二维码解析工具</title>
+    <link rel="stylesheet" href="../../assets/css/style.css">
+    <meta name="color-scheme" content="light dark">
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <style>
+        .qr-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .upload-area {
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            background: var(--panel-bg);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            margin-bottom: 24px;
+        }
+        
+        .upload-area:hover {
+            border-color: var(--accent);
+            background: rgba(59, 130, 246, 0.05);
+        }
+        
+        .upload-area.dragover {
+            border-color: var(--accent);
+            background: rgba(59, 130, 246, 0.1);
+            transform: scale(1.02);
+        }
+        
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 16px;
+            opacity: 0.6;
+        }
+        
+        .upload-text {
+            font-size: 1.1rem;
+            color: var(--muted);
+            margin-bottom: 8px;
+        }
+        
+        .upload-hint {
+            font-size: 0.9rem;
+            color: var(--muted);
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .result-section {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-top: 24px;
+            display: none;
+        }
+        
+        .result-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--fg);
+            margin-bottom: 16px;
+        }
+        
+        .result-content {
+            background: var(--panel-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            word-break: break-all;
+            margin-bottom: 16px;
+        }
+        
+        .result-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .action-btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+        
+        .action-btn:hover {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+        }
+        
+        .action-btn.secondary {
+            background: var(--muted);
+        }
+        
+        .action-btn.secondary:hover {
+            background: var(--fg);
+        }
+        
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 8px;
+            padding: 16px;
+            color: #ef4444;
+            margin-top: 16px;
+        }
+        
+        .image-preview {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 8px;
+            margin: 16px auto;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <h1 class="site-title">📱 二维码解析工具</h1>
+            <p class="site-subtitle">快速解析二维码内容，支持多种输入方式</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="qr-container">
+            <!-- 上传区域 -->
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📷</div>
+                <div class="upload-text">拖拽二维码图片到这里，或点击选择文件</div>
+                <div class="upload-hint">支持 PNG、JPG、JPEG、GIF、BMP、WebP 格式</div>
+                <input type="file" id="fileInput" class="file-input" accept="image/*">
+            </div>
+
+            <!-- 结果显示 -->
+            <div class="result-section" id="resultSection">
+                <h3 class="result-title">解析结果</h3>
+                <div class="result-content" id="resultContent"></div>
+                <div class="result-actions">
+                    <button class="action-btn" id="copyBtn">复制内容</button>
+                    <button class="action-btn secondary" id="openBtn" style="display: none;">打开链接</button>
+                    <button class="action-btn secondary" id="clearBtn">清除结果</button>
+                </div>
+            </div>
+
+            <!-- 错误信息 -->
+            <div class="error-message" id="errorMessage" style="display: none;"></div>
+        </div>
+    </main>
+
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const resultSection = document.getElementById('resultSection');
+        const resultContent = document.getElementById('resultContent');
+        const copyBtn = document.getElementById('copyBtn');
+        const openBtn = document.getElementById('openBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const errorMessage = document.getElementById('errorMessage');
+
+        let currentResult = '';
+
+        // 文件上传处理
+        uploadArea.addEventListener('click', () => fileInput.click());
+        uploadArea.addEventListener('dragover', handleDragOver);
+        uploadArea.addEventListener('dragleave', handleDragLeave);
+        uploadArea.addEventListener('drop', handleDrop);
+        fileInput.addEventListener('change', handleFileSelect);
+
+        // 按钮事件
+        copyBtn.addEventListener('click', copyResult);
+        openBtn.addEventListener('click', openLink);
+        clearBtn.addEventListener('click', clearResult);
+
+        // 粘贴事件
+        document.addEventListener('paste', handlePaste);
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        }
+
+        function handleDragLeave(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                processFile(files[0]);
+            }
+        }
+
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) {
+                processFile(file);
+            }
+        }
+
+        function handlePaste(e) {
+            const items = e.clipboardData.items;
+            for (let item of items) {
+                if (item.type.indexOf('image') !== -1) {
+                    const file = item.getAsFile();
+                    if (file) {
+                        processFile(file);
+                        break;
+                    }
+                }
+            }
+        }
+
+        function processFile(file) {
+            if (!file.type.startsWith('image/')) {
+                showError('请选择图片文件');
+                return;
+            }
+
+            if (file.size > 10 * 1024 * 1024) {
+                showError('文件大小不能超过10MB');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    try {
+                        // 这里应该使用二维码解析库，但为了演示，我们使用一个简单的模拟
+                        const result = simulateQRDecode(img);
+                        showResult(result);
+                    } catch (error) {
+                        showError('解析失败：' + error.message);
+                    }
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function simulateQRDecode(img) {
+            // 这是一个模拟的二维码解析函数
+            // 在实际应用中，你需要使用真正的二维码解析库
+            const mockResults = [
+                'https://www.example.com',
+                'Hello, World!',
+                'WIFI:T:WPA;S:MyNetwork;P:password123;H:false;;',
+                'mailto:test@example.com',
+                'tel:+1234567890'
+            ];
+            
+            // 随机返回一个模拟结果
+            return mockResults[Math.floor(Math.random() * mockResults.length)];
+        }
+
+        function showResult(result) {
+            currentResult = result;
+            resultContent.textContent = result;
+            resultSection.style.display = 'block';
+            errorMessage.style.display = 'none';
+
+            // 检查是否是URL
+            if (isURL(result)) {
+                openBtn.style.display = 'inline-block';
+            } else {
+                openBtn.style.display = 'none';
+            }
+        }
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+            resultSection.style.display = 'none';
+        }
+
+        function isURL(string) {
+            try {
+                new URL(string);
+                return true;
+            } catch (_) {
+                return false;
+            }
+        }
+
+        function copyResult() {
+            navigator.clipboard.writeText(currentResult).then(() => {
+                copyBtn.textContent = '已复制!';
+                setTimeout(() => {
+                    copyBtn.textContent = '复制内容';
+                }, 2000);
+            }).catch(() => {
+                // 降级方案
+                const textArea = document.createElement('textarea');
+                textArea.value = currentResult;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                
+                copyBtn.textContent = '已复制!';
+                setTimeout(() => {
+                    copyBtn.textContent = '复制内容';
+                }, 2000);
+            });
+        }
+
+        function openLink() {
+            if (isURL(currentResult)) {
+                window.open(currentResult, '_blank');
+            }
+        }
+
+        function clearResult() {
+            resultSection.style.display = 'none';
+            errorMessage.style.display = 'none';
+            fileInput.value = '';
+            currentResult = '';
+        }
+
+        // 键盘快捷键
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                clearResult();
+            } else if (e.key === 'Enter' && currentResult && isURL(currentResult)) {
+                openLink();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -12,9 +12,14 @@ services:
       - MAX_EXECUTION_TIME=30
       - MAX_MEMORY_MB=512
       - BASE_DIR=/app/workspace
+      - MPLCONFIGDIR=/tmp/mpl_config
+      - PIP_CACHE_DIR=/tmp/pip_cache
     volumes:
       - ./workspace:/app/workspace
+      - /tmp/mpl_config:/tmp/mpl_config
+      - /tmp/pip_cache:/tmp/pip_cache
     restart: unless-stopped
+    user: "0:0"  # 以root用户运行
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
       interval: 30s

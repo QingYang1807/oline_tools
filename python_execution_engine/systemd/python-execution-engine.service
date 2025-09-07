@@ -1,0 +1,23 @@
+[Unit]
+Description=Python Code Execution Engine
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/python-execution-engine
+Environment=PATH=/opt/python-execution-engine/venv/bin
+Environment=HOST=0.0.0.0
+Environment=PORT=5000
+Environment=DEBUG=False
+Environment=MAX_EXECUTION_TIME=30
+Environment=MAX_MEMORY_MB=512
+Environment=BASE_DIR=/opt/python-execution-engine/workspace
+ExecStart=/opt/python-execution-engine/venv/bin/python run.py
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

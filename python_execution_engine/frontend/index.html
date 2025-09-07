@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python代码执行引擎</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/material.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- 头部 -->
+        <header class="header">
+            <div class="header-content">
+                <h1><i class="fab fa-python"></i> Python代码执行引擎</h1>
+                <div class="header-info">
+                    <span class="server-status" id="serverStatus">
+                        <i class="fas fa-circle"></i> 检查连接中...
+                    </span>
+                    <span class="server-url">服务器: 101.42.23.49</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- 主要内容区域 -->
+        <main class="main-content">
+            <!-- 左侧代码编辑区 -->
+            <div class="editor-section">
+                <div class="editor-header">
+                    <h3><i class="fas fa-code"></i> 代码编辑器</h3>
+                    <div class="editor-controls">
+                        <select id="themeSelect" class="theme-select">
+                            <option value="default">默认主题</option>
+                            <option value="monokai">Monokai</option>
+                            <option value="material">Material</option>
+                        </select>
+                        <button id="clearBtn" class="btn btn-secondary">
+                            <i class="fas fa-trash"></i> 清空
+                        </button>
+                        <button id="runBtn" class="btn btn-primary">
+                            <i class="fas fa-play"></i> 运行代码
+                        </button>
+                    </div>
+                </div>
+                <div class="editor-container">
+                    <textarea id="codeEditor" placeholder="在这里输入您的Python代码..."># 欢迎使用Python代码执行引擎！
+# 这里是一些示例代码
+
+print("Hello, World!")
+print("欢迎使用Python在线执行器！")
+
+# 数学计算
+import math
+result = math.sqrt(16)
+print(f"√16 = {result}")
+
+# 列表操作
+numbers = [1, 2, 3, 4, 5]
+squared = [x**2 for x in numbers]
+print(f"原列表: {numbers}")
+print(f"平方后: {squared}")
+
+# 字典操作
+person = {
+    "name": "张三",
+    "age": 25,
+    "city": "北京"
+}
+print(f"个人信息: {person}")</textarea>
+                </div>
+            </div>
+
+            <!-- 右侧结果区 -->
+            <div class="result-section">
+                <div class="result-header">
+                    <h3><i class="fas fa-terminal"></i> 执行结果</h3>
+                    <div class="result-controls">
+                        <button id="clearResultBtn" class="btn btn-secondary">
+                            <i class="fas fa-trash"></i> 清空结果
+                        </button>
+                        <button id="copyResultBtn" class="btn btn-secondary">
+                            <i class="fas fa-copy"></i> 复制结果
+                        </button>
+                    </div>
+                </div>
+                <div class="result-container">
+                    <div id="resultOutput" class="result-output">
+                        <div class="welcome-message">
+                            <i class="fas fa-info-circle"></i>
+                            <p>点击"运行代码"按钮开始执行Python代码</p>
+                            <p>支持自动安装常用Python包，如numpy、pandas、matplotlib等</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- 底部信息区 -->
+        <footer class="footer">
+            <div class="footer-content">
+                <div class="execution-info">
+                    <span id="executionTime" class="exec-time">
+                        <i class="fas fa-clock"></i> 执行时间: -- 
+                    </span>
+                    <span id="importsInfo" class="imports-info">
+                        <i class="fas fa-download"></i> 导入包: -- 
+                    </span>
+                </div>
+                <div class="footer-links">
+                    <button id="showTemplatesBtn" class="btn btn-link">
+                        <i class="fas fa-file-code"></i> 代码模板
+                    </button>
+                    <button id="showPackagesBtn" class="btn btn-link">
+                        <i class="fas fa-box"></i> 支持的包
+                    </button>
+                    <button id="showHelpBtn" class="btn btn-link">
+                        <i class="fas fa-question-circle"></i> 帮助
+                    </button>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- 代码模板模态框 -->
+    <div id="templatesModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-file-code"></i> 代码模板</h3>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="template-categories">
+                    <button class="template-category active" data-category="basic">基础示例</button>
+                    <button class="template-category" data-category="math">数学计算</button>
+                    <button class="template-category" data-category="data">数据处理</button>
+                    <button class="template-category" data-category="plot">数据可视化</button>
+                    <button class="template-category" data-category="web">网络请求</button>
+                </div>
+                <div class="template-content">
+                    <div id="templateBasic" class="template-section active">
+                        <h4>基础Python示例</h4>
+                        <pre><code># Hello World
+print("Hello, World!")
+
+# 变量和数据类型
+name = "Python"
+version = 3.11
+is_awesome = True
+
+print(f"语言: {name}")
+print(f"版本: {version}")
+print(f"很棒: {is_awesome}")
+
+# 条件语句
+age = 18
+if age >= 18:
+    print("成年人")
+else:
+    print("未成年人")
+
+# 循环
+for i in range(5):
+    print(f"数字: {i}")
+
+# 函数定义
+def greet(name):
+    return f"你好, {name}!"
+
+print(greet("世界"))</code></pre>
+                    </div>
+                    <div id="templateMath" class="template-section">
+                        <h4>数学计算示例</h4>
+                        <pre><code>import math
+
+# 基本数学运算
+a, b = 10, 3
+print(f"{a} + {b} = {a + b}")
+print(f"{a} - {b} = {a - b}")
+print(f"{a} * {b} = {a * b}")
+print(f"{a} / {b} = {a / b}")
+print(f"{a} ** {b} = {a ** b}")
+
+# 数学函数
+print(f"√16 = {math.sqrt(16)}")
+print(f"sin(π/2) = {math.sin(math.pi/2)}")
+print(f"log(10) = {math.log(10)}")
+print(f"e = {math.e}")
+
+# 随机数
+import random
+random_numbers = [random.randint(1, 100) for _ in range(5)]
+print(f"随机数: {random_numbers}")</code></pre>
+                    </div>
+                    <div id="templateData" class="template-section">
+                        <h4>数据处理示例</h4>
+                        <pre><code>import pandas as pd
+import numpy as np
+
+# 创建数据
+data = {
+    '姓名': ['张三', '李四', '王五', '赵六'],
+    '年龄': [25, 30, 35, 28],
+    '城市': ['北京', '上海', '广州', '深圳'],
+    '工资': [8000, 12000, 15000, 10000]
+}
+
+df = pd.DataFrame(data)
+print("原始数据:")
+print(df)
+
+# 数据统计
+print("\n数据统计:")
+print(df.describe())
+
+# 数据筛选
+young_people = df[df['年龄'] < 30]
+print("\n30岁以下的人:")
+print(young_people)
+
+# 数据排序
+sorted_df = df.sort_values('工资', ascending=False)
+print("\n按工资排序:")
+print(sorted_df)</code></pre>
+                    </div>
+                    <div id="templatePlot" class="template-section">
+                        <h4>数据可视化示例</h4>
+                        <pre><code>import matplotlib.pyplot as plt
+import numpy as np
+
+# 设置中文字体
+plt.rcParams['font.sans-serif'] = ['SimHei']
+plt.rcParams['axes.unicode_minus'] = False
+
+# 生成数据
+x = np.linspace(0, 10, 100)
+y1 = np.sin(x)
+y2 = np.cos(x)
+
+# 创建图形
+plt.figure(figsize=(10, 6))
+
+# 绘制多条线
+plt.plot(x, y1, label='sin(x)', linewidth=2)
+plt.plot(x, y2, label='cos(x)', linewidth=2)
+
+# 设置标题和标签
+plt.title('三角函数图像', fontsize=16)
+plt.xlabel('x', fontsize=12)
+plt.ylabel('y', fontsize=12)
+plt.legend()
+plt.grid(True, alpha=0.3)
+
+# 显示图形
+plt.tight_layout()
+plt.show()
+
+# 柱状图示例
+categories = ['A', 'B', 'C', 'D']
+values = [23, 45, 56, 78]
+
+plt.figure(figsize=(8, 6))
+plt.bar(categories, values, color=['red', 'green', 'blue', 'orange'])
+plt.title('柱状图示例')
+plt.xlabel('类别')
+plt.ylabel('数值')
+plt.show()</code></pre>
+                    </div>
+                    <div id="templateWeb" class="template-section">
+                        <h4>网络请求示例</h4>
+                        <pre><code>import requests
+import json
+
+# GET请求示例
+try:
+    response = requests.get('https://api.github.com/users/octocat')
+    if response.status_code == 200:
+        data = response.json()
+        print("GitHub用户信息:")
+        print(f"用户名: {data['login']}")
+        print(f"姓名: {data['name']}")
+        print(f"公开仓库数: {data['public_repos']}")
+        print(f"关注者: {data['followers']}")
+    else:
+        print(f"请求失败，状态码: {response.status_code}")
+except Exception as e:
+    print(f"请求出错: {e}")
+
+# POST请求示例
+url = 'https://httpbin.org/post'
+data = {
+    'name': 'Python',
+    'type': 'programming language'
+}
+
+try:
+    response = requests.post(url, json=data)
+    if response.status_code == 200:
+        result = response.json()
+        print("\nPOST请求结果:")
+        print(f"发送的数据: {result['json']}")
+        print(f"请求头: {result['headers']['Content-Type']}")
+except Exception as e:
+    print(f"POST请求出错: {e}")</code></pre>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="useTemplateBtn" class="btn btn-primary">
+                        <i class="fas fa-check"></i> 使用此模板
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 支持的包模态框 -->
+    <div id="packagesModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-box"></i> 支持的Python包</h3>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="packages-grid" id="packagesGrid">
+                    <div class="loading">
+                        <i class="fas fa-spinner fa-spin"></i> 加载中...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 帮助模态框 -->
+    <div id="helpModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-question-circle"></i> 使用帮助</h3>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="help-content">
+                    <h4>如何使用</h4>
+                    <ol>
+                        <li>在左侧编辑器中输入Python代码</li>
+                        <li>点击"运行代码"按钮执行</li>
+                        <li>在右侧查看执行结果</li>
+                        <li>支持自动安装常用Python包</li>
+                    </ol>
+                    
+                    <h4>功能特性</h4>
+                    <ul>
+                        <li>✅ 安全的代码执行环境</li>
+                        <li>✅ 自动依赖包安装</li>
+                        <li>✅ 语法高亮和代码编辑</li>
+                        <li>✅ 多种代码模板</li>
+                        <li>✅ 实时执行结果显示</li>
+                        <li>✅ 错误信息详细显示</li>
+                    </ul>
+                    
+                    <h4>安全限制</h4>
+                    <ul>
+                        <li>❌ 不允许文件写入操作</li>
+                        <li>❌ 不允许系统命令执行</li>
+                        <li>❌ 不允许危险模块导入</li>
+                        <li>⏱️ 执行时间限制：30秒</li>
+                        <li>💾 内存使用限制：512MB</li>
+                    </ul>
+                    
+                    <h4>支持的包类型</h4>
+                    <ul>
+                        <li><strong>数据处理</strong>: numpy, pandas, scipy</li>
+                        <li><strong>可视化</strong>: matplotlib, seaborn, plotly</li>
+                        <li><strong>机器学习</strong>: scikit-learn, tensorflow, torch</li>
+                        <li><strong>网络请求</strong>: requests, beautifulsoup4</li>
+                        <li><strong>图像处理</strong>: pillow, opencv-python</li>
+                        <li><strong>其他</strong>: jupyter, ipython, sympy等</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 加载提示 -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-content">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>正在执行代码...</p>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

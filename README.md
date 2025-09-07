@@ -1,96 +1,80 @@
-# 二维码解析工具
+# 工具箱
 
-一个简单易用的二维码解析工具，支持通过粘贴（Ctrl+V / Cmd+V）或上传图片来解析二维码内容。
+一个简洁大方的在线工具集合，包含15个精选实用工具，按功能分类整理，提升工作效率。
 
-## 功能特性
+## 🚀 快速开始
 
-- 🔍 **多种输入方式**：支持粘贴、拖拽、文件选择
-- ⌨️ **快捷键支持**：Ctrl+V（Windows/Linux）或 Cmd+V（Mac）
-- 📱 **智能识别**：自动识别URL链接并提供打开功能
-- 📋 **一键复制**：解析结果可一键复制到剪贴板
-- 🎨 **现代界面**：响应式设计，支持移动端
-- ⚡ **快速解析**：使用高效的jsQR库进行解析
+1. 使用HTTP服务器运行项目：
+   ```bash
+   # Python 3
+   python -m http.server 8000
+   
+   # Python 2  
+   python -m SimpleHTTPServer 8000
+   
+   # Node.js
+   npx http-server
+   ```
 
-## 使用方法
+2. 访问 `http://localhost:8000` 查看工具门户
 
-### 1. 粘贴二维码图片
-- 复制二维码图片到剪贴板
-- 在页面上按 `Ctrl+V`（Windows/Linux）或 `Cmd+V`（Mac）
-- 工具会自动解析并显示结果
-
-### 2. 拖拽上传
-- 直接将二维码图片拖拽到上传区域
-- 松开鼠标即可开始解析
-
-### 3. 文件选择
-- 点击"选择文件"按钮
-- 从文件管理器中选择二维码图片
-
-## 支持的格式
-
-- 常见图片格式：PNG、JPG、JPEG、GIF、BMP、WebP
-- 文件大小限制：最大10MB
-- 二维码类型：URL链接、纯文本、WiFi信息等
-
-## 快捷键
-
-- `Ctrl+V` / `Cmd+V`：粘贴剪贴板中的图片
-- `Enter`：在结果区域时打开链接
-- `Esc`：清除所有内容
-
-## 技术实现
-
-- **前端框架**：原生JavaScript（ES6+）
-- **二维码解析**：jsQR库
-- **样式**：CSS3 with Flexbox/Grid
-- **兼容性**：现代浏览器（支持Clipboard API）
-
-## 浏览器兼容性
-
-- Chrome 66+
-- Firefox 63+
-- Safari 13.1+
-- Edge 79+
-
-## 本地运行
-
-1. 下载所有文件到本地目录
-2. 使用HTTP服务器运行（不能直接打开HTML文件）
-3. 推荐使用Live Server或Python简单服务器：
-
-```bash
-# Python 3
-python -m http.server 8000
-
-# Python 2
-python -m SimpleHTTPServer 8000
-
-# Node.js (需要安装http-server)
-npx http-server
-```
-
-然后访问 `http://localhost:8000`
-
-## 文件结构
+## 📁 项目结构
 
 ```
-├── index.html          # 主页面
-├── styles.css          # 样式文件
-├── script.js           # JavaScript逻辑
-└── README.md           # 说明文档
+workspace/
+├── index.html                    # 工具门户首页
+├── assets/                       # 静态资源
+├── tools/                        # 工具分类目录
+│   ├── development/              # 开发工具 (4个)
+│   ├── documentation/            # 文档编辑 (5个)  
+│   ├── utilities/                # 实用工具 (3个)
+│   └── productivity/             # 效率工具 (3个)
+├── python_execution_engine/      # Python执行引擎后端
+└── TOOLS_README.md              # 详细工具文档
 ```
 
-## 注意事项
+## 🛠️ 工具分类
 
-1. 需要HTTPS环境或localhost才能使用剪贴板API
-2. 图片质量会影响解析成功率
-3. 建议使用清晰的二维码图片以获得最佳效果
+### ⚙️ 开发工具
+- API接口测试器
+- Base64/URL编解码
+- 文件内容对比
+- Python代码执行器
 
-## 更新日志
+### 📝 文档编辑
+- Markdown编辑器
+- LaTeX公式编辑器
+- Mermaid图表渲染器
 
-### v1.0.0
-- 初始版本发布
-- 支持粘贴、拖拽、文件上传
-- 集成jsQR解析库
-- 响应式设计
-- 错误处理和用户反馈
+### 🛠️ 实用工具
+- 二维码解析工具
+- 密码生成器
+- 数据计算工具
+- 轻量化日历
+
+### ⚡ 效率工具
+- 番茄钟待办事项
+- 学习打卡面板
+- 极简画板
+
+## 🎨 设计特点
+
+- **简洁大方**：现代化设计，避免过度装饰
+- **分类清晰**：按功能分类，便于查找
+- **响应式设计**：支持桌面端和移动端
+- **暗色模式**：自动适配系统主题
+- **无AI味**：专注于实用性
+
+## 🔒 隐私保护
+
+- 所有工具均运行在本地浏览器
+- 不收集任何用户数据
+- 不发送数据到外部服务器
+
+## 📖 详细文档
+
+查看 [TOOLS_README.md](./TOOLS_README.md) 获取完整的工具列表和使用说明。
+
+## 📄 许可证
+
+MIT License

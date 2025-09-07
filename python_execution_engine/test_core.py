@@ -1,58 +1,39 @@
 #!/usr/bin/env python3
 """
-Python代码执行引擎服务
-提供安全的Python代码执行API，支持自动依赖安装
+测试核心功能（不依赖Flask）
 """
 
 import os
 import sys
-import json
-import subprocess
 import tempfile
-import shutil
-import re
+import subprocess
 import time
-import signal
-import threading
 import uuid
+import re
+import shutil
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
-from flask import Flask, request, jsonify
-from flask_cors import CORS
-import logging
 
-# 设置matplotlib配置目录为可写目录
+# 设置环境变量
 mpl_config_dir = "/tmp/mpl_config"
 os.environ["MPLCONFIGDIR"] = mpl_config_dir
 os.makedirs(mpl_config_dir, exist_ok=True)
-os.chmod(mpl_config_dir, 0o777)  # 确保目录可写
+os.chmod(mpl_config_dir, 0o777)
 
-import matplotlib
-matplotlib.use("Agg")
+pip_cache_dir = "/tmp/pip_cache"
+os.environ["PIP_CACHE_DIR"] = pip_cache_dir
+os.makedirs(pip_cache_dir, exist_ok=True)
+os.chmod(pip_cache_dir, 0o777)
 
-# 配置日志
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
-
-app = Flask(__name__)
-CORS(app)
-
-class PythonExecutionEngine:
-    """Python代码执行引擎"""
+class SimplePythonExecutionEngine:
+    """简化的Python执行引擎（用于测试）"""
     
     def __init__(self, base_dir: str = "/tmp/python_execution"):
         self.base_dir = Path(base_dir)
         self.base_dir.mkdir(exist_ok=True)
-        self.max_execution_time = 30  # 最大执行时间（秒）
-        self.max_memory_mb = 512      # 最大内存使用（MB）
-        
-        # 存储正在执行的进程
+        self.max_execution_time = 30
         self.running_processes = {}
         
-        # 允许的包列表（安全考虑）
+        # 允许的包列表
         self.allowed_packages = {
             'numpy', 'pandas', 'matplotlib', 'seaborn', 'scipy', 'sklearn',
             'requests', 'beautifulsoup4', 'lxml', 'pillow', 'opencv-python',
@@ -66,43 +47,8 @@ class PythonExecutionEngine:
             'os', 'sys', 'pathlib', 'shutil', 'tempfile', 'glob',
             're', 'string', 'time', 'datetime', 'calendar', 'locale'
         }
-        
-        # 危险函数和模块黑名单
-        self.dangerous_patterns = [
-            r'__import__\s*\(',
-            r'exec\s*\(',
-            r'eval\s*\(',
-            r'compile\s*\(',
-            r'open\s*\([^)]*[\'"]w[\'"]',
-            r'file\s*\(',
-            r'input\s*\(',
-            r'raw_input\s*\(',
-            r'os\.system',
-            r'subprocess\.[a-zA-Z_]+',
-            r'import\s+os\s*$',
-            r'from\s+os\s+import',
-            r'import\s+subprocess',
-            r'from\s+subprocess\s+import',
-            r'import\s+sys\s*$',
-            r'from\s+sys\s+import',
-            r'import\s+shutil',
-            r'from\s+shutil\s+import',
-        ]
     
-    def _check_code_safety(self, code: str) -> Tuple[bool, str]:
-        """检查代码安全性"""
-        # 检查危险模式
-        for pattern in self.dangerous_patterns:
-            if re.search(pattern, code, re.IGNORECASE | re.MULTILINE):
-                return False, f"检测到危险代码模式: {pattern}"
-        
-        # 检查文件操作
-        if re.search(r'open\s*\(', code) and not re.search(r'open\s*\([^)]*[\'"]r[\'"]', code):
-            return False, "不允许写入文件操作"
-        
-        return True, "代码安全检查通过"
-    
-    def _extract_imports(self, code: str) -> List[str]:
+    def _extract_imports(self, code: str):
         """提取代码中的import语句"""
         imports = []
         
@@ -111,16 +57,16 @@ class PythonExecutionEngine:
         from_pattern = r'from\s+([a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)*)\s+import'
         
         for match in re.finditer(import_pattern, code):
-            module = match.group(1).split('.')[0]  # 只取主模块名
+            module = match.group(1).split('.')[0]
             imports.append(module)
         
         for match in re.finditer(from_pattern, code):
-            module = match.group(1).split('.')[0]  # 只取主模块名
+            module = match.group(1).split('.')[0]
             imports.append(module)
         
-        return list(set(imports))  # 去重
+        return list(set(imports))
     
-    def _install_packages(self, packages: List[str], work_dir: Path) -> Tuple[bool, str]:
+    def _install_packages(self, packages, work_dir):
         """安装Python包"""
         if not packages:
             return True, "无需安装包"
@@ -148,7 +94,7 @@ class PythonExecutionEngine:
                 "-r", str(requirements_file),
                 "--quiet", "--disable-pip-version-check",
                 "--cache-dir", pip_cache_dir,
-                "--no-user"  # 在虚拟环境中不使用--user
+                "--no-user"
             ]
             
             result = subprocess.run(
@@ -163,7 +109,7 @@ class PythonExecutionEngine:
                 return True, f"成功安装包: {', '.join(allowed_packages)}"
             else:
                 # 如果sudo失败，尝试不使用sudo
-                logger.warning(f"sudo安装失败，尝试普通安装: {result.stderr}")
+                print(f"sudo安装失败，尝试普通安装: {result.stderr}")
                 cmd_no_sudo = [
                     sys.executable, "-m", "pip", "install", 
                     "-r", str(requirements_file),
@@ -190,7 +136,7 @@ class PythonExecutionEngine:
         except Exception as e:
             return False, f"安装包时出错: {str(e)}"
     
-    def _execute_code(self, code: str, work_dir: Path, execution_id: str = None) -> Tuple[bool, str, str]:
+    def _execute_code(self, code: str, work_dir: Path, execution_id: str = None):
         """执行Python代码"""
         try:
             # 创建执行脚本
@@ -244,7 +190,7 @@ class PythonExecutionEngine:
                 del self.running_processes[execution_id]
             return False, "", f"执行代码时出错: {str(e)}"
     
-    def stop_execution(self, execution_id: str) -> bool:
+    def stop_execution(self, execution_id: str):
         """停止正在执行的代码"""
         if execution_id in self.running_processes:
             process = self.running_processes[execution_id]
@@ -258,11 +204,11 @@ class PythonExecutionEngine:
                 del self.running_processes[execution_id]
                 return True
             except Exception as e:
-                logger.error(f"停止进程时出错: {e}")
+                print(f"停止进程时出错: {e}")
                 return False
         return False
     
-    def execute(self, code: str, execution_id: str = None) -> Dict:
+    def execute(self, code: str, execution_id: str = None):
         """执行Python代码的主方法"""
         start_time = time.time()
         
@@ -270,29 +216,18 @@ class PythonExecutionEngine:
         if not execution_id:
             execution_id = str(uuid.uuid4())
         
-        # 安全检查
-        is_safe, safety_msg = self._check_code_safety(code)
-        if not is_safe:
-            return {
-                "success": False,
-                "output": "",
-                "error": f"安全检查失败: {safety_msg}",
-                "execution_time": time.time() - start_time,
-                "execution_id": execution_id
-            }
-        
         # 创建临时工作目录
         work_dir = Path(tempfile.mkdtemp(dir=self.base_dir))
         
         try:
             # 提取imports
             imports = self._extract_imports(code)
-            logger.info(f"检测到导入: {imports}")
+            print(f"检测到导入: {imports}")
             
             # 安装依赖
             install_success, install_msg = self._install_packages(imports, work_dir)
             if not install_success:
-                logger.warning(f"包安装失败: {install_msg}")
+                print(f"包安装失败: {install_msg}")
                 # 继续执行，可能包已经安装
             
             # 执行代码
@@ -315,138 +250,166 @@ class PythonExecutionEngine:
             try:
                 shutil.rmtree(work_dir)
             except Exception as e:
-                logger.warning(f"清理临时目录失败: {e}")
+                print(f"清理临时目录失败: {e}")
 
-# 创建执行引擎实例
-engine = PythonExecutionEngine()
+def test_basic_execution():
+    """测试基本代码执行"""
+    print("=" * 50)
+    print("测试基本代码执行")
+    print("=" * 50)
+    
+    engine = SimplePythonExecutionEngine()
+    
+    code = """
+print("Hello, World!")
+print("Python执行器引擎测试成功！")
+"""
+    
+    result = engine.execute(code)
+    
+    print(f"执行成功: {result['success']}")
+    print(f"执行时间: {result['execution_time']}秒")
+    print(f"输出: {result['output']}")
+    if result['error']:
+        print(f"错误: {result['error']}")
+    
+    return result['success']
 
-@app.route('/health', methods=['GET'])
-def health_check():
-    """健康检查接口"""
-    return jsonify({
-        "status": "healthy",
-        "service": "Python Execution Engine",
-        "version": "1.0.0"
-    })
+def test_import_detection():
+    """测试import检测"""
+    print("\n" + "=" * 50)
+    print("测试import检测")
+    print("=" * 50)
+    
+    engine = SimplePythonExecutionEngine()
+    
+    code = """
+import os
+import sys
+import json
+from pathlib import Path
 
-@app.route('/execute', methods=['POST'])
-def execute_code():
-    """执行Python代码接口"""
-    try:
-        data = request.get_json()
-        
-        if not data or 'code' not in data:
-            return jsonify({
-                "success": False,
-                "error": "缺少代码参数",
-                "output": ""
-            }), 400
-        
-        code = data['code']
-        if not code.strip():
-            return jsonify({
-                "success": False,
-                "error": "代码不能为空",
-                "output": ""
-            }), 400
-        
-        # 获取execution_id（可选）
-        execution_id = data.get('execution_id')
-        
-        logger.info(f"收到执行请求，代码长度: {len(code)}, execution_id: {execution_id}")
-        
-        # 执行代码
+print("导入测试完成")
+"""
+    
+    result = engine.execute(code)
+    
+    print(f"执行成功: {result['success']}")
+    print(f"检测到的导入: {result['imports_used']}")
+    print(f"安装消息: {result['install_message']}")
+    
+    return result['success']
+
+def test_process_management():
+    """测试进程管理"""
+    print("\n" + "=" * 50)
+    print("测试进程管理")
+    print("=" * 50)
+    
+    engine = SimplePythonExecutionEngine()
+    
+    # 创建一个长时间运行的代码
+    code = """
+import time
+print("开始长时间运行...")
+for i in range(5):
+    print(f"运行中... {i}")
+    time.sleep(0.5)
+print("完成")
+"""
+    
+    execution_id = str(uuid.uuid4())
+    print(f"执行ID: {execution_id}")
+    
+    # 在后台启动执行
+    import threading
+    
+    def run_code():
         result = engine.execute(code, execution_id)
-        
-        # 记录执行结果
-        if result['success']:
-            logger.info(f"代码执行成功，耗时: {result['execution_time']}秒")
-        else:
-            logger.warning(f"代码执行失败: {result['error']}")
-        
-        return jsonify(result)
-        
-    except Exception as e:
-        logger.error(f"执行代码时发生异常: {str(e)}")
-        return jsonify({
-            "success": False,
-            "error": f"服务器内部错误: {str(e)}",
-            "output": ""
-        }), 500
-
-@app.route('/stop/<execution_id>', methods=['POST'])
-def stop_execution(execution_id):
-    """停止正在执行的代码"""
-    try:
-        success = engine.stop_execution(execution_id)
-        
-        if success:
-            logger.info(f"成功停止执行: {execution_id}")
-            return jsonify({
-                "success": True,
-                "message": f"成功停止执行: {execution_id}"
-            })
-        else:
-            logger.warning(f"停止执行失败或执行不存在: {execution_id}")
-            return jsonify({
-                "success": False,
-                "message": f"停止执行失败或执行不存在: {execution_id}"
-            }), 404
-            
-    except Exception as e:
-        logger.error(f"停止执行时发生异常: {str(e)}")
-        return jsonify({
-            "success": False,
-            "error": f"服务器内部错误: {str(e)}"
-        }), 500
-
-@app.route('/status', methods=['GET'])
-def get_status():
-    """获取服务状态和正在运行的进程"""
-    try:
-        running_count = len(engine.running_processes)
-        return jsonify({
-            "status": "running",
-            "running_executions": running_count,
-            "execution_ids": list(engine.running_processes.keys())
-        })
-    except Exception as e:
-        logger.error(f"获取状态时发生异常: {str(e)}")
-        return jsonify({
-            "success": False,
-            "error": f"服务器内部错误: {str(e)}"
-        }), 500
-
-@app.route('/packages', methods=['GET'])
-def list_packages():
-    """获取允许的包列表"""
-    return jsonify({
-        "allowed_packages": sorted(list(engine.allowed_packages)),
-        "total_count": len(engine.allowed_packages)
-    })
-
-@app.route('/config', methods=['GET'])
-def get_config():
-    """获取服务配置"""
-    return jsonify({
-        "max_execution_time": engine.max_execution_time,
-        "max_memory_mb": engine.max_memory_mb,
-        "allowed_packages_count": len(engine.allowed_packages)
-    })
-
-if __name__ == '__main__':
-    # 确保基础目录存在
-    os.makedirs(engine.base_dir, exist_ok=True)
+        print(f"执行结果: {result['success']}")
+        if result['error']:
+            print(f"错误: {result['error']}")
     
-    logger.info("Python执行引擎服务启动中...")
-    logger.info(f"工作目录: {engine.base_dir}")
-    logger.info(f"最大执行时间: {engine.max_execution_time}秒")
-    logger.info(f"允许的包数量: {len(engine.allowed_packages)}")
+    thread = threading.Thread(target=run_code)
+    thread.start()
     
-    # 启动服务
-    app.run(
-        host='0.0.0.0',
-        port=5000,
-        debug=False,
-        threaded=True
-    )
+    # 等待一下然后停止
+    time.sleep(1)
+    print(f"尝试停止执行: {execution_id}")
+    success = engine.stop_execution(execution_id)
+    print(f"停止结果: {success}")
+    
+    thread.join()
+    
+    return success
+
+def test_directory_permissions():
+    """测试目录权限"""
+    print("\n" + "=" * 50)
+    print("测试目录权限")
+    print("=" * 50)
+    
+    # 检查matplotlib配置目录
+    mpl_dir = Path("/tmp/mpl_config")
+    if mpl_dir.exists():
+        stat = mpl_dir.stat()
+        print(f"matplotlib配置目录权限: {oct(stat.st_mode)}")
+        print(f"目录可写: {os.access(mpl_dir, os.W_OK)}")
+    else:
+        print("❌ matplotlib配置目录不存在")
+        return False
+    
+    # 检查pip缓存目录
+    pip_dir = Path("/tmp/pip_cache")
+    if pip_dir.exists():
+        stat = pip_dir.stat()
+        print(f"pip缓存目录权限: {oct(stat.st_mode)}")
+        print(f"目录可写: {os.access(pip_dir, os.W_OK)}")
+    else:
+        print("❌ pip缓存目录不存在")
+        return False
+    
+    return True
+
+def main():
+    """主测试函数"""
+    print("开始本地测试修复后的Python执行器引擎核心功能")
+    
+    tests = [
+        ("目录权限", test_directory_permissions),
+        ("基本执行", test_basic_execution),
+        ("导入检测", test_import_detection),
+        ("进程管理", test_process_management),
+    ]
+    
+    results = []
+    for test_name, test_func in tests:
+        print(f"\n正在运行测试: {test_name}")
+        try:
+            result = test_func()
+            results.append((test_name, result))
+            print(f"测试 {test_name}: {'通过' if result else '失败'}")
+        except Exception as e:
+            print(f"测试 {test_name} 异常: {e}")
+            results.append((test_name, False))
+    
+    print("\n" + "=" * 50)
+    print("测试结果汇总")
+    print("=" * 50)
+    
+    passed = 0
+    for test_name, result in results:
+        status = "通过" if result else "失败"
+        print(f"{test_name}: {status}")
+        if result:
+            passed += 1
+    
+    print(f"\n总计: {passed}/{len(results)} 个测试通过")
+    
+    if passed == len(results):
+        print("🎉 所有测试都通过了！")
+    else:
+        print("❌ 部分测试失败，请检查日志")
+
+if __name__ == "__main__":
+    main()

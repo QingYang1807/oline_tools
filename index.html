@@ -3,59 +3,393 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>二维码解析工具</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>工具箱 - 实用工具集合</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <meta name="color-scheme" content="light dark">
+    <style>
+        .hero-section {
+            text-align: center;
+            padding: 60px 20px;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+            color: white;
+            margin-bottom: 60px;
+        }
+        
+        .hero-title {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            letter-spacing: -0.02em;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.25rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-bottom: 60px;
+        }
+        
+        .tool-category {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 2px 8px var(--shadow);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .tool-category:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px var(--shadow);
+        }
+        
+        .category-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .category-icon {
+            font-size: 1.5rem;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--accent-light);
+            border-radius: 10px;
+            color: var(--accent);
+        }
+        
+        .category-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--fg);
+            margin: 0;
+        }
+        
+        .tool-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .tool-item {
+            margin-bottom: 12px;
+        }
+        
+        .tool-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            background: var(--panel-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            text-decoration: none;
+            color: var(--fg);
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+        
+        .tool-link:hover {
+            background: var(--accent-light);
+            border-color: var(--accent);
+            color: var(--accent);
+            transform: translateX(4px);
+        }
+        
+        .tool-icon {
+            font-size: 1.1rem;
+            width: 24px;
+            text-align: center;
+        }
+        
+        .tool-name {
+            flex: 1;
+        }
+        
+        .tool-desc {
+            font-size: 0.875rem;
+            color: var(--muted);
+            margin-top: 4px;
+        }
+        
+        .stats-section {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+            text-align: center;
+            margin-bottom: 60px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 32px;
+            margin-top: 24px;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 8px;
+        }
+        
+        .stat-label {
+            color: var(--muted);
+            font-weight: 500;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--muted);
+            border-top: 1px solid var(--border);
+        }
+        
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 1.1rem;
+            }
+            
+            .tools-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 24px;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>🔍 二维码解析工具</h1>
-            <p>支持粘贴（Ctrl+V / Cmd+V）或上传二维码图片</p>
-        </header>
+        <!-- 英雄区域 -->
+        <section class="hero-section">
+            <h1 class="hero-title">工具箱</h1>
+            <p class="hero-subtitle">精选实用工具集合，提升工作效率，简化日常任务</p>
+        </section>
 
-        <main>
-            <div class="upload-area" id="uploadArea">
-                <div class="upload-content">
-                    <div class="upload-icon">📱</div>
-                    <h3>拖拽二维码图片到这里</h3>
-                    <p>或者使用 <kbd>Ctrl+V</kbd> / <kbd>Cmd+V</kbd> 粘贴</p>
-                    <button class="upload-btn" id="uploadBtn">选择文件</button>
-                    <input type="file" id="fileInput" accept="image/*" style="display: none;">
+        <!-- 工具分类 -->
+        <section class="tools-grid">
+            <!-- 开发工具 -->
+            <div class="tool-category">
+                <div class="category-header">
+                    <div class="category-icon">⚙️</div>
+                    <h2 class="category-title">开发工具</h2>
                 </div>
+                <ul class="tool-list">
+                    <li class="tool-item">
+                        <a href="tools/development/api-tester.html" class="tool-link">
+                            <span class="tool-icon">🔗</span>
+                            <div>
+                                <div class="tool-name">API接口测试器</div>
+                                <div class="tool-desc">测试HTTP接口，支持多种请求方法</div>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="tool-item">
+                        <a href="tools/development/base64-url-encoder.html" class="tool-link">
+                            <span class="tool-icon">🔐</span>
+                            <div>
+                                <div class="tool-name">Base64/URL编解码</div>
+                                <div class="tool-desc">快速编解码Base64和URL格式</div>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="tool-item">
+                        <a href="tools/development/file-diff.html" class="tool-link">
+                            <span class="tool-icon">📊</span>
+                            <div>
+                                <div class="tool-name">文件内容对比</div>
+                                <div class="tool-desc">对比两个文本文件的差异</div>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="tool-item">
+                        <a href="tools/development/python-executor.html" class="tool-link">
+                            <span class="tool-icon">🐍</span>
+                            <div>
+                                <div class="tool-name">Python代码执行器</div>
+                                <div class="tool-desc">在线运行Python代码</div>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
             </div>
 
-            <div class="result-section" id="resultSection" style="display: none;">
-                <h3>解析结果</h3>
-                <div class="result-content">
-                    <div class="image-preview">
-                        <img id="previewImage" alt="上传的图片">
-                    </div>
-                    <div class="result-text">
-                        <label for="resultText">解析内容：</label>
-                        <textarea id="resultText" readonly></textarea>
-                        <div class="action-buttons">
-                            <button id="copyBtn" class="btn btn-primary">复制内容</button>
-                            <button id="openLinkBtn" class="btn btn-secondary" style="display: none;">打开链接</button>
-                            <button id="clearBtn" class="btn btn-outline">清除</button>
-                        </div>
-                    </div>
+            <!-- 文档编辑 -->
+            <div class="tool-category">
+                <div class="category-header">
+                    <div class="category-icon">📝</div>
+                    <h2 class="category-title">文档编辑</h2>
                 </div>
+                <ul class="tool-list">
+                    <li class="tool-item">
+                        <a href="tools/documentation/markdown-editor.html" class="tool-link">
+                            <span class="tool-icon">📄</span>
+                            <div>
+                                <div class="tool-name">Markdown编辑器</div>
+                                <div class="tool-desc">实时预览的Markdown编辑器</div>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="tool-item">
+                        <a href="tools/documentation/latex-editor.html" class="tool-link">
+                            <span class="tool-icon">🧮</span>
+                            <div>
+                                <div class="tool-name">LaTeX公式编辑器</div>
+                                <div class="tool-desc">数学公式编辑和渲染</div>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="tool-item">
+                        <a href="tools/documentation/mermaid.html" class="tool-link">
+                            <span class="tool-icon">📈</span>
+                            <div>
+                                <div class="tool-name">Mermaid图表渲染器</div>
+                                <div class="tool-desc">创建流程图、时序图等</div>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
             </div>
 
-            <div class="error-message" id="errorMessage" style="display: none;">
-                <div class="error-content">
-                    <span class="error-icon">❌</span>
-                    <span id="errorText"></span>
+            <!-- 实用工具 -->
+            <div class="tool-category">
+                <div class="category-header">
+                    <div class="category-icon">🛠️</div>
+                    <h2 class="category-title">实用工具</h2>
+                </div>
+                <ul class="tool-list">
+                    <li class="tool-item">
+                        <a href="index.html" class="tool-link">
+                            <span class="tool-icon">📱</span>
+                            <div>
+                                <div class="tool-name">二维码解析工具</div>
+                                <div class="tool-desc">解析二维码内容</div>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="tool-item">
+                        <a href="tools/utilities/password-generator.html" class="tool-link">
+                            <span class="tool-icon">🔑</span>
+                            <div>
+                                <div class="tool-name">密码生成器</div>
+                                <div class="tool-desc">生成安全随机密码</div>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="tool-item">
+                        <a href="tools/utilities/data-calculator.html" class="tool-link">
+                            <span class="tool-icon">🧮</span>
+                            <div>
+                                <div class="tool-name">数据计算工具</div>
+                                <div class="tool-desc">进制转换、单位换算等</div>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="tool-item">
+                        <a href="tools/utilities/calendar.html" class="tool-link">
+                            <span class="tool-icon">📅</span>
+                            <div>
+                                <div class="tool-name">轻量化日历</div>
+                                <div class="tool-desc">简洁的日历查看器</div>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- 效率工具 -->
+            <div class="tool-category">
+                <div class="category-header">
+                    <div class="category-icon">⚡</div>
+                    <h2 class="category-title">效率工具</h2>
+                </div>
+                <ul class="tool-list">
+                    <li class="tool-item">
+                        <a href="tools/productivity/pomodoro.html" class="tool-link">
+                            <span class="tool-icon">🍅</span>
+                            <div>
+                                <div class="tool-name">番茄钟待办事项</div>
+                                <div class="tool-desc">时间管理和任务规划</div>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="tool-item">
+                        <a href="tools/productivity/study-checkin.html" class="tool-link">
+                            <span class="tool-icon">📚</span>
+                            <div>
+                                <div class="tool-name">学习打卡面板</div>
+                                <div class="tool-desc">学习进度跟踪</div>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="tool-item">
+                        <a href="tools/productivity/whiteboard.html" class="tool-link">
+                            <span class="tool-icon">🎨</span>
+                            <div>
+                                <div class="tool-name">极简画板</div>
+                                <div class="tool-desc">在线绘图和标注</div>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 统计信息 -->
+        <section class="stats-section">
+            <h2 style="margin: 0 0 16px 0; color: var(--fg);">工具箱概览</h2>
+            <p style="color: var(--muted); margin: 0;">精选工具，持续更新</p>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-number">15</div>
+                    <div class="stat-label">实用工具</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">4</div>
+                    <div class="stat-label">工具分类</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">100%</div>
+                    <div class="stat-label">免费使用</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">0</div>
+                    <div class="stat-label">数据收集</div>
                 </div>
             </div>
-        </main>
+        </section>
 
-        <footer>
-            <p>支持常见二维码格式：URL链接、文本、WiFi信息等</p>
+        <!-- 页脚 -->
+        <footer class="footer">
+            <p>工具箱 - 让工作更高效，让生活更简单</p>
+            <p style="margin-top: 8px; font-size: 0.875rem;">所有工具均运行在本地，保护您的隐私安全</p>
         </footer>
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
-    <script src="script.js"></script>
 </body>
 </html>

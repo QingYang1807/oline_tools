@@ -20,6 +20,12 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import logging
 
+os.environ["MPLCONFIGDIR"] = "/tmp/mpl_config"
+os.makedirs("/tmp/mpl_config", exist_ok=True)
+
+import matplotlib
+matplotlib.use("Agg")
+
 # 配置日志
 logging.basicConfig(
     level=logging.INFO,
@@ -128,7 +134,7 @@ class PythonExecutionEngine:
             cmd = [
                 sys.executable, "-m", "pip", "install", 
                 "-r", str(requirements_file),
-                "--user", "--quiet", "--disable-pip-version-check"
+                "--quiet", "--disable-pip-version-check"
             ]
             
             result = subprocess.run(

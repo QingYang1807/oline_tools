@@ -3,556 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🛠️ 工具门户 - 在线工具集合</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 40px;
-            color: white;
-        }
-
-        .header h1 {
-            font-size: 3em;
-            margin-bottom: 10px;
-            font-weight: 300;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-        }
-
-        .header p {
-            font-size: 1.2em;
-            opacity: 0.9;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-        }
-
-        .search-bar {
-            max-width: 600px;
-            margin: 0 auto 40px;
-            position: relative;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 15px 50px 15px 20px;
-            border: none;
-            border-radius: 50px;
-            font-size: 16px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            outline: none;
-            transition: all 0.3s ease;
-        }
-
-        .search-input:focus {
-            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-            transform: translateY(-2px);
-        }
-
-        .search-icon {
-            position: absolute;
-            right: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #666;
-            font-size: 18px;
-        }
-
-        .tools-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 25px;
-            margin-bottom: 40px;
-        }
-
-        .tool-card {
-            background: white;
-            border-radius: 15px;
-            padding: 25px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .tool-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-        }
-
-        .tool-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
-        }
-
-        .tool-icon {
-            font-size: 2.5em;
-            margin-bottom: 15px;
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .tool-title {
-            font-size: 1.4em;
-            font-weight: 600;
-            margin-bottom: 10px;
-            color: #333;
-        }
-
-        .tool-description {
-            color: #666;
-            line-height: 1.6;
-            margin-bottom: 15px;
-        }
-
-        .tool-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-bottom: 15px;
-        }
-
-        .tool-tag {
-            background: #f0f0f0;
-            color: #666;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.85em;
-            font-weight: 500;
-        }
-
-        .tool-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            color: #4facfe;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        .tool-link:hover {
-            color: #00f2fe;
-            transform: translateX(5px);
-        }
-
-        .category-section {
-            margin-bottom: 50px;
-        }
-
-        .category-title {
-            font-size: 2em;
-            color: white;
-            margin-bottom: 25px;
-            text-align: center;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-        }
-
-        .stats-section {
-            background: rgba(255,255,255,0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 30px;
-            margin-bottom: 40px;
-            color: white;
-            text-align: center;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-        }
-
-        .stat-item {
-            text-align: center;
-        }
-
-        .stat-number {
-            font-size: 2.5em;
-            font-weight: 700;
-            margin-bottom: 5px;
-        }
-
-        .stat-label {
-            font-size: 1em;
-            opacity: 0.9;
-        }
-
-        .footer {
-            text-align: center;
-            color: white;
-            opacity: 0.8;
-            margin-top: 50px;
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        @media (max-width: 768px) {
-            .header h1 {
-                font-size: 2.2em;
-            }
-            
-            .tools-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .search-bar {
-                margin: 0 10px 40px;
-            }
-        }
-    </style>
+    <title>二维码解析工具</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>🛠️ 工具门户</h1>
-            <p>一站式在线工具集合，提升您的工作效率</p>
-        </div>
+        <header>
+            <h1>🔍 二维码解析工具</h1>
+            <p>支持粘贴（Ctrl+V / Cmd+V）或上传二维码图片</p>
+        </header>
 
-        <div class="search-bar">
-            <input type="text" class="search-input" placeholder="搜索工具..." id="searchInput">
-            <i class="fas fa-search search-icon"></i>
-        </div>
-
-        <div class="stats-section">
-            <div class="stats-grid">
-                <div class="stat-item">
-                    <div class="stat-number">16+</div>
-                    <div class="stat-label">实用工具</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number">5</div>
-                    <div class="stat-label">工具分类</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number">100%</div>
-                    <div class="stat-label">免费使用</div>
+        <main>
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-content">
+                    <div class="upload-icon">📱</div>
+                    <h3>拖拽二维码图片到这里</h3>
+                    <p>或者使用 <kbd>Ctrl+V</kbd> / <kbd>Cmd+V</kbd> 粘贴</p>
+                    <button class="upload-btn" id="uploadBtn">选择文件</button>
+                    <input type="file" id="fileInput" accept="image/*" style="display: none;">
                 </div>
             </div>
-        </div>
 
-        <div class="category-section">
-            <h2 class="category-title">🔧 开发工具</h2>
-            <div class="tools-grid">
-                <div class="tool-card" data-tags="python 代码 执行 编程">
-                    <div class="tool-icon">🐍</div>
-                    <div class="tool-title">Python代码执行器</div>
-                    <div class="tool-description">在线Python代码执行环境，支持matplotlib、numpy等科学计算库，实时查看执行结果和图表。</div>
-                    <div class="tool-tags">
-                        <span class="tool-tag">Python</span>
-                        <span class="tool-tag">代码执行</span>
-                        <span class="tool-tag">数据可视化</span>
+            <div class="result-section" id="resultSection" style="display: none;">
+                <h3>解析结果</h3>
+                <div class="result-content">
+                    <div class="image-preview">
+                        <img id="previewImage" alt="上传的图片">
                     </div>
-                    <a href="tools/python-executor.html" class="tool-link">
-                        <i class="fas fa-external-link-alt"></i>
-                        打开工具
-                    </a>
-                </div>
-
-                <div class="tool-card" data-tags="api 测试 接口 调试">
-                    <div class="tool-icon">🔌</div>
-                    <div class="tool-title">API接口测试器</div>
-                    <div class="tool-description">强大的API接口测试工具，支持GET、POST、PUT、DELETE等请求方法，实时查看响应结果。</div>
-                    <div class="tool-tags">
-                        <span class="tool-tag">API测试</span>
-                        <span class="tool-tag">HTTP请求</span>
-                        <span class="tool-tag">接口调试</span>
+                    <div class="result-text">
+                        <label for="resultText">解析内容：</label>
+                        <textarea id="resultText" readonly></textarea>
+                        <div class="action-buttons">
+                            <button id="copyBtn" class="btn btn-primary">复制内容</button>
+                            <button id="openLinkBtn" class="btn btn-secondary" style="display: none;">打开链接</button>
+                            <button id="clearBtn" class="btn btn-outline">清除</button>
+                        </div>
                     </div>
-                    <a href="tools/api-tester.html" class="tool-link">
-                        <i class="fas fa-external-link-alt"></i>
-                        打开工具
-                    </a>
-                </div>
-
-                <div class="tool-card" data-tags="base64 编码 解码 url">
-                    <div class="tool-icon">🔐</div>
-                    <div class="tool-title">Base64编码解码器</div>
-                    <div class="tool-description">支持Base64和URL编码解码，快速转换文本、图片等数据格式，支持批量处理。</div>
-                    <div class="tool-tags">
-                        <span class="tool-tag">编码解码</span>
-                        <span class="tool-tag">Base64</span>
-                        <span class="tool-tag">URL编码</span>
-                    </div>
-                    <a href="tools/base64-url-encoder.html" class="tool-link">
-                        <i class="fas fa-external-link-alt"></i>
-                        打开工具
-                    </a>
-                </div>
-
-                <div class="tool-card" data-tags="文件 对比 diff 比较">
-                    <div class="tool-icon">📄</div>
-                    <div class="tool-title">文件对比工具</div>
-                    <div class="tool-description">智能文件对比工具，高亮显示差异内容，支持文本、代码等多种格式的对比分析。</div>
-                    <div class="tool-tags">
-                        <span class="tool-tag">文件对比</span>
-                        <span class="tool-tag">差异检测</span>
-                        <span class="tool-tag">代码比较</span>
-                    </div>
-                    <a href="tools/file-diff.html" class="tool-link">
-                        <i class="fas fa-external-link-alt"></i>
-                        打开工具
-                    </a>
                 </div>
             </div>
-        </div>
 
-        <div class="category-section">
-            <h2 class="category-title">📊 数据处理</h2>
-            <div class="tools-grid">
-                <div class="tool-card" data-tags="数据 计算 统计 分析">
-                    <div class="tool-icon">📈</div>
-                    <div class="tool-title">数据计算器</div>
-                    <div class="tool-description">强大的数据计算工具，支持统计分析、数学运算、数据转换等多种计算功能。</div>
-                    <div class="tool-tags">
-                        <span class="tool-tag">数据计算</span>
-                        <span class="tool-tag">统计分析</span>
-                        <span class="tool-tag">数学运算</span>
-                    </div>
-                    <a href="tools/data-calculator.html" class="tool-link">
-                        <i class="fas fa-external-link-alt"></i>
-                        打开工具
-                    </a>
-                </div>
-
-                <div class="tool-card" data-tags="密码 生成 安全 随机">
-                    <div class="tool-icon">🔑</div>
-                    <div class="tool-title">密码生成器</div>
-                    <div class="tool-description">安全可靠的密码生成工具，支持自定义长度、字符类型，提供强度评估和历史记录。</div>
-                    <div class="tool-tags">
-                        <span class="tool-tag">密码生成</span>
-                        <span class="tool-tag">安全工具</span>
-                        <span class="tool-tag">随机生成</span>
-                    </div>
-                    <a href="tools/password-generator.html" class="tool-link">
-                        <i class="fas fa-external-link-alt"></i>
-                        打开工具
-                    </a>
+            <div class="error-message" id="errorMessage" style="display: none;">
+                <div class="error-content">
+                    <span class="error-icon">❌</span>
+                    <span id="errorText"></span>
                 </div>
             </div>
-        </div>
+        </main>
 
-        <div class="category-section">
-            <h2 class="category-title">📝 文档编辑</h2>
-            <div class="tools-grid">
-                <div class="tool-card" data-tags="markdown 编辑 文档 写作">
-                    <div class="tool-icon">📝</div>
-                    <div class="tool-title">Markdown编辑器</div>
-                    <div class="tool-description">功能丰富的Markdown编辑器，支持实时预览、语法高亮、表格编辑等高级功能。</div>
-                    <div class="tool-tags">
-                        <span class="tool-tag">Markdown</span>
-                        <span class="tool-tag">文档编辑</span>
-                        <span class="tool-tag">实时预览</span>
-                    </div>
-                    <a href="tools/markdown-editor.html" class="tool-link">
-                        <i class="fas fa-external-link-alt"></i>
-                        打开工具
-                    </a>
-                </div>
-
-                <div class="tool-card" data-tags="latex 数学 公式 编辑">
-                    <div class="tool-icon">📐</div>
-                    <div class="tool-title">LaTeX编辑器</div>
-                    <div class="tool-description">专业的LaTeX数学公式编辑器，支持复杂数学公式的编写和实时预览。</div>
-                    <div class="tool-tags">
-                        <span class="tool-tag">LaTeX</span>
-                        <span class="tool-tag">数学公式</span>
-                        <span class="tool-tag">学术写作</span>
-                    </div>
-                    <a href="tools/latex-editor.html" class="tool-link">
-                        <i class="fas fa-external-link-alt"></i>
-                        打开工具
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <div class="category-section">
-            <h2 class="category-title">🎨 可视化工具</h2>
-            <div class="tools-grid">
-                <div class="tool-card" data-tags="mermaid 图表 流程图 可视化">
-                    <div class="tool-icon">📊</div>
-                    <div class="tool-title">Mermaid图表编辑器</div>
-                    <div class="tool-description">强大的Mermaid图表编辑器，支持流程图、时序图、甘特图等多种图表类型的创建和编辑。</div>
-                    <div class="tool-tags">
-                        <span class="tool-tag">Mermaid</span>
-                        <span class="tool-tag">流程图</span>
-                        <span class="tool-tag">图表编辑</span>
-                    </div>
-                    <a href="tools/mermaid-v2.html" class="tool-link">
-                        <i class="fas fa-external-link-alt"></i>
-                        打开工具
-                    </a>
-                </div>
-
-                <div class="tool-card" data-tags="mermaid 历史 版本 管理">
-                    <div class="tool-icon">📚</div>
-                    <div class="tool-title">Mermaid历史管理器</div>
-                    <div class="tool-description">Mermaid图表的历史版本管理工具，支持版本对比、历史回滚、版本导出等功能。</div>
-                    <div class="tool-tags">
-                        <span class="tool-tag">Mermaid</span>
-                        <span class="tool-tag">版本管理</span>
-                        <span class="tool-tag">历史记录</span>
-                    </div>
-                    <a href="tools/mermaid-history.html" class="tool-link">
-                        <i class="fas fa-external-link-alt"></i>
-                        打开工具
-                    </a>
-                </div>
-
-                <div class="tool-card" data-tags="白板 绘图 协作 思维导图">
-                    <div class="tool-icon">🖼️</div>
-                    <div class="tool-title">在线白板</div>
-                    <div class="tool-description">功能丰富的在线白板工具，支持绘图、标注、协作编辑，适合头脑风暴和创意设计。</div>
-                    <div class="tool-tags">
-                        <span class="tool-tag">白板</span>
-                        <span class="tool-tag">绘图</span>
-                        <span class="tool-tag">协作</span>
-                    </div>
-                    <a href="tools/whiteboard.html" class="tool-link">
-                        <i class="fas fa-external-link-alt"></i>
-                        打开工具
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <div class="category-section">
-            <h2 class="category-title">⏰ 效率工具</h2>
-            <div class="tools-grid">
-                <div class="tool-card" data-tags="番茄钟 时间管理 专注 效率">
-                    <div class="tool-icon">🍅</div>
-                    <div class="tool-title">番茄钟计时器</div>
-                    <div class="tool-description">经典的番茄工作法计时器，帮助您提高专注力和工作效率，支持自定义时间设置。</div>
-                    <div class="tool-tags">
-                        <span class="tool-tag">番茄钟</span>
-                        <span class="tool-tag">时间管理</span>
-                        <span class="tool-tag">专注力</span>
-                    </div>
-                    <a href="tools/pomodoro.html" class="tool-link">
-                        <i class="fas fa-external-link-alt"></i>
-                        打开工具
-                    </a>
-                </div>
-
-                <div class="tool-card" data-tags="日历 日程 计划 时间">
-                    <div class="tool-icon">📅</div>
-                    <div class="tool-title">日历工具</div>
-                    <div class="tool-description">简洁实用的日历工具，支持日程管理、事件提醒、时间规划等功能。</div>
-                    <div class="tool-tags">
-                        <span class="tool-tag">日历</span>
-                        <span class="tool-tag">日程管理</span>
-                        <span class="tool-tag">时间规划</span>
-                    </div>
-                    <a href="tools/calendar.html" class="tool-link">
-                        <i class="fas fa-external-link-alt"></i>
-                        打开工具
-                    </a>
-                </div>
-
-                <div class="tool-card" data-tags="学习 打卡 记录 习惯">
-                    <div class="tool-icon">📚</div>
-                    <div class="tool-title">学习打卡工具</div>
-                    <div class="tool-description">学习习惯养成工具，支持学习记录、进度跟踪、成就统计等功能。</div>
-                    <div class="tool-tags">
-                        <span class="tool-tag">学习打卡</span>
-                        <span class="tool-tag">习惯养成</span>
-                        <span class="tool-tag">进度跟踪</span>
-                    </div>
-                    <a href="tools/study-checkin.html" class="tool-link">
-                        <i class="fas fa-external-link-alt"></i>
-                        打开工具
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <div class="footer">
-            <p>🛠️ 工具门户 - 让工作更高效 | 所有工具完全免费使用</p>
-            <p style="margin-top: 10px; font-size: 0.9em;">
-                <i class="fas fa-heart" style="color: #ff6b6b;"></i> 
-                用心打造每一个工具，为您提供最佳的使用体验
-            </p>
-        </div>
+        <footer>
+            <p>支持常见二维码格式：URL链接、文本、WiFi信息等</p>
+        </footer>
     </div>
 
-    <script>
-        // 搜索功能
-        const searchInput = document.getElementById('searchInput');
-        const toolCards = document.querySelectorAll('.tool-card');
-
-        searchInput.addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase();
-            
-            toolCards.forEach(card => {
-                const title = card.querySelector('.tool-title').textContent.toLowerCase();
-                const description = card.querySelector('.tool-description').textContent.toLowerCase();
-                const tags = card.getAttribute('data-tags').toLowerCase();
-                
-                if (title.includes(searchTerm) || 
-                    description.includes(searchTerm) || 
-                    tags.includes(searchTerm)) {
-                    card.style.display = 'block';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-        });
-
-        // 工具卡片点击效果
-        toolCards.forEach(card => {
-            card.addEventListener('click', function(e) {
-                if (!e.target.closest('.tool-link')) {
-                    const link = this.querySelector('.tool-link');
-                    if (link) {
-                        window.open(link.href, '_blank');
-                    }
-                }
-            });
-        });
-
-        // 添加键盘快捷键支持
-        document.addEventListener('keydown', function(e) {
-            if (e.ctrlKey && e.key === 'k') {
-                e.preventDefault();
-                searchInput.focus();
-            }
-        });
-
-        // 添加搜索提示
-        searchInput.addEventListener('focus', function() {
-            this.placeholder = '按 Ctrl+K 快速搜索，或输入工具名称...';
-        });
-
-        searchInput.addEventListener('blur', function() {
-            this.placeholder = '搜索工具...';
-        });
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>

@@ -1,108 +1,549 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>工具箱 · 首页</title>
-  <link rel="stylesheet" href="./assets/css/style.css">
-  <meta name="color-scheme" content="light dark">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python代码执行器 - 在线Python运行环境</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 20px 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: flex;
+            min-height: 600px;
+        }
+
+        .editor-panel {
+            flex: 1;
+            padding: 20px;
+            border-right: 1px solid #eee;
+        }
+
+        .output-panel {
+            flex: 1;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+
+        .panel-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+            display: flex;
+            align-items: center;
+        }
+
+        .panel-title::before {
+            content: '';
+            width: 4px;
+            height: 20px;
+            background: #4facfe;
+            margin-right: 10px;
+            border-radius: 2px;
+        }
+
+        .code-editor {
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .CodeMirror {
+            height: 400px !important;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .output-container {
+            background: white;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            min-height: 400px;
+            padding: 15px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #4facfe;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            color: #dc3545;
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+
+        .success {
+            color: #155724;
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+
+        .example-code {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.4;
+            overflow-x: auto;
+        }
+
+        .example-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #495057;
+        }
+
+        .plot-container {
+            margin: 10px 0;
+            text-align: center;
+        }
+
+        .plot-container img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .status-bar {
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+            padding: 10px 30px;
+            font-size: 12px;
+            color: #6c757d;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #28a745;
+        }
+
+        .status-dot.loading {
+            background: #ffc107;
+            animation: pulse 1s infinite;
+        }
+
+        .status-dot.error {
+            background: #dc3545;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .editor-panel {
+                border-right: none;
+                border-bottom: 1px solid #eee;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
 </head>
 <body>
-  <header class="site-header">
     <div class="container">
-      <h1 class="site-title">🧰 网页工具箱</h1>
-      <p class="site-subtitle">轻量、开箱即用的多功能网页工具</p>
+        <div class="header">
+            <h1>🐍 Python代码执行器</h1>
+            <p>在浏览器中直接运行Python代码，支持matplotlib、numpy等科学计算库</p>
+        </div>
+
+        <div class="main-content">
+            <div class="editor-panel">
+                <div class="panel-title">代码编辑器</div>
+                
+                <div class="example-code">
+                    <div class="example-title">💡 示例代码：刚需演进图谱</div>
+                    <pre id="example-code">import matplotlib.pyplot as plt
+
+# 数据
+stages = ["房子（生存）", "数字空间（虚拟身份）", "健康系统（身体保障）", 
+          "能源独立（生活自由）", "教育升级（认知资本）", "社群归属（精神家园）"]
+values = [1, 2, 3, 4, 5, 6]  # 用来表示演进阶段
+
+# 绘制图表
+plt.figure(figsize=(10, 6))
+plt.plot(values, stages, marker="o", linestyle="--", color="b")
+
+# 添加注释
+for i, stage in enumerate(stages):
+    plt.text(values[i]+0.1, i, stage, fontsize=10, va="center")
+
+plt.title("刚需演进图谱：从房子到未来刚需", fontsize=14, fontweight="bold")
+plt.xlabel("演进阶段（由低到高）")
+plt.ylabel("刚需形态")
+plt.grid(True, linestyle="--", alpha=0.6)
+plt.tight_layout()
+
+# 显示图表
+plt.show()</pre>
+                </div>
+
+                <div class="code-editor">
+                    <textarea id="code-editor">import matplotlib.pyplot as plt
+
+# 数据
+stages = ["房子（生存）", "数字空间（虚拟身份）", "健康系统（身体保障）", 
+          "能源独立（生活自由）", "教育升级（认知资本）", "社群归属（精神家园）"]
+values = [1, 2, 3, 4, 5, 6]  # 用来表示演进阶段
+
+# 绘制图表
+plt.figure(figsize=(10, 6))
+plt.plot(values, stages, marker="o", linestyle="--", color="b")
+
+# 添加注释
+for i, stage in enumerate(stages):
+    plt.text(values[i]+0.1, i, stage, fontsize=10, va="center")
+
+plt.title("刚需演进图谱：从房子到未来刚需", fontsize=14, fontweight="bold")
+plt.xlabel("演进阶段（由低到高）")
+plt.ylabel("刚需形态")
+plt.grid(True, linestyle="--", alpha=0.6)
+plt.tight_layout()
+
+# 显示图表
+plt.show()</textarea>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="runCode()">
+                        ▶️ 运行代码
+                    </button>
+                    <button class="btn btn-secondary" onclick="clearOutput()">
+                        🗑️ 清空输出
+                    </button>
+                    <button class="btn btn-success" onclick="loadExample()">
+                        📝 加载示例
+                    </button>
+                </div>
+            </div>
+
+            <div class="output-panel">
+                <div class="panel-title">输出结果</div>
+                
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <div>正在执行Python代码...</div>
+                </div>
+
+                <div class="output-container" id="output"></div>
+            </div>
+        </div>
+
+        <div class="status-bar">
+            <div class="status-indicator">
+                <div class="status-dot" id="status-dot"></div>
+                <span id="status-text">准备就绪</span>
+            </div>
+            <div>
+                <span>Powered by Pyodide</span>
+            </div>
+        </div>
     </div>
-  </header>
 
-  <main class="container">
-    <section>
-      <h2 class="section-title">工具目录</h2>
-      <div class="tool-grid">
-        <a class="tool-card" href="./tools/mermaid.html">
-          <h3>🎨 Mermaid 可视化渲染器 v1</h3>
-          <p>基础版本：粘贴 Mermaid 语法，实时渲染，支持下载 PNG / SVG / PDF。</p>
-          <span class="tool-link">打开工具 →</span>
-        </a>
-        <a class="tool-card" href="./tools/mermaid-v2.html">
-          <h3>🎨 Mermaid 可视化渲染器 v2</h3>
-          <p>增强版本：全屏放大查看、缩放控制、拖拽平移、复制图片，更强大的交互体验。</p>
-          <span class="tool-link">打开工具 →</span>
-        </a>
-        <a class="tool-card" href="./tools/mermaid-history.html">
-          <h3>📚 Mermaid 可视化渲染器 - 历史记录版</h3>
-          <p>最新版本：支持历史记录保存、快速查看切换、编辑删除操作，完美适配手机端使用。</p>
-          <span class="tool-link">打开工具 →</span>
-        </a>
-        <a class="tool-card" href="./tools/password-generator.html">
-          <h3>密码生成器</h3>
-          <p>生成安全、随机的密码，支持自定义长度和字符类型。</p>
-          <span class="tool-link">打开工具 →</span>
-        </a>
-        <a class="tool-card" href="./tools/whiteboard.html">
-          <h3>网页画板工具</h3>
-          <p>功能丰富的在线画板，支持手写绘图、形状绘制、图片上传、文字添加等多种功能。</p>
-          <span class="tool-link">打开工具 →</span>
-        </a>
-        <a class="tool-card" href="./tools/pomodoro.html">
-          <h3>🍅 番茄钟待办事项</h3>
-          <p>专注工作的番茄钟计时器，配合待办事项管理，数据自动保存到本地存储。</p>
-          <span class="tool-link">打开工具 →</span>
-        </a>
-        <a class="tool-card" href="./tools/latex-editor.html">
-          <h3>🧮 LaTeX 数学公式编辑器</h3>
-          <p>输入LaTeX公式，实时渲染，支持复制markdown源码和导出PNG图片。</p>
-          <span class="tool-link">打开工具 →</span>
-        </a>
-        <a class="tool-card" href="./tools/base64-url-encoder.html">
-          <h3>🔐 Base64/URL 编解码工具</h3>
-          <p>一键处理常见编码解码需求，支持Base64、URL、HTML实体、十六进制等多种格式。</p>
-          <span class="tool-link">打开工具 →</span>
-        </a>
-        <a class="tool-card" href="./tools/file-diff.html">
-          <h3>📊 文件内容对比工具</h3>
-          <p>快速比较两个文本内容的差异，支持高亮显示、文件上传、统计信息等功能。</p>
-          <span class="tool-link">打开工具 →</span>
-        </a>
-        <a class="tool-card" href="./tools/markdown-editor.html">
-          <h3>📝 Markdown 编辑器</h3>
-          <p>左侧编辑，右侧实时预览，支持一键导出 PDF，适合写学习笔记、博客草稿、日报周报。</p>
-          <span class="tool-link">打开工具 →</span>
-        </a>
-        <a class="tool-card" href="./tools/api-tester.html">
-          <h3>🔌 接口请求工具</h3>
-          <p>简易的 API 测试工具，支持 GET/POST 等多种请求方法，无需打开 Postman 即可测试接口。</p>
-          <span class="tool-link">打开工具 →</span>
-        </a>
-        <a class="tool-card" href="./tools/data-calculator.html">
-          <h3>📊 数据计算工具</h3>
-          <p>JSON格式化、正则表达式测试器、单位换算器、时间戳转换器，日常开发数据处理必备。</p>
-          <span class="tool-link">打开工具 →</span>
-        </a>
-        <a class="tool-card" href="./tools/calendar.html">
-          <h3>📅 轻量化日历</h3>
-          <p>简洁的日历应用，支持在网页中写下计划，数据自动保存到本地存储。</p>
-          <span class="tool-link">打开工具 →</span>
-        </a>
-        <a class="tool-card" href="./tools/study-checkin.html">
-          <h3>📚 学习打卡面板</h3>
-          <p>习惯养成工具，每天完成任务打✅，自动保存状态到LocalStorage，支持连续打卡统计。</p>
-          <span class="tool-link">打开工具 →</span>
-        </a>
-      </div>
-    </section>
-  </main>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.min.js"></script>
+    <script src="https://pyodide-cdn2.iodide.io/v0.24.1/full/pyodide.js"></script>
+    
+    <script>
+        let pyodide;
+        let editor;
+        let isInitialized = false;
 
-  <footer class="site-footer">
-    <div class="container">
-      <span>© <span id="year"></span> 工具箱</span>
-    </div>
-  </footer>
+        // 初始化CodeMirror编辑器
+        function initEditor() {
+            editor = CodeMirror.fromTextArea(document.getElementById('code-editor'), {
+                mode: 'python',
+                theme: 'monokai',
+                lineNumbers: true,
+                indentUnit: 4,
+                indentWithTabs: false,
+                lineWrapping: true,
+                autofocus: true
+            });
+        }
 
-  <script>
-    document.getElementById('year').textContent = new Date().getFullYear();
-  </script>
+        // 初始化Pyodide
+        async function initPyodide() {
+            updateStatus('loading', '正在加载Python环境...');
+            
+            try {
+                pyodide = await loadPyodide({
+                    indexURL: "https://pyodide-cdn2.iodide.io/v0.24.1/full/"
+                });
+                
+                // 安装必要的包
+                await pyodide.loadPackage(['matplotlib', 'numpy', 'pandas']);
+                
+                // 配置matplotlib在浏览器中显示
+                pyodide.runPython(`
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import io
+import base64
+
+def show_plot():
+    """将matplotlib图表转换为base64图片并显示"""
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png', dpi=100, bbox_inches='tight')
+    buf.seek(0)
+    img_data = base64.b64encode(buf.read()).decode()
+    plt.close()
+    
+    # 创建图片元素并显示
+    img_html = f'<div class="plot-container"><img src="data:image/png;base64,{img_data}" alt="Plot"></div>'
+    return img_html
+                `);
+                
+                isInitialized = true;
+                updateStatus('ready', 'Python环境已就绪');
+                
+            } catch (error) {
+                console.error('Pyodide初始化失败:', error);
+                updateStatus('error', 'Python环境加载失败');
+                showError('Python环境初始化失败: ' + error.message);
+            }
+        }
+
+        // 运行Python代码
+        async function runCode() {
+            if (!isInitialized) {
+                showError('Python环境尚未初始化完成，请稍候再试');
+                return;
+            }
+
+            const code = editor.getValue();
+            if (!code.trim()) {
+                showError('请输入要执行的Python代码');
+                return;
+            }
+
+            updateStatus('loading', '正在执行代码...');
+            showLoading(true);
+            clearOutput();
+
+            try {
+                // 执行用户代码
+                const result = pyodide.runPython(code);
+                
+                // 检查是否有matplotlib图表需要显示
+                try {
+                    const plotHtml = pyodide.runPython('show_plot()');
+                    if (plotHtml && plotHtml.includes('data:image/png;base64,')) {
+                        document.getElementById('output').innerHTML += plotHtml;
+                    }
+                } catch (e) {
+                    // 没有图表或图表显示失败，继续
+                }
+
+                // 显示执行结果
+                if (result !== undefined) {
+                    const outputDiv = document.getElementById('output');
+                    const resultDiv = document.createElement('div');
+                    resultDiv.className = 'success';
+                    resultDiv.textContent = '执行结果: ' + String(result);
+                    outputDiv.appendChild(resultDiv);
+                }
+
+                updateStatus('ready', '代码执行完成');
+                
+            } catch (error) {
+                console.error('代码执行错误:', error);
+                showError('代码执行错误: ' + error.message);
+                updateStatus('error', '代码执行失败');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // 清空输出
+        function clearOutput() {
+            document.getElementById('output').innerHTML = '';
+        }
+
+        // 加载示例代码
+        function loadExample() {
+            const exampleCode = document.getElementById('example-code').textContent;
+            editor.setValue(exampleCode);
+        }
+
+        // 显示加载状态
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+        }
+
+        // 显示错误信息
+        function showError(message) {
+            const outputDiv = document.getElementById('output');
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error';
+            errorDiv.textContent = message;
+            outputDiv.appendChild(errorDiv);
+        }
+
+        // 更新状态栏
+        function updateStatus(type, message) {
+            const statusDot = document.getElementById('status-dot');
+            const statusText = document.getElementById('status-text');
+            
+            statusDot.className = 'status-dot ' + type;
+            statusText.textContent = message;
+        }
+
+        // 页面加载完成后初始化
+        window.addEventListener('load', async () => {
+            initEditor();
+            await initPyodide();
+        });
+
+        // 键盘快捷键
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'Enter') {
+                e.preventDefault();
+                runCode();
+            }
+        });
+    </script>
 </body>
-<noscript>本页面需要 JavaScript 以获得最佳体验。</noscript>
 </html>
-

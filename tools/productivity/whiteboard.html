@@ -7,6 +7,32 @@
     <link rel="stylesheet" href="../../assets/css/style.css">
     <meta name="color-scheme" content="light dark">
     <style>
+        :root { --bg:#f8fafc; --border:#e5e7eb; }
+
+
+        /* 让分组更紧凑，边界更清晰 */
+        .tool-group {
+            padding: 4px 6px;              /* 原 6px，略紧凑 */
+            border: 1px solid var(--border);
+        }
+        .tool-btn { color:#111827; }
+        /* 图标更醒目，尺寸略放大一点 */
+        .tool-btn svg {
+            width: 22px;                   /* 原 20px */
+            height: 22px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root { --bg:#0b0f14; --border:#1f2937; }
+        }
+
+        /* 如果你希望顶栏整体提高对比度，也可以加这一条 */
+        .top-toolbar { color:#111827; }
+        @media (prefers-color-scheme: dark) {
+            .top-toolbar { color:#e5e7eb; }
+        }
+
+
         * {
             margin: 0;
             padding: 0;
@@ -84,10 +110,11 @@
       transform: scale(1.05);
     }
 
+    /* 激活态：蓝底白字 + 轻微描边，图标不会“糊”在底色里 */
     .tool-btn.active {
-      background: #3b82f6;
-      color: white;
-      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+        background: #3b82f6;
+        color: #fff;
+        box-shadow: 0 0 0 1px rgba(255,255,255,.5) inset, 0 2px 8px rgba(59,130,246,.3);
     }
 
     .tool-btn svg {
@@ -237,10 +264,11 @@
     .quick-btn {
       width: 56px;
       height: 56px;
-      border: none;
+      border: 1px solid #e5e7eb;       /* 边框增强可见性 */
       border-radius: 16px;
       background: white;
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      color: #111827;
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -259,10 +287,7 @@
       color: white;
     }
 
-    .quick-btn svg {
-      width: 24px;
-      height: 24px;
-    }
+        .quick-btn svg { color: currentColor; }
 
     /* 工具提示 */
     .tooltip {
@@ -663,22 +688,29 @@
         // 显示欢迎提示
         this.showToast('画板已准备就绪！使用快捷键：P(画笔) E(橡皮) S(形状) T(文字)');
       }
-      
+
       setupCanvas() {
         this.ctx.lineCap = 'round';
         this.ctx.lineJoin = 'round';
         this.ctx.imageSmoothingEnabled = true;
         this.ctx.imageSmoothingQuality = 'high';
-        
-        // 高DPI支持
+
+        // 高DPI：用 dpr 缩放绘图坐标系，但鼠标坐标不再乘 dpr
         const dpr = window.devicePixelRatio || 1;
-        const rect = this.canvas.getBoundingClientRect();
-        
-        this.canvas.width = rect.width * dpr;
-        this.canvas.height = rect.height * dpr;
-        this.ctx.scale(dpr, dpr);
-        this.canvas.style.width = rect.width + 'px';
-        this.canvas.style.height = rect.height + 'px';
+
+        // 用父容器尺寸（可见尺寸）作为基准，避免初次 rect 取到旧值
+        const parentRect = this.canvas.parentElement.getBoundingClientRect();
+
+        // CSS 尺寸（可视大小）
+        this.canvas.style.width = parentRect.width + 'px';
+        this.canvas.style.height = parentRect.height + 'px';
+
+        // 实际像素尺寸（渲染缓冲区）
+        this.canvas.width = Math.max(1, Math.floor(parentRect.width * dpr));
+        this.canvas.height = Math.max(1, Math.floor(parentRect.height * dpr));
+
+        // 将坐标系缩放到 CSS 像素：之后所有绘制用“CSS像素”即可
+        this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       }
       
       setupColorPalette() {
@@ -859,15 +891,15 @@
         
         this.canvas.style.cursor = cursors[this.currentTool] || 'default';
       }
-      
+
       getEventPos(e) {
         const rect = this.canvas.getBoundingClientRect();
-        const dpr = window.devicePixelRatio || 1;
-        
-        return {
-          x: (e.clientX - rect.left) * dpr,
-          y: (e.clientY - rect.top) * dpr
-        };
+
+        // 使用 CSS 像素坐标；如果画布被 CSS scale 缩放，需要除以当前缩放因子
+        const xCss = (e.clientX - rect.left) / this.scale;
+        const yCss = (e.clientY - rect.top) / this.scale;
+
+        return { x: xCss, y: yCss };
       }
       
       startDrawing(e) {
@@ -1037,14 +1069,13 @@
           this.canvas.dispatchEvent(mouseEvent);
         }
       }
-      
+
       handleWheel(e) {
         e.preventDefault();
-        
         const delta = e.deltaY > 0 ? 0.9 : 1.1;
         this.scale = Math.max(this.minScale, Math.min(this.maxScale, this.scale * delta));
-        
         this.canvas.style.transform = `scale(${this.scale})`;
+        this.showToast(`缩放: ${Math.round(this.scale * 100)}%`);
       }
       
       handleKeyboard(e) {
@@ -1208,7 +1239,7 @@
     
     // 初始化画板
     let whiteboard;
-    
+
     document.addEventListener('DOMContentLoaded', () => {
       whiteboard = new ModernWhiteboard();
     });
@@ -1216,7 +1247,10 @@
     // 窗口大小调整
     window.addEventListener('resize', () => {
       if (whiteboard) {
+        const prev = whiteboard.historyIndex;
         whiteboard.setupCanvas();
+        // 重新把当前历史帧画回去
+        if (prev >= 0) whiteboard.restoreState();
       }
     });
   </script>

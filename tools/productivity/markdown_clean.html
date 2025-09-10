@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Markdown 链接定位符清理器（去掉#及其后的片段）</title>
+  <style>
+    :root{
+      --bg:#0b0f14; --fg:#e5e7eb; --muted:#94a3b8; --accent:#22c55e; --border:#1f2937;
+      --btn:#16a34a; --btnfg:#fff; --btn2:#0ea5e9;
+    }
+    @media (prefers-color-scheme: light){
+      :root{
+        --bg:#f8fafc; --fg:#0f172a; --muted:#475569; --accent:#16a34a; --border:#e2e8f0;
+        --btn:#16a34a; --btnfg:#fff; --btn2:#0284c7;
+      }
+    }
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial; background:var(--bg); color:var(--fg); margin:0; line-height:1.5;}
+    .wrap{max-width:1100px; margin:32px auto; padding:0 16px;}
+    h1{font-size:24px; margin:0 0 12px}
+    p.tip{color:var(--muted); margin:0 0 16px}
+    .grid{display:grid; grid-template-columns:1fr; gap:16px}
+    @media (min-width:1000px){ .grid{grid-template-columns:1fr 1fr} }
+    textarea{
+      width:100%; min-height:420px; border:1px solid var(--border); border-radius:12px;
+      padding:14px 16px; background:transparent; color:inherit; resize:vertical; font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      tab-size:2; font-size:14px; line-height:1.6;
+    }
+    .panel{border:1px solid var(--border); border-radius:14px; padding:16px; background:transparent}
+    .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+    .btn{
+      appearance:none; border:0; padding:10px 14px; border-radius:10px; cursor:pointer; font-weight:600;
+      background:var(--btn); color:var(--btnfg);
+    }
+    .btn.secondary{ background:var(--btn2); }
+    .btn.ghost{ background:transparent; border:1px dashed var(--border); color:var(--fg) }
+    .stat{font-variant-numeric:tabular-nums; color:var(--muted)}
+    .footer{margin-top:12px; color:var(--muted); font-size:13px}
+    .badge{display:inline-block; padding:2px 8px; border-radius:999px; background:color-mix(in oklab, var(--accent) 18%, transparent); color:var(--accent); font-size:12px; margin-left:6px}
+    .small{font-size:12px; color:var(--muted)}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Markdown 链接定位符清理器<span class="badge">去除 # 及其后的片段</span></h1>
+    <p class="tip">功能：把文中形如 <code>[标题](https://example.com/path#...任何内容...)</code> 的链接，批量变为 <code>[标题](https://example.com/path)</code>。仅处理内联链接，不影响普通文本与不含 <code>#</code> 的链接。</p>
+
+    <div class="grid">
+      <div class="panel">
+        <div class="row" style="justify-content:space-between; margin-bottom:8px">
+          <strong>输入文本</strong>
+          <div class="row">
+            <button class="btn ghost" id="pasteBtn" title="从剪贴板粘贴">从剪贴板粘贴</button>
+            <button class="btn ghost" id="loadSample">填入示例</button>
+          </div>
+        </div>
+        <textarea id="input" placeholder="在这里粘贴整篇文章或Markdown文本…"></textarea>
+        <div class="row" style="justify-content:space-between; margin-top:8px">
+          <span class="small">提示：支持整段文章，一次性清理所有链接。</span>
+          <button class="btn" id="run">一键清理</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="row" style="justify-content:space-between; margin-bottom:8px">
+          <strong>输出结果</strong>
+          <span class="stat" id="stats">已清理 0 个链接</span>
+        </div>
+        <textarea id="output" placeholder="清理后的结果会显示在这里…" readonly></textarea>
+        <div class="row" style="justify-content:space-between; margin-top:8px">
+          <div class="row" style="gap:8px">
+            <button class="btn secondary" id="copy">复制结果</button>
+            <button class="btn ghost" id="download">下载为 .md</button>
+          </div>
+          <span class="small">若需要，还可以再次运行以确认。</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      正则策略：仅匹配 Markdown 内联链接模式 <code>[...](...)</code>，当圆括号内 URL 含 <code>#</code> 时，删除从 <code>#</code> 起直到与该链接对应的右括号 <code>)</code> 为止的内容。
+    </div>
+  </div>
+
+  <script>
+    // 核心清理函数：
+    // - 仅处理 Markdown 内联链接 [text](url)
+    // - 当 url 中出现 # 时，删除 # 及其后的所有字符直到该链接的右括号 )
+    // - 保留原始的 [text] 与 (url基础部分)
+    // - 例： [a](https://x/y#frag:abc)  =>  [a](https://x/y)
+    function cleanMarkdownLinks(source){
+      if(!source) return { text:"", count:0 };
+      let count = 0;
+
+      // 1) 先统计会被处理的目标数量（含 # 的内联链接）
+      const targetPattern = /\[[^\]]+\]\([^)\s]*#[^)]*\)/g;
+      const matches = source.match(targetPattern);
+      count = matches ? matches.length : 0;
+
+      // 2) 执行替换：抓取 [text] 与 (urlBase  …去掉 # 后面… )
+      // 解释：
+      //   \[([^\]]+)\]      -> 捕获链接文本
+      //   \(                 -> 左括号开始 URL
+      //   ([^)#\s]+)         -> 第2组：不含右括号/空白/# 的“基础URL部分”（直到 # 或 )）
+      //   (?:#[^)]*)         -> 非捕获：# 起直到下一个右括号前的所有内容
+      //   \)                 -> 右括号
+      // 全局替换为 [组1](组2)
+      const cleaned = source.replace(/\[([^\]]+)\]\(([^)#\s]+)(?:#[^)]*)\)/g, "[$1]($2)");
+
+      return { text: cleaned, count };
+    }
+
+    // 事件绑定
+    const $ = (id)=>document.getElementById(id);
+    const input = $("input");
+    const output = $("output");
+    const stats = $("stats");
+
+    $("run").addEventListener("click", ()=>{
+      const { text, count } = cleanMarkdownLinks(input.value);
+      output.value = text;
+      stats.textContent = `已清理 ${count} 个链接`;
+    });
+
+    $("copy").addEventListener("click", async ()=>{
+      try{
+        await navigator.clipboard.writeText(output.value || "");
+        const old = event.target.textContent;
+        event.target.textContent = "已复制 ✅";
+        setTimeout(()=> event.target.textContent = old, 1200);
+      }catch(e){
+        alert("复制失败：可能浏览器未授权。");
+      }
+    });
+
+    $("download").addEventListener("click", ()=>{
+      const blob = new Blob([output.value || ""], { type: "text/markdown;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "cleaned.md";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    });
+
+    $("pasteBtn").addEventListener("click", async ()=>{
+      try{
+        const text = await navigator.clipboard.readText();
+        input.value = text || "";
+      }catch(e){
+        alert("无法读取剪贴板：请手动粘贴（Ctrl/⌘+V）。");
+      }
+    });
+
+    $("loadSample").addEventListener("click", ()=>{
+      input.value =
+`示例：
+- [示例一](https://example.com/path#:~:text=片段说明)
+- [示例二](https://domain.cn/a/b?x=1#section-2)
+- [保持原样](https://keep.me/no-fragment)
+- 行尾有括号的句子（不影响）：[链接](https://ok.cn/abc#hash-xxx)。
+`;
+    });
+
+    // 小增强：输入时动态清零统计
+    input.addEventListener("input", ()=> stats.textContent = "已清理 0 个链接");
+  </script>
+</body>
+</html>

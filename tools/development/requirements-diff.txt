@@ -1,0 +1,25 @@
+# 智能文件对比工具依赖包
+
+# 基础库
+flask>=2.3.0
+flask-cors>=4.0.0
+
+# 文档解析库
+PyPDF2>=3.0.0
+python-docx>=0.8.11
+openpyxl>=3.1.0
+markdown>=3.4.0
+beautifulsoup4>=4.12.0
+
+# 数据处理
+pandas>=2.0.0
+numpy>=1.24.0
+
+# 可选依赖（提升性能）
+lxml>=4.9.0
+Pillow>=10.0.0
+
+# 开发和测试
+pytest>=7.0.0
+black>=23.0.0
+flake8>=6.0.0

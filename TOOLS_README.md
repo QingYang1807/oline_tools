@@ -35,7 +35,7 @@ workspace/
 
 ## 🛠️ 工具分类
 
-### ⚙️ 开发工具 (4个)
+### ⚙️ 开发工具 (5个)
 
 | 工具名称 | 文件路径 | 功能描述 |
 |---------|---------|---------|
@@ -43,6 +43,7 @@ workspace/
 | Base64/URL编解码 | `tools/development/base64-url-encoder.html` | 快速编解码Base64和URL格式，支持文本和文件 |
 | 文件内容对比 | `tools/development/file-diff.html` | 对比两个文本文件的差异，高亮显示不同之处 |
 | Python代码执行器 | `tools/development/python-executor.html` | 在线运行Python代码，支持常用库和模块 |
+| SQL回滚生成工具 | `tools/development/sql-rollback-generator.html` | 自动生成SQL回滚语句，支持多种数据源和AI模型 |
 
 ### 📝 文档编辑 (5个)
 
@@ -131,16 +132,22 @@ workspace/
 
 ## 📊 工具统计
 
-- **总工具数**：15个
+- **总工具数**：17个
 - **分类数**：4个
-- **开发工具**：4个
+- **开发工具**：5个
 - **文档编辑**：5个
-- **实用工具**：3个
+- **实用工具**：4个
 - **效率工具**：3个
 
 ## 🔄 更新日志
 
-### v2.0.0 (当前版本)
+### v2.1.0 (当前版本)
+- ✅ 新增SQL回滚生成工具，支持多种数据源和AI模型
+- ✅ 支持本地CPU计算和LLM大模型两种生成方式
+- ✅ 集成OpenAI、Claude、Gemini等主流LLM API
+- ✅ 支持MySQL、PostgreSQL、MongoDB等多种数据库
+
+### v2.0.0
 - ✅ 重新整理目录结构，按功能分类
 - ✅ 创建简洁大方的工具门户首页
 - ✅ 统一工具文档和说明

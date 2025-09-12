@@ -390,11 +390,11 @@
                         </a>
                     </li>
                     <li class="tool-item">
-                        <a href="tools/development/file-diff.html" class="tool-link">
-                            <span class="tool-icon">📊</span>
+                        <a href="tools/development/advanced-file-diff.html" class="tool-link">
+                            <span class="tool-icon">🔍</span>
                             <div>
-                                <div class="tool-name">文件内容对比</div>
-                                <div class="tool-desc">对比两个文本文件的差异</div>
+                                <div class="tool-name">智能文件对比</div>
+                                <div class="tool-desc">支持PDF、Word、Excel等多格式的智能对比工具</div>
                             </div>
                         </a>
                     </li>
@@ -404,6 +404,15 @@
                             <div>
                                 <div class="tool-name">Python代码执行器</div>
                                 <div class="tool-desc">在线运行Python代码</div>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="tool-item">
+                        <a href="tools/development/sql-rollback-generator.html" class="tool-link">
+                            <span class="tool-icon">🔄</span>
+                            <div>
+                                <div class="tool-name">SQL回滚生成工具</div>
+                                <div class="tool-desc">自动生成SQL回滚语句，支持多种数据源和AI模型</div>
                             </div>
                         </a>
                     </li>
@@ -555,7 +564,7 @@
             <p style="color: var(--muted); margin: 0;">精选工具，持续更新</p>
             <div class="stats-grid">
                 <div class="stat-item">
-                    <div class="stat-number">16</div>
+                    <div class="stat-number">17</div>
                     <div class="stat-label">实用工具</div>
                 </div>
                 <div class="stat-item">
@@ -585,8 +594,10 @@
         const toolsData = [
             { name: "API接口测试器", desc: "测试HTTP接口，支持多种请求方法", url: "tools/development/api-tester.html", category: "开发工具" },
             { name: "Base64/URL编解码", desc: "快速编解码Base64和URL格式", url: "tools/development/base64-url-encoder.html", category: "开发工具" },
-            { name: "文件内容对比", desc: "对比两个文本文件的差异", url: "tools/development/file-diff.html", category: "开发工具" },
+            { name: "智能文件对比", desc: "支持PDF、Word、Excel等多格式的智能对比工具", url: "tools/development/advanced-file-diff.html", category: "开发工具" },
+            { name: "文件内容对比（基础版）", desc: "简单的文本文件对比工具", url: "tools/development/file-diff.html", category: "开发工具" },
             { name: "Python代码执行器", desc: "在线运行Python代码", url: "tools/development/python-executor.html", category: "开发工具" },
+            { name: "SQL回滚生成工具", desc: "自动生成SQL回滚语句，支持多种数据源和AI模型", url: "tools/development/sql-rollback-generator.html", category: "开发工具" },
             { name: "Markdown编辑器", desc: "实时预览的Markdown编辑器", url: "tools/documentation/markdown-editor.html", category: "文档编辑" },
             { name: "LaTeX公式编辑器", desc: "数学公式编辑和渲染", url: "tools/documentation/latex-editor.html", category: "文档编辑" },
             { name: "Mermaid图表渲染器", desc: "创建流程图、时序图等", url: "tools/documentation/mermaid.html", category: "文档编辑" },

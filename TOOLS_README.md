@@ -6,7 +6,7 @@
 
 ```
 workspace/
-├── index.html                    # 工具门户首页
+├── index.html                    # 工具门户首页（新的主页）
 ├── assets/                       # 静态资源
 │   └── css/
 │       └── style.css            # 统一样式文件
@@ -59,7 +59,7 @@ workspace/
 
 | 工具名称 | 文件路径 | 功能描述 |
 |---------|---------|---------|
-| 二维码解析工具 | `index.html` | 解析二维码内容，支持粘贴、拖拽、文件上传 |
+| 二维码解析工具 | `tools/utilities/qr-decoder.html` | 解析二维码内容，支持粘贴、拖拽、文件上传 |
 | 密码生成器 | `tools/utilities/password-generator.html` | 生成安全随机密码，支持自定义规则 |
 | 数据计算工具 | `tools/utilities/data-calculator.html` | 进制转换、单位换算、数学计算等 |
 | 轻量化日历 | `tools/utilities/calendar.html` | 简洁的日历查看器，支持日期选择 |

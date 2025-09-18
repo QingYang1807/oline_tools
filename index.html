@@ -3,441 +3,187 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HTML代码在线预览工具</title>
+    <meta name="color-scheme" content="light dark">
+    <title>门户 - 实用工具集合</title>
+    <link rel="stylesheet" href="assets/css/style.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-        }
-
-        .header {
-            background: linear-gradient(135deg, #2c3e50, #3498db);
-            color: white;
-            padding: 25px 30px;
-            text-align: center;
-        }
-
-        .header h1 {
-            font-size: 2.2rem;
-            font-weight: 300;
-            margin-bottom: 8px;
-        }
-
-        .header p {
-            opacity: 0.9;
-            font-size: 1.1rem;
-        }
-
-        .main-content {
-            display: flex;
-            height: calc(100vh - 200px);
-            min-height: 600px;
-        }
-
-        .editor-panel {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            border-right: 1px solid #e0e0e0;
-        }
-
-        .panel-header {
-            background: #f8f9fa;
-            padding: 15px 20px;
-            border-bottom: 1px solid #e0e0e0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .panel-title {
-            font-weight: 600;
-            color: #2c3e50;
-            font-size: 1.1rem;
-        }
-
-        .toolbar {
-            display: flex;
-            gap: 10px;
-        }
-
-        .btn {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-            font-weight: 500;
-        }
-
-        .btn-primary {
-            background: #3498db;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #2980b9;
-            transform: translateY(-1px);
-        }
-
-        .btn-secondary {
-            background: #95a5a6;
-            color: white;
-        }
-
-        .btn-secondary:hover {
-            background: #7f8c8d;
-        }
-
-        .btn-danger {
-            background: #e74c3c;
-            color: white;
-        }
-
-        .btn-danger:hover {
-            background: #c0392b;
-        }
-
-        .code-editor {
-            flex: 1;
-            padding: 0;
-            position: relative;
-        }
-
-        #htmlCode {
-            width: 100%;
-            height: 100%;
-            border: none;
-            outline: none;
-            padding: 20px;
-            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-            font-size: 14px;
-            line-height: 1.6;
-            background: #fafafa;
-            color: #2c3e50;
-            resize: none;
-            tab-size: 2;
-        }
-
-        .preview-panel {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            background: #fff;
-        }
-
-        .preview-container {
-            flex: 1;
-            position: relative;
-            background: white;
-        }
-
-        #previewFrame {
-            width: 100%;
-            height: 100%;
-            border: none;
-            background: white;
-        }
-
-        .status-bar {
-            background: #34495e;
-            color: white;
-            padding: 10px 20px;
-            font-size: 0.9rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .examples {
-            padding: 20px;
-            background: #f8f9fa;
-            border-top: 1px solid #e0e0e0;
-        }
-
-        .examples h3 {
-            color: #2c3e50;
-            margin-bottom: 15px;
-            font-size: 1.1rem;
-        }
-
-        .example-buttons {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .example-btn {
-            padding: 8px 12px;
-            background: #ecf0f1;
-            border: 1px solid #bdc3c7;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            transition: all 0.2s ease;
-        }
-
-        .example-btn:hover {
-            background: #d5dbdb;
-            transform: translateY(-1px);
-        }
-
-        /* 响应式设计 */
-        @media (max-width: 768px) {
-            .main-content {
-                flex-direction: column;
-                height: auto;
-            }
-
-            .editor-panel {
-                border-right: none;
-                border-bottom: 1px solid #e0e0e0;
-                min-height: 300px;
-            }
-
-            .preview-panel {
-                min-height: 300px;
-            }
-
-            .header h1 {
-                font-size: 1.8rem;
-            }
-
-            .toolbar {
-                flex-wrap: wrap;
-            }
-        }
+        .search-box{max-width:520px;margin:24px auto 8px;position:relative}
+        .search-input{width:100%;padding:12px 16px 12px 44px;border:2px solid var(--border);border-radius:12px;background:var(--card);color:var(--fg);font-size:1rem;transition:all .2s ease}
+        .search-input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+        .search-icon{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--muted)}
+        .muted{color:var(--muted)}
+        .category-hint{margin:6px 0 18px;text-align:center}
     </style>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🚀 HTML代码在线预览工具</h1>
-            <p>粘贴您的HTML代码，立即查看预览效果</p>
+    <header class="site-header">
+        <div class="container">
+            <h1 class="site-title">🧰 工具箱门户</h1>
+            <p class="site-subtitle">简约好用 · 自适应大中小屏 · 触达即用</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="search-box" role="search">
+            <span class="search-icon" aria-hidden="true">🔍</span>
+            <input id="searchInput" class="search-input" type="search" placeholder="搜索工具或描述 (Ctrl/⌘+K 聚焦, ESC 清空)" aria-label="搜索工具">
+        </div>
+        <p class="category-hint muted">共收录 4 个分类，19 个轻量工具</p>
+
+        <h2 class="section-title">开发工具</h2>
+        <div class="tool-grid" data-category="development">
+            <a class="tool-card" href="tools/development/html-preview/index.html">
+                <h3>HTML 代码在线预览</h3>
+                <p>左侧编辑右侧预览，支持格式化、示例、下载。</p>
+                <span class="tool-link">打开 →</span>
+            </a>
+            <a class="tool-card" href="tools/development/api-tester.html">
+                <h3>API 接口测试器</h3>
+                <p>构造 HTTP 请求，调试接口更高效。</p>
+                <span class="tool-link">打开 →</span>
+            </a>
+            <a class="tool-card" href="tools/development/base64-url-encoder.html">
+                <h3>Base64 / URL 编解码</h3>
+                <p>快速进行 Base64 与 URL 的编码与解码。</p>
+                <span class="tool-link">打开 →</span>
+            </a>
+            <a class="tool-card" href="tools/development/file-diff.html">
+                <h3>文件内容对比</h3>
+                <p>两段文本差异比对，直观查看变化。</p>
+                <span class="tool-link">打开 →</span>
+            </a>
+            <a class="tool-card" href="tools/development/advanced-file-diff.html">
+                <h3>高级文件对比</h3>
+                <p>更强的差异视图与操作体验。</p>
+                <span class="tool-link">打开 →</span>
+            </a>
+            <a class="tool-card" href="tools/development/python-executor.html">
+                <h3>Python 代码执行器</h3>
+                <p>轻量运行与演示 Python 代码片段。</p>
+                <span class="tool-link">打开 →</span>
+            </a>
+            <a class="tool-card" href="tools/development/sql-rollback-generator.html">
+                <h3>SQL 回滚生成</h3>
+                <p>根据变更语句快速生成回滚 SQL。</p>
+                <span class="tool-link">打开 →</span>
+            </a>
         </div>
 
-        <div class="main-content">
-            <div class="editor-panel">
-                <div class="panel-header">
-                    <div class="panel-title">📝 HTML代码编辑器</div>
-                    <div class="toolbar">
-                        <button class="btn btn-primary" onclick="updatePreview()">🔄 刷新预览</button>
-                        <button class="btn btn-secondary" onclick="formatCode()">✨ 格式化</button>
-                        <button class="btn btn-danger" onclick="clearCode()">🗑️ 清空</button>
-                    </div>
-                </div>
-                <div class="code-editor">
-                    <textarea id="htmlCode" placeholder="在这里粘贴或输入您的HTML代码..."></textarea>
-                </div>
-            </div>
-
-            <div class="preview-panel">
-                <div class="panel-header">
-                    <div class="panel-title">👁️ 实时预览</div>
-                    <div class="toolbar">
-                        <button class="btn btn-secondary" onclick="openInNewTab()">🔗 新窗口打开</button>
-                        <button class="btn btn-secondary" onclick="downloadHTML()">💾 下载HTML</button>
-                    </div>
-                </div>
-                <div class="preview-container">
-                    <iframe id="previewFrame" src="about:blank"></iframe>
-                </div>
-            </div>
+        <h2 class="section-title">文档编辑</h2>
+        <div class="tool-grid" data-category="documentation">
+            <a class="tool-card" href="tools/documentation/markdown-editor.html">
+                <h3>Markdown 编辑器</h3>
+                <p>所见即所得，支持导出与语法高亮。</p>
+                <span class="tool-link">打开 →</span>
+            </a>
+            <a class="tool-card" href="tools/documentation/latex-editor.html">
+                <h3>LaTeX 公式编辑器</h3>
+                <p>在线编辑数学公式并实时渲染。</p>
+                <span class="tool-link">打开 →</span>
+            </a>
+            <a class="tool-card" href="tools/documentation/mermaid.html">
+                <h3>Mermaid 图表渲染器</h3>
+                <p>流程图、时序图、甘特图一站式生成。</p>
+                <span class="tool-link">打开 →</span>
+            </a>
+            <a class="tool-card" href="tools/documentation/mermaid-v2.html">
+                <h3>Mermaid 渲染器 v2</h3>
+                <p>增强版渲染体验与更多示例。</p>
+                <span class="tool-link">打开 →</span>
+            </a>
+            <a class="tool-card" href="tools/documentation/mermaid-history.html">
+                <h3>Mermaid 历史版本</h3>
+                <p>快速回看与复现旧版图表语法。</p>
+                <span class="tool-link">打开 →</span>
+            </a>
         </div>
 
-        <div class="examples">
-            <h3>📚 快速示例</h3>
-            <div class="example-buttons">
-                <button class="example-btn" onclick="loadExample('basic')">基础页面</button>
-                <button class="example-btn" onclick="loadExample('card')">卡片布局</button>
-                <button class="example-btn" onclick="loadExample('form')">表单示例</button>
-            </div>
+        <h2 class="section-title">实用工具</h2>
+        <div class="tool-grid" data-category="utilities">
+            <a class="tool-card" href="tools/utilities/calendar.html">
+                <h3>轻量化日历</h3>
+                <p>简洁查看日期与月份，移动端友好。</p>
+                <span class="tool-link">打开 →</span>
+            </a>
+            <a class="tool-card" href="tools/utilities/password-generator.html">
+                <h3>密码生成器</h3>
+                <p>自定义规则生成强密码，支持复制。</p>
+                <span class="tool-link">打开 →</span>
+            </a>
+            <a class="tool-card" href="tools/utilities/qr-decoder.html">
+                <h3>二维码解析</h3>
+                <p>本地解析，不上传隐私数据。</p>
+                <span class="tool-link">打开 →</span>
+            </a>
+            <a class="tool-card" href="tools/utilities/data-calculator.html">
+                <h3>数据计算工具</h3>
+                <p>进制转换、单位换算等常用功能。</p>
+                <span class="tool-link">打开 →</span>
+            </a>
         </div>
 
-        <div class="status-bar">
-            <div>状态：<span id="status">就绪</span></div>
-            <div>字符数：<span id="charCount">0</span></div>
+        <h2 class="section-title">效率工具</h2>
+        <div class="tool-grid" data-category="productivity">
+            <a class="tool-card" href="tools/productivity/pomodoro.html">
+                <h3>番茄钟待办</h3>
+                <p>聚焦与间歇，简单高效的时间管理。</p>
+                <span class="tool-link">打开 →</span>
+            </a>
+            <a class="tool-card" href="tools/productivity/study-checkin.html">
+                <h3>学习打卡面板</h3>
+                <p>跟踪学习进度，记录每日目标。</p>
+                <span class="tool-link">打开 →</span>
+            </a>
+            <a class="tool-card" href="tools/productivity/whiteboard.html">
+                <h3>极简画板</h3>
+                <p>开箱即用的白板与标注工具。</p>
+                <span class="tool-link">打开 →</span>
+            </a>
+            <a class="tool-card" href="tools/productivity/markdown_clean.html">
+                <h3>Markdown 清理器</h3>
+                <p>清理粘贴格式，统一 Markdown 风格。</p>
+                <span class="tool-link">打开 →</span>
+            </a>
         </div>
-    </div>
+    </main>
 
-    <script src="examples.js"></script>
+    <footer class="site-footer">
+        <div class="container">
+            <p class="muted">所有工具均为纯前端实现，保护隐私，无需安装。</p>
+        </div>
+    </footer>
+
     <script>
-        // 获取DOM元素
-        const htmlCode = document.getElementById('htmlCode');
-        const previewFrame = document.getElementById('previewFrame');
-        const statusElement = document.getElementById('status');
-        const charCountElement = document.getElementById('charCount');
+        const input = document.getElementById('searchInput');
+        const sections = Array.from(document.querySelectorAll('.tool-grid'));
 
-        // 实时预览功能
-        let updateTimeout;
-        htmlCode.addEventListener('input', function() {
-            clearTimeout(updateTimeout);
-            updateCharCount();
-            updateTimeout = setTimeout(updatePreview, 500); // 延迟500ms更新预览
+        input.addEventListener('input', function(){
+            const q = this.value.trim().toLowerCase();
+            sections.forEach(section => {
+                let visible = 0;
+                section.querySelectorAll('.tool-card').forEach(card => {
+                    const text = (card.querySelector('h3').textContent + ' ' + card.querySelector('p').textContent).toLowerCase();
+                    const show = text.includes(q);
+                    card.style.display = show ? 'block' : 'none';
+                    if(show) visible++;
+                });
+                section.previousElementSibling.style.display = (visible === 0 && q !== '') ? 'none' : '';
+                section.style.display = (visible === 0 && q !== '') ? 'none' : 'grid';
+            });
         });
 
-        // 更新预览
-        function updatePreview() {
-            const code = htmlCode.value.trim();
-            
-            if (!code) {
-                previewFrame.src = 'about:blank';
-                setStatus('就绪');
-                return;
-            }
-
-            setStatus('正在更新预览...');
-
-            // 创建blob URL
-            const blob = new Blob([code], { type: 'text/html' });
-            const url = URL.createObjectURL(blob);
-            
-            previewFrame.onload = function() {
-                setStatus('预览已更新');
-                URL.revokeObjectURL(url);
-            };
-            
-            previewFrame.src = url;
-        }
-
-        // 格式化代码
-        function formatCode() {
-            const code = htmlCode.value;
-            if (!code.trim()) return;
-
-            try {
-                // 简单的HTML格式化
-                let formatted = code
-                    .replace(/></g, '>\n<')
-                    .replace(/^\s+|\s+$/g, '');
-                
-                const lines = formatted.split('\n');
-                let indentLevel = 0;
-                const indentSize = 2;
-                
-                formatted = lines.map(line => {
-                    const trimmed = line.trim();
-                    if (!trimmed) return '';
-                    
-                    if (trimmed.startsWith('</')) {
-                        indentLevel = Math.max(0, indentLevel - 1);
-                    }
-                    
-                    const indented = ' '.repeat(indentLevel * indentSize) + trimmed;
-                    
-                    if (trimmed.startsWith('<') && !trimmed.startsWith('</') && !trimmed.endsWith('/>')) {
-                        if (!trimmed.match(/<(area|base|br|col|embed|hr|img|input|link|meta|param|source|track|wbr)/i)) {
-                            indentLevel++;
-                        }
-                    }
-                    
-                    return indented;
-                }).join('\n');
-
-                htmlCode.value = formatted;
-                updatePreview();
-                setStatus('代码已格式化');
-            } catch (error) {
-                setStatus('格式化失败');
-            }
-        }
-
-        // 清空代码
-        function clearCode() {
-            if (confirm('确定要清空所有代码吗？')) {
-                htmlCode.value = '';
-                previewFrame.src = 'about:blank';
-                updateCharCount();
-                setStatus('代码已清空');
-            }
-        }
-
-        // 在新窗口打开
-        function openInNewTab() {
-            const code = htmlCode.value.trim();
-            if (!code) {
-                alert('请先输入HTML代码');
-                return;
-            }
-
-            const newWindow = window.open('', '_blank');
-            newWindow.document.write(code);
-            newWindow.document.close();
-        }
-
-        // 下载HTML文件
-        function downloadHTML() {
-            const code = htmlCode.value.trim();
-            if (!code) {
-                alert('请先输入HTML代码');
-                return;
-            }
-
-            const blob = new Blob([code], { type: 'text/html' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'preview.html';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            
-            setStatus('HTML文件已下载');
-        }
-
-        // 工具函数
-        function setStatus(message) {
-            statusElement.textContent = message;
-        }
-
-        function updateCharCount() {
-            charCountElement.textContent = htmlCode.value.length;
-        }
-
-        // 键盘快捷键
-        htmlCode.addEventListener('keydown', function(e) {
-            // Ctrl+Enter 或 Cmd+Enter 更新预览
-            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        document.addEventListener('keydown', function(e){
+            if((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k'){
                 e.preventDefault();
-                updatePreview();
+                input.focus();
             }
-            
-            // Tab键插入缩进
-            if (e.key === 'Tab') {
-                e.preventDefault();
-                const start = this.selectionStart;
-                const end = this.selectionEnd;
-                this.value = this.value.substring(0, start) + '  ' + this.value.substring(end);
-                this.selectionStart = this.selectionEnd = start + 2;
+            if(e.key === 'Escape'){
+                input.value = '';
+                input.dispatchEvent(new Event('input'));
+                input.blur();
             }
         });
-
-        // 初始化
-        updateCharCount();
-        
-        // 加载默认示例
-        setTimeout(() => {
-            loadExample('basic');
-        }, 500);
     </script>
 </body>
 </html>

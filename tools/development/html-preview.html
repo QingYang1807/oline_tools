@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML代码在线预览工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: white;
+            padding: 25px 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.2rem;
+            font-weight: 300;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .main-content {
+            display: flex;
+            height: calc(100vh - 200px);
+            min-height: 600px;
+        }
+
+        .editor-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #e0e0e0;
+        }
+
+        .panel-header {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-title {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 1.1rem;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .code-editor {
+            flex: 1;
+            padding: 0;
+            position: relative;
+        }
+
+        #htmlCode {
+            width: 100%;
+            height: 100%;
+            border: none;
+            outline: none;
+            padding: 20px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            background: #fafafa;
+            color: #2c3e50;
+            resize: none;
+            tab-size: 2;
+        }
+
+        .preview-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #fff;
+        }
+
+        .preview-container {
+            flex: 1;
+            position: relative;
+            background: white;
+        }
+
+        #previewFrame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: white;
+        }
+
+        .status-bar {
+            background: #34495e;
+            color: white;
+            padding: 10px 20px;
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .examples {
+            padding: 20px;
+            background: #f8f9fa;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .examples h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .example-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .example-btn {
+            padding: 8px 12px;
+            background: #ecf0f1;
+            border: 1px solid #bdc3c7;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+        }
+
+        .example-btn:hover {
+            background: #d5dbdb;
+            transform: translateY(-1px);
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+                height: auto;
+            }
+
+            .editor-panel {
+                border-right: none;
+                border-bottom: 1px solid #e0e0e0;
+                min-height: 300px;
+            }
+
+            .preview-panel {
+                min-height: 300px;
+            }
+
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .toolbar {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 HTML代码在线预览工具</h1>
+            <p>粘贴您的HTML代码，立即查看预览效果</p>
+        </div>
+
+        <div class="main-content">
+            <div class="editor-panel">
+                <div class="panel-header">
+                    <div class="panel-title">📝 HTML代码编辑器</div>
+                    <div class="toolbar">
+                        <button class="btn btn-primary" onclick="updatePreview()">🔄 刷新预览</button>
+                        <button class="btn btn-secondary" onclick="formatCode()">✨ 格式化</button>
+                        <button class="btn btn-danger" onclick="clearCode()">🗑️ 清空</button>
+                    </div>
+                </div>
+                <div class="code-editor">
+                    <textarea id="htmlCode" placeholder="在这里粘贴或输入您的HTML代码..."></textarea>
+                </div>
+            </div>
+
+            <div class="preview-panel">
+                <div class="panel-header">
+                    <div class="panel-title">👁️ 实时预览</div>
+                    <div class="toolbar">
+                        <button class="btn btn-secondary" onclick="openInNewTab()">🔗 新窗口打开</button>
+                        <button class="btn btn-secondary" onclick="downloadHTML()">💾 下载HTML</button>
+                    </div>
+                </div>
+                <div class="preview-container">
+                    <iframe id="previewFrame" src="about:blank"></iframe>
+                </div>
+            </div>
+        </div>
+
+        <div class="examples">
+            <h3>📚 快速示例</h3>
+            <div class="example-buttons">
+                <button class="example-btn" onclick="loadExample('basic')">基础页面</button>
+                <button class="example-btn" onclick="loadExample('card')">卡片布局</button>
+                <button class="example-btn" onclick="loadExample('form')">表单示例</button>
+            </div>
+        </div>
+
+        <div class="status-bar">
+            <div>状态：<span id="status">就绪</span></div>
+            <div>字符数：<span id="charCount">0</span></div>
+        </div>
+    </div>
+
+    <script src="../../examples.js"></script>
+    <script>
+        // 获取DOM元素
+        const htmlCode = document.getElementById('htmlCode');
+        const previewFrame = document.getElementById('previewFrame');
+        const statusElement = document.getElementById('status');
+        const charCountElement = document.getElementById('charCount');
+
+        // 实时预览功能
+        let updateTimeout;
+        htmlCode.addEventListener('input', function() {
+            clearTimeout(updateTimeout);
+            updateCharCount();
+            updateTimeout = setTimeout(updatePreview, 500); // 延迟500ms更新预览
+        });
+
+        // 更新预览
+        function updatePreview() {
+            const code = htmlCode.value.trim();
+            
+            if (!code) {
+                previewFrame.src = 'about:blank';
+                setStatus('就绪');
+                return;
+            }
+
+            setStatus('正在更新预览...');
+
+            // 创建blob URL
+            const blob = new Blob([code], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            
+            previewFrame.onload = function() {
+                setStatus('预览已更新');
+                URL.revokeObjectURL(url);
+            };
+            
+            previewFrame.src = url;
+        }
+
+        // 格式化代码
+        function formatCode() {
+            const code = htmlCode.value;
+            if (!code.trim()) return;
+
+            try {
+                // 简单的HTML格式化
+                let formatted = code
+                    .replace(/></g, '>\n<')
+                    .replace(/^\s+|\s+$/g, '');
+                
+                const lines = formatted.split('\n');
+                let indentLevel = 0;
+                const indentSize = 2;
+                
+                formatted = lines.map(line => {
+                    const trimmed = line.trim();
+                    if (!trimmed) return '';
+                    
+                    if (trimmed.startsWith('</')) {
+                        indentLevel = Math.max(0, indentLevel - 1);
+                    }
+                    
+                    const indented = ' '.repeat(indentLevel * indentSize) + trimmed;
+                    
+                    if (trimmed.startsWith('<') && !trimmed.startsWith('</') && !trimmed.endsWith('/>')) {
+                        if (!trimmed.match(/<(area|base|br|col|embed|hr|img|input|link|meta|param|source|track|wbr)/i)) {
+                            indentLevel++;
+                        }
+                    }
+                    
+                    return indented;
+                }).join('\n');
+
+                htmlCode.value = formatted;
+                updatePreview();
+                setStatus('代码已格式化');
+            } catch (error) {
+                setStatus('格式化失败');
+            }
+        }
+
+        // 清空代码
+        function clearCode() {
+            if (confirm('确定要清空所有代码吗？')) {
+                htmlCode.value = '';
+                previewFrame.src = 'about:blank';
+                updateCharCount();
+                setStatus('代码已清空');
+            }
+        }
+
+        // 在新窗口打开
+        function openInNewTab() {
+            const code = htmlCode.value.trim();
+            if (!code) {
+                alert('请先输入HTML代码');
+                return;
+            }
+
+            const newWindow = window.open('', '_blank');
+            newWindow.document.write(code);
+            newWindow.document.close();
+        }
+
+        // 下载HTML文件
+        function downloadHTML() {
+            const code = htmlCode.value.trim();
+            if (!code) {
+                alert('请先输入HTML代码');
+                return;
+            }
+
+            const blob = new Blob([code], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'preview.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            setStatus('HTML文件已下载');
+        }
+
+        // 工具函数
+        function setStatus(message) {
+            statusElement.textContent = message;
+        }
+
+        function updateCharCount() {
+            charCountElement.textContent = htmlCode.value.length;
+        }
+
+        // 键盘快捷键
+        htmlCode.addEventListener('keydown', function(e) {
+            // Ctrl+Enter 或 Cmd+Enter 更新预览
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                updatePreview();
+            }
+            
+            // Tab键插入缩进
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                const start = this.selectionStart;
+                const end = this.selectionEnd;
+                this.value = this.value.substring(0, start) + '  ' + this.value.substring(end);
+                this.selectionStart = this.selectionEnd = start + 2;
+            }
+        });
+
+        // 初始化
+        updateCharCount();
+        
+        // 加载默认示例
+        setTimeout(() => {
+            loadExample('basic');
+        }, 500);
+    </script>
+</body>
+</html>

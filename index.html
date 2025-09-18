@@ -3,712 +3,441 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>工具箱 - 实用工具集合</title>
-    <link rel="stylesheet" href="assets/css/style.css">
-    <meta name="color-scheme" content="light dark">
+    <title>HTML代码在线预览工具</title>
     <style>
-        :root {
-            --accent-light: #60a5fa;
-        }
-        
-        .hero-section {
-            text-align: center;
-            padding: 60px 20px;
-            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
-            color: white;
-            margin-bottom: 60px;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .hero-section::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.1);
-            z-index: 1;
-        }
-        
-        .hero-section > * {
-            position: relative;
-            z-index: 2;
-        }
-        
-        .hero-title {
-            font-size: 3rem;
-            font-weight: 700;
-            margin-bottom: 16px;
-            letter-spacing: -0.02em;
-        }
-        
-        .hero-subtitle {
-            font-size: 1.25rem;
-            opacity: 0.9;
-            max-width: 600px;
-            margin: 0 auto 32px auto;
-            line-height: 1.6;
-        }
-        
-        .search-container {
-            max-width: 500px;
-            margin: 0 auto;
-            position: relative;
-        }
-        
-        .search-box {
-            display: flex;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 12px;
-            padding: 4px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            backdrop-filter: blur(10px);
-        }
-        
-        .search-input {
-            flex: 1;
-            border: none;
-            background: transparent;
-            padding: 16px 20px;
-            font-size: 1rem;
-            color: var(--fg);
-            outline: none;
-        }
-        
-        .search-input::placeholder {
-            color: var(--muted);
-        }
-        
-        .search-btn {
-            background: var(--accent);
-            border: none;
-            border-radius: 8px;
-            padding: 12px 16px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .search-btn:hover {
-            background: var(--accent-hover);
-            transform: scale(1.05);
-        }
-        
-        .search-icon {
-            font-size: 1.2rem;
-            color: white;
-        }
-        
-        .search-suggestions {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            margin-top: 8px;
-            max-height: 300px;
-            overflow-y: auto;
-            box-shadow: 0 8px 24px var(--shadow);
-            z-index: 1000;
-            display: none;
-        }
-        
-        .suggestion-item {
-            padding: 12px 16px;
-            cursor: pointer;
-            border-bottom: 1px solid var(--border);
-            transition: background-color 0.2s ease;
-        }
-        
-        .suggestion-item:hover {
-            background: var(--panel-bg);
-        }
-        
-        .suggestion-item:last-child {
-            border-bottom: none;
-        }
-        
-        .suggestion-name {
-            font-weight: 500;
-            color: var(--fg);
-        }
-        
-        .suggestion-desc {
-            font-size: 0.875rem;
-            color: var(--muted);
-            margin-top: 2px;
-        }
-        
-        .highlight {
-            background: rgba(59, 130, 246, 0.2);
-            padding: 1px 2px;
-            border-radius: 2px;
-        }
-        
-        .tools-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 24px;
-            margin-bottom: 60px;
-        }
-        
-        .tool-category {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 24px;
-            box-shadow: 0 4px 12px var(--shadow);
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .tool-category::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, var(--accent), var(--accent-light));
-            transform: scaleX(0);
-            transition: transform 0.3s ease;
-        }
-        
-        .tool-category:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 32px var(--shadow-lg);
-            border-color: var(--accent);
-        }
-        
-        .tool-category:hover::before {
-            transform: scaleX(1);
-        }
-        
-        .category-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-        
-        .category-icon {
-            font-size: 1.5rem;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: var(--accent-light);
-            border-radius: 10px;
-            color: var(--accent);
-        }
-        
-        .category-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: var(--fg);
+        * {
             margin: 0;
-        }
-        
-        .tool-list {
-            list-style: none;
             padding: 0;
-            margin: 0;
+            box-sizing: border-box;
         }
-        
-        .tool-item {
-            margin-bottom: 12px;
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
         }
-        
-        .tool-link {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 14px 16px;
-            background: var(--panel-bg);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            text-decoration: none;
-            color: var(--fg);
-            transition: all 0.3s ease;
-            font-weight: 500;
-            position: relative;
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
             overflow: hidden;
         }
-        
-        .tool-link::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 3px;
-            background: var(--accent);
-            transform: scaleY(0);
-            transition: transform 0.3s ease;
-        }
-        
-        .tool-link:hover {
-            background: rgba(59, 130, 246, 0.05);
-            border-color: var(--accent);
-            color: var(--accent);
-            transform: translateX(6px);
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
-        }
-        
-        .tool-link:hover::before {
-            transform: scaleY(1);
-        }
-        
-        .tool-icon {
-            font-size: 1.1rem;
-            width: 24px;
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: white;
+            padding: 25px 30px;
             text-align: center;
         }
-        
-        .tool-name {
-            flex: 1;
-        }
-        
-        .tool-desc {
-            font-size: 0.875rem;
-            color: var(--muted);
-            margin-top: 4px;
-        }
-        
-        .stats-section {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 32px;
-            text-align: center;
-            margin-bottom: 60px;
-        }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 32px;
-            margin-top: 24px;
-        }
-        
-        .stat-item {
-            text-align: center;
-        }
-        
-        .stat-number {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: var(--accent);
+
+        .header h1 {
+            font-size: 2.2rem;
+            font-weight: 300;
             margin-bottom: 8px;
         }
-        
-        .stat-label {
-            color: var(--muted);
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .main-content {
+            display: flex;
+            height: calc(100vh - 200px);
+            min-height: 600px;
+        }
+
+        .editor-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #e0e0e0;
+        }
+
+        .panel-header {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-title {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 1.1rem;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
             font-weight: 500;
         }
-        
-        .footer {
-            text-align: center;
-            padding: 40px 20px;
-            color: var(--muted);
-            border-top: 1px solid var(--border);
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
         }
-        
+
+        .btn-primary:hover {
+            background: #2980b9;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .code-editor {
+            flex: 1;
+            padding: 0;
+            position: relative;
+        }
+
+        #htmlCode {
+            width: 100%;
+            height: 100%;
+            border: none;
+            outline: none;
+            padding: 20px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            background: #fafafa;
+            color: #2c3e50;
+            resize: none;
+            tab-size: 2;
+        }
+
+        .preview-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #fff;
+        }
+
+        .preview-container {
+            flex: 1;
+            position: relative;
+            background: white;
+        }
+
+        #previewFrame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: white;
+        }
+
+        .status-bar {
+            background: #34495e;
+            color: white;
+            padding: 10px 20px;
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .examples {
+            padding: 20px;
+            background: #f8f9fa;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .examples h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .example-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .example-btn {
+            padding: 8px 12px;
+            background: #ecf0f1;
+            border: 1px solid #bdc3c7;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+        }
+
+        .example-btn:hover {
+            background: #d5dbdb;
+            transform: translateY(-1px);
+        }
+
+        /* 响应式设计 */
         @media (max-width: 768px) {
-            .hero-title {
-                font-size: 2rem;
+            .main-content {
+                flex-direction: column;
+                height: auto;
             }
-            
-            .hero-subtitle {
-                font-size: 1.1rem;
+
+            .editor-panel {
+                border-right: none;
+                border-bottom: 1px solid #e0e0e0;
+                min-height: 300px;
             }
-            
-            .tools-grid {
-                grid-template-columns: 1fr;
-                gap: 16px;
+
+            .preview-panel {
+                min-height: 300px;
             }
-            
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 24px;
+
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .toolbar {
+                flex-wrap: wrap;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- 英雄区域 -->
-        <section class="hero-section">
-            <h1 class="hero-title">工具箱</h1>
-            <p class="hero-subtitle">精选实用工具集合，提升工作效率，简化日常任务</p>
-            
-            <!-- 搜索框 -->
-            <div class="search-container">
-                <div class="search-box">
-                    <input type="text" id="searchInput" placeholder="搜索工具..." class="search-input">
-                    <button class="search-btn" onclick="performSearch()">
-                        <span class="search-icon">🔍</span>
-                    </button>
-                </div>
-                <div class="search-suggestions" id="searchSuggestions"></div>
-            </div>
-        </section>
+        <div class="header">
+            <h1>🚀 HTML代码在线预览工具</h1>
+            <p>粘贴您的HTML代码，立即查看预览效果</p>
+        </div>
 
-        <!-- 工具分类 -->
-        <section class="tools-grid">
-            <!-- 开发工具 -->
-            <div class="tool-category">
-                <div class="category-header">
-                    <div class="category-icon">⚙️</div>
-                    <h2 class="category-title">开发工具</h2>
+        <div class="main-content">
+            <div class="editor-panel">
+                <div class="panel-header">
+                    <div class="panel-title">📝 HTML代码编辑器</div>
+                    <div class="toolbar">
+                        <button class="btn btn-primary" onclick="updatePreview()">🔄 刷新预览</button>
+                        <button class="btn btn-secondary" onclick="formatCode()">✨ 格式化</button>
+                        <button class="btn btn-danger" onclick="clearCode()">🗑️ 清空</button>
+                    </div>
                 </div>
-                <ul class="tool-list">
-                    <li class="tool-item">
-                        <a href="tools/development/api-tester.html" class="tool-link">
-                            <span class="tool-icon">🔗</span>
-                            <div>
-                                <div class="tool-name">API接口测试器</div>
-                                <div class="tool-desc">测试HTTP接口，支持多种请求方法</div>
-                            </div>
-                        </a>
-                    </li>
-                    <li class="tool-item">
-                        <a href="tools/development/base64-url-encoder.html" class="tool-link">
-                            <span class="tool-icon">🔐</span>
-                            <div>
-                                <div class="tool-name">Base64/URL编解码</div>
-                                <div class="tool-desc">快速编解码Base64和URL格式</div>
-                            </div>
-                        </a>
-                    </li>
-                    <li class="tool-item">
-                        <a href="tools/development/advanced-file-diff.html" class="tool-link">
-                            <span class="tool-icon">🔍</span>
-                            <div>
-                                <div class="tool-name">智能文件对比</div>
-                                <div class="tool-desc">支持PDF、Word、Excel等多格式的智能对比工具</div>
-                            </div>
-                        </a>
-                    </li>
-                    <li class="tool-item">
-                        <a href="tools/development/python-executor.html" class="tool-link">
-                            <span class="tool-icon">🐍</span>
-                            <div>
-                                <div class="tool-name">Python代码执行器</div>
-                                <div class="tool-desc">在线运行Python代码</div>
-                            </div>
-                        </a>
-                    </li>
-                    <li class="tool-item">
-                        <a href="tools/development/sql-rollback-generator.html" class="tool-link">
-                            <span class="tool-icon">🔄</span>
-                            <div>
-                                <div class="tool-name">SQL回滚生成工具</div>
-                                <div class="tool-desc">自动生成SQL回滚语句，支持多种数据源和AI模型</div>
-                            </div>
-                        </a>
-                    </li>
-                </ul>
+                <div class="code-editor">
+                    <textarea id="htmlCode" placeholder="在这里粘贴或输入您的HTML代码..."></textarea>
+                </div>
             </div>
 
-            <!-- 文档编辑 -->
-            <div class="tool-category">
-                <div class="category-header">
-                    <div class="category-icon">📝</div>
-                    <h2 class="category-title">文档编辑</h2>
+            <div class="preview-panel">
+                <div class="panel-header">
+                    <div class="panel-title">👁️ 实时预览</div>
+                    <div class="toolbar">
+                        <button class="btn btn-secondary" onclick="openInNewTab()">🔗 新窗口打开</button>
+                        <button class="btn btn-secondary" onclick="downloadHTML()">💾 下载HTML</button>
+                    </div>
                 </div>
-                <ul class="tool-list">
-                    <li class="tool-item">
-                        <a href="tools/documentation/markdown-editor.html" class="tool-link">
-                            <span class="tool-icon">📄</span>
-                            <div>
-                                <div class="tool-name">Markdown编辑器</div>
-                                <div class="tool-desc">实时预览的Markdown编辑器</div>
-                            </div>
-                        </a>
-                    </li>
-                    <li class="tool-item">
-                        <a href="tools/documentation/latex-editor.html" class="tool-link">
-                            <span class="tool-icon">🧮</span>
-                            <div>
-                                <div class="tool-name">LaTeX公式编辑器</div>
-                                <div class="tool-desc">数学公式编辑和渲染</div>
-                            </div>
-                        </a>
-                    </li>
-                    <li class="tool-item">
-                        <a href="tools/documentation/mermaid.html" class="tool-link">
-                            <span class="tool-icon">📈</span>
-                            <div>
-                                <div class="tool-name">Mermaid图表渲染器V1</div>
-                                <div class="tool-desc">创建流程图、时序图等</div>
-                            </div>
-                        </a>
-                    </li>
-                    <li class="tool-item">
-                        <a href="tools/documentation/mermaid-v2.html" class="tool-link">
-                            <span class="tool-icon">📈</span>
-                            <div>
-                                <div class="tool-name">Mermaid图表渲染器V2</div>
-                                <div class="tool-desc">创建流程图、时序图等</div>
-                            </div>
-                        </a>
-                    </li>
-                </ul>
-            </div>
-
-            <!-- 实用工具 -->
-            <div class="tool-category">
-                <div class="category-header">
-                    <div class="category-icon">🛠️</div>
-                    <h2 class="category-title">实用工具</h2>
-                </div>
-                <ul class="tool-list">
-                    <li class="tool-item">
-                        <a href="tools/utilities/qr-decoder.html" class="tool-link">
-                            <span class="tool-icon">📱</span>
-                            <div>
-                                <div class="tool-name">二维码解析工具</div>
-                                <div class="tool-desc">解析二维码内容</div>
-                            </div>
-                        </a>
-                    </li>
-                    <li class="tool-item">
-                        <a href="tools/utilities/password-generator.html" class="tool-link">
-                            <span class="tool-icon">🔑</span>
-                            <div>
-                                <div class="tool-name">密码生成器</div>
-                                <div class="tool-desc">生成安全随机密码</div>
-                            </div>
-                        </a>
-                    </li>
-                    <li class="tool-item">
-                        <a href="tools/utilities/data-calculator.html" class="tool-link">
-                            <span class="tool-icon">🧮</span>
-                            <div>
-                                <div class="tool-name">数据计算工具</div>
-                                <div class="tool-desc">进制转换、单位换算等</div>
-                            </div>
-                        </a>
-                    </li>
-                    <li class="tool-item">
-                        <a href="tools/utilities/calendar.html" class="tool-link">
-                            <span class="tool-icon">📅</span>
-                            <div>
-                                <div class="tool-name">轻量化日历</div>
-                                <div class="tool-desc">简洁的日历查看器</div>
-                            </div>
-                        </a>
-                    </li>
-                </ul>
-            </div>
-
-            <!-- 效率工具 -->
-            <div class="tool-category">
-                <div class="category-header">
-                    <div class="category-icon">⚡</div>
-                    <h2 class="category-title">效率工具</h2>
-                </div>
-                <ul class="tool-list">
-                    <li class="tool-item">
-                        <a href="tools/productivity/pomodoro.html" class="tool-link">
-                            <span class="tool-icon">🍅</span>
-                            <div>
-                                <div class="tool-name">番茄钟待办事项</div>
-                                <div class="tool-desc">时间管理和任务规划</div>
-                            </div>
-                        </a>
-                    </li>
-                    <li class="tool-item">
-                        <a href="tools/productivity/study-checkin.html" class="tool-link">
-                            <span class="tool-icon">📚</span>
-                            <div>
-                                <div class="tool-name">学习打卡面板</div>
-                                <div class="tool-desc">学习进度跟踪</div>
-                            </div>
-                        </a>
-                    </li>
-                    <li class="tool-item">
-                        <a href="tools/productivity/whiteboard.html" class="tool-link">
-                            <span class="tool-icon">🎨</span>
-                            <div>
-                                <div class="tool-name">极简画板</div>
-                                <div class="tool-desc">在线绘图和标注</div>
-                            </div>
-                        </a>
-                    </li>
-                    <li class="tool-item">
-                        <a href="tools/productivity/markdown_clean.html" class="tool-link">
-                            <span class="tool-icon">🧹</span>
-                            <div>
-                                <div class="tool-name">Markdown链接清理器</div>
-                                <div class="tool-desc">批量清理Markdown链接中的定位符片段</div>
-                            </div>
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </section>
-
-        <!-- 统计信息 -->
-        <section class="stats-section">
-            <h2 style="margin: 0 0 16px 0; color: var(--fg);">工具箱概览</h2>
-            <p style="color: var(--muted); margin: 0;">精选工具，持续更新</p>
-            <div class="stats-grid">
-                <div class="stat-item">
-                    <div class="stat-number">17</div>
-                    <div class="stat-label">实用工具</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number">4</div>
-                    <div class="stat-label">工具分类</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number">100%</div>
-                    <div class="stat-label">免费使用</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number">0</div>
-                    <div class="stat-label">数据收集</div>
+                <div class="preview-container">
+                    <iframe id="previewFrame" src="about:blank"></iframe>
                 </div>
             </div>
-        </section>
+        </div>
 
-        <!-- 页脚 -->
-        <footer class="footer">
-            <p>工具箱 - 让工作更高效，让生活更简单</p>
-            <p style="margin-top: 8px; font-size: 0.875rem;">所有工具均运行在本地，保护您的隐私安全</p>
-        </footer>
+        <div class="examples">
+            <h3>📚 快速示例</h3>
+            <div class="example-buttons">
+                <button class="example-btn" onclick="loadExample('basic')">基础页面</button>
+                <button class="example-btn" onclick="loadExample('card')">卡片布局</button>
+                <button class="example-btn" onclick="loadExample('form')">表单示例</button>
+            </div>
+        </div>
+
+        <div class="status-bar">
+            <div>状态：<span id="status">就绪</span></div>
+            <div>字符数：<span id="charCount">0</span></div>
+        </div>
     </div>
 
+    <script src="examples.js"></script>
     <script>
-        // 工具数据
-        const toolsData = [
-            { name: "API接口测试器", desc: "测试HTTP接口，支持多种请求方法", url: "tools/development/api-tester.html", category: "开发工具" },
-            { name: "Base64/URL编解码", desc: "快速编解码Base64和URL格式", url: "tools/development/base64-url-encoder.html", category: "开发工具" },
-            { name: "智能文件对比", desc: "支持PDF、Word、Excel等多格式的智能对比工具", url: "tools/development/advanced-file-diff.html", category: "开发工具" },
-            { name: "文件内容对比（基础版）", desc: "简单的文本文件对比工具", url: "tools/development/file-diff.html", category: "开发工具" },
-            { name: "Python代码执行器", desc: "在线运行Python代码", url: "tools/development/python-executor.html", category: "开发工具" },
-            { name: "SQL回滚生成工具", desc: "自动生成SQL回滚语句，支持多种数据源和AI模型", url: "tools/development/sql-rollback-generator.html", category: "开发工具" },
-            { name: "Markdown编辑器", desc: "实时预览的Markdown编辑器", url: "tools/documentation/markdown-editor.html", category: "文档编辑" },
-            { name: "LaTeX公式编辑器", desc: "数学公式编辑和渲染", url: "tools/documentation/latex-editor.html", category: "文档编辑" },
-            { name: "Mermaid图表渲染器", desc: "创建流程图、时序图等", url: "tools/documentation/mermaid.html", category: "文档编辑" },
-            { name: "二维码解析工具", desc: "解析二维码内容", url: "tools/utilities/qr-decoder.html", category: "实用工具" },
-            { name: "密码生成器", desc: "生成安全随机密码", url: "tools/utilities/password-generator.html", category: "实用工具" },
-            { name: "数据计算工具", desc: "进制转换、单位换算等", url: "tools/utilities/data-calculator.html", category: "实用工具" },
-            { name: "轻量化日历", desc: "简洁的日历查看器", url: "tools/utilities/calendar.html", category: "实用工具" },
-            { name: "番茄钟待办事项", desc: "时间管理和任务规划", url: "tools/productivity/pomodoro.html", category: "效率工具" },
-            { name: "学习打卡面板", desc: "学习进度跟踪", url: "tools/productivity/study-checkin.html", category: "效率工具" },
-            { name: "极简画板", desc: "在线绘图和标注", url: "tools/productivity/whiteboard.html", category: "效率工具" },
-            { name: "Markdown链接清理器", desc: "批量清理Markdown链接中的定位符片段", url: "tools/productivity/markdown_clean.html", category: "效率工具" }
-        ];
+        // 获取DOM元素
+        const htmlCode = document.getElementById('htmlCode');
+        const previewFrame = document.getElementById('previewFrame');
+        const statusElement = document.getElementById('status');
+        const charCountElement = document.getElementById('charCount');
 
-        let searchTimeout;
-
-        // 搜索功能
-        function performSearch() {
-            const searchInput = document.getElementById('searchInput');
-            const query = searchInput.value.trim().toLowerCase();
-            
-            if (query === '') {
-                hideSuggestions();
-                return;
-            }
-
-            const results = toolsData.filter(tool => 
-                tool.name.toLowerCase().includes(query) || 
-                tool.desc.toLowerCase().includes(query) ||
-                tool.category.toLowerCase().includes(query)
-            );
-
-            showSuggestions(results, query);
-        }
-
-        // 显示搜索建议
-        function showSuggestions(results, query) {
-            const suggestionsContainer = document.getElementById('searchSuggestions');
-            
-            if (results.length === 0) {
-                suggestionsContainer.innerHTML = '<div class="suggestion-item">未找到相关工具</div>';
-                suggestionsContainer.style.display = 'block';
-                return;
-            }
-
-            const html = results.map(tool => `
-                <div class="suggestion-item" onclick="navigateToTool('${tool.url}')">
-                    <div class="suggestion-name">${highlightText(tool.name, query)}</div>
-                    <div class="suggestion-desc">${highlightText(tool.desc, query)}</div>
-                </div>
-            `).join('');
-
-            suggestionsContainer.innerHTML = html;
-            suggestionsContainer.style.display = 'block';
-        }
-
-        // 隐藏搜索建议
-        function hideSuggestions() {
-            const suggestionsContainer = document.getElementById('searchSuggestions');
-            suggestionsContainer.style.display = 'none';
-        }
-
-        // 高亮搜索文本
-        function highlightText(text, query) {
-            if (!query) return text;
-            const regex = new RegExp(`(${query})`, 'gi');
-            return text.replace(regex, '<span class="highlight">$1</span>');
-        }
-
-        // 导航到工具页面
-        function navigateToTool(url) {
-            window.location.href = url;
-        }
-
-        // 事件监听
-        document.addEventListener('DOMContentLoaded', function() {
-            const searchInput = document.getElementById('searchInput');
-            const suggestionsContainer = document.getElementById('searchSuggestions');
-
-            // 搜索输入事件
-            searchInput.addEventListener('input', function() {
-                clearTimeout(searchTimeout);
-                searchTimeout = setTimeout(performSearch, 300);
-            });
-
-            // 点击外部隐藏建议
-            document.addEventListener('click', function(e) {
-                if (!e.target.closest('.search-container')) {
-                    hideSuggestions();
-                }
-            });
-
-            // 键盘事件
-            searchInput.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') {
-                    const firstSuggestion = suggestionsContainer.querySelector('.suggestion-item');
-                    if (firstSuggestion) {
-                        firstSuggestion.click();
-                    }
-                } else if (e.key === 'Escape') {
-                    hideSuggestions();
-                    searchInput.blur();
-                }
-            });
-
-            // 聚焦时显示所有工具
-            searchInput.addEventListener('focus', function() {
-                if (this.value.trim() === '') {
-                    showSuggestions(toolsData, '');
-                }
-            });
+        // 实时预览功能
+        let updateTimeout;
+        htmlCode.addEventListener('input', function() {
+            clearTimeout(updateTimeout);
+            updateCharCount();
+            updateTimeout = setTimeout(updatePreview, 500); // 延迟500ms更新预览
         });
+
+        // 更新预览
+        function updatePreview() {
+            const code = htmlCode.value.trim();
+            
+            if (!code) {
+                previewFrame.src = 'about:blank';
+                setStatus('就绪');
+                return;
+            }
+
+            setStatus('正在更新预览...');
+
+            // 创建blob URL
+            const blob = new Blob([code], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            
+            previewFrame.onload = function() {
+                setStatus('预览已更新');
+                URL.revokeObjectURL(url);
+            };
+            
+            previewFrame.src = url;
+        }
+
+        // 格式化代码
+        function formatCode() {
+            const code = htmlCode.value;
+            if (!code.trim()) return;
+
+            try {
+                // 简单的HTML格式化
+                let formatted = code
+                    .replace(/></g, '>\n<')
+                    .replace(/^\s+|\s+$/g, '');
+                
+                const lines = formatted.split('\n');
+                let indentLevel = 0;
+                const indentSize = 2;
+                
+                formatted = lines.map(line => {
+                    const trimmed = line.trim();
+                    if (!trimmed) return '';
+                    
+                    if (trimmed.startsWith('</')) {
+                        indentLevel = Math.max(0, indentLevel - 1);
+                    }
+                    
+                    const indented = ' '.repeat(indentLevel * indentSize) + trimmed;
+                    
+                    if (trimmed.startsWith('<') && !trimmed.startsWith('</') && !trimmed.endsWith('/>')) {
+                        if (!trimmed.match(/<(area|base|br|col|embed|hr|img|input|link|meta|param|source|track|wbr)/i)) {
+                            indentLevel++;
+                        }
+                    }
+                    
+                    return indented;
+                }).join('\n');
+
+                htmlCode.value = formatted;
+                updatePreview();
+                setStatus('代码已格式化');
+            } catch (error) {
+                setStatus('格式化失败');
+            }
+        }
+
+        // 清空代码
+        function clearCode() {
+            if (confirm('确定要清空所有代码吗？')) {
+                htmlCode.value = '';
+                previewFrame.src = 'about:blank';
+                updateCharCount();
+                setStatus('代码已清空');
+            }
+        }
+
+        // 在新窗口打开
+        function openInNewTab() {
+            const code = htmlCode.value.trim();
+            if (!code) {
+                alert('请先输入HTML代码');
+                return;
+            }
+
+            const newWindow = window.open('', '_blank');
+            newWindow.document.write(code);
+            newWindow.document.close();
+        }
+
+        // 下载HTML文件
+        function downloadHTML() {
+            const code = htmlCode.value.trim();
+            if (!code) {
+                alert('请先输入HTML代码');
+                return;
+            }
+
+            const blob = new Blob([code], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'preview.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            setStatus('HTML文件已下载');
+        }
+
+        // 工具函数
+        function setStatus(message) {
+            statusElement.textContent = message;
+        }
+
+        function updateCharCount() {
+            charCountElement.textContent = htmlCode.value.length;
+        }
+
+        // 键盘快捷键
+        htmlCode.addEventListener('keydown', function(e) {
+            // Ctrl+Enter 或 Cmd+Enter 更新预览
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                updatePreview();
+            }
+            
+            // Tab键插入缩进
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                const start = this.selectionStart;
+                const end = this.selectionEnd;
+                this.value = this.value.substring(0, start) + '  ' + this.value.substring(end);
+                this.selectionStart = this.selectionEnd = start + 2;
+            }
+        });
+
+        // 初始化
+        updateCharCount();
+        
+        // 加载默认示例
+        setTimeout(() => {
+            loadExample('basic');
+        }, 500);
     </script>
 </body>
 </html>

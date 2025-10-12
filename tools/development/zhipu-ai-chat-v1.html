@@ -1,0 +1,1959 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="format-detection" content="telephone=no">
+    <title>智谱AI对话工具 - 专业版</title>
+    <!-- Marked.js - Markdown解析 -->
+    <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
+    <!-- Highlight.js - 代码高亮 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+    <!-- DOMPurify - XSS防护 -->
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: #0a0e27;
+            color: #fff;
+            min-height: 100vh;
+            padding: 0;
+            margin: 0;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            touch-action: manipulation;
+            overflow-x: hidden;
+        }
+
+        /* 动态背景 */
+        .matrix-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: linear-gradient(180deg, #0a0e27 0%, #1a1f3a 50%, #0a0e27 100%);
+            overflow: hidden;
+        }
+
+        .data-stream {
+            position: absolute;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: rgba(0, 255, 157, 0.2);
+            white-space: nowrap;
+            animation: streamFlow 20s linear infinite;
+        }
+
+        @keyframes streamFlow {
+            0% {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh);
+                opacity: 0;
+            }
+        }
+
+        /* 神经网络节点 */
+        .neural-network {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .node {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(0, 255, 157, 0.4);
+            border-radius: 50%;
+            box-shadow: 0 0 8px rgba(0, 255, 157, 0.6);
+            animation: nodePulse 3s infinite;
+        }
+
+        @keyframes nodePulse {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 0.4;
+            }
+            50% {
+                transform: scale(1.3);
+                opacity: 0.8;
+            }
+        }
+
+        .connection {
+            position: absolute;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 157, 0.2), transparent);
+            transform-origin: left center;
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            background: transparent;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* PC大屏 (>1440px) - 两侧留边距，中间最大宽度 */
+        @media (min-width: 1441px) {
+            body {
+                padding: 20px 40px;
+            }
+            .container {
+                max-width: 1600px;
+                border-radius: 20px;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+                height: calc(100vh - 40px);
+            }
+        }
+
+        /* PC中屏 (1024px-1440px) - 适中留边 */
+        @media (min-width: 1024px) and (max-width: 1440px) {
+            body {
+                padding: 15px 20px;
+            }
+            .container {
+                max-width: 100%;
+                border-radius: 16px;
+                box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+                height: calc(100vh - 30px);
+            }
+        }
+
+        /* iPad 12.9英寸 横屏 (1024px-1366px) */
+        @media (min-width: 1024px) and (max-width: 1366px) and (orientation: landscape) {
+            body {
+                padding: 12px 16px;
+            }
+            .container {
+                border-radius: 12px;
+                height: calc(100vh - 24px);
+            }
+        }
+
+        /* iPad 竖屏 (768px-1024px) */
+        @media (min-width: 768px) and (max-width: 1023px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                border-radius: 12px;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+                height: calc(100vh - 20px);
+            }
+        }
+
+        /* 手机横屏 (568px-767px) */
+        @media (min-width: 568px) and (max-width: 767px) and (orientation: landscape) {
+            body {
+                padding: 0;
+            }
+            .container {
+                border-radius: 0;
+                height: 100vh;
+            }
+        }
+
+        /* 手机竖屏 (<768px) */
+        @media (max-width: 767px) {
+            body {
+                padding: 0;
+            }
+            .container {
+                border-radius: 0;
+                height: 100vh;
+                /* iOS安全区域适配 */
+                height: calc(100vh - env(safe-area-inset-bottom));
+            }
+        }
+
+        /* iOS安全区域适配 - 针对刘海屏 */
+        @supports (padding: max(0px)) {
+            .chat-input-container {
+                padding-bottom: max(20px, env(safe-area-inset-bottom));
+            }
+
+            @media (max-width: 767px) {
+                .chat-input-container {
+                    padding-bottom: max(16px, calc(env(safe-area-inset-bottom) + 8px));
+                }
+            }
+        }
+
+        .header {
+            background: rgba(10, 14, 39, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(0, 255, 157, 0.1);
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 100;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            background: linear-gradient(135deg, #fff, #00ff9d, #00d4ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* PC大屏优化 */
+        @media (min-width: 1441px) {
+            .header {
+                padding: 24px 40px;
+            }
+            .header h1 {
+                font-size: 28px;
+            }
+        }
+
+        /* iPad 12.9英寸 */
+        @media (min-width: 768px) and (max-width: 1366px) {
+            .header {
+                padding: 18px 24px;
+            }
+            .header h1 {
+                font-size: 22px;
+            }
+        }
+
+        /* 手机竖屏 */
+        @media (max-width: 767px) {
+            .header {
+                padding: 16px 20px;
+            }
+            .header h1 {
+                font-size: 18px;
+            }
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            font-weight: 500;
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00ff9d, #00d4ff);
+            color: #0a0e27;
+            font-weight: bold;
+            border: none;
+            box-shadow: 0 4px 20px rgba(0, 255, 157, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(0, 255, 157, 0.5);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            color: white;
+            border: 1px solid rgba(0, 255, 157, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(0, 255, 157, 0.1);
+            border-color: #00ff9d;
+        }
+
+        .settings-panel {
+            background: #f8f9fa;
+            padding: 20px 30px;
+            border-bottom: 1px solid #e9ecef;
+            display: none;
+            flex-shrink: 0;
+        }
+
+        .settings-panel.active {
+            display: block;
+        }
+
+        /* PC大屏 - 设置面板 */
+        @media (min-width: 1441px) {
+            .settings-panel {
+                padding: 24px 40px;
+            }
+        }
+
+        /* iPad */
+        @media (min-width: 768px) and (max-width: 1366px) {
+            .settings-panel {
+                padding: 18px 24px;
+            }
+        }
+
+        /* 手机 */
+        @media (max-width: 767px) {
+            .settings-panel {
+                padding: 16px 20px;
+            }
+        }
+
+        .setting-group {
+            margin-bottom: 15px;
+        }
+
+        .setting-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .setting-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #495057;
+            font-size: 14px;
+        }
+
+        .setting-group input,
+        .setting-group select {
+            width: 100%;
+            padding: 10px 15px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .setting-group input:focus,
+        .setting-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .model-manager {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .model-manager .setting-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        /* 手机上模型管理器堆叠显示 */
+        @media (max-width: 767px) {
+            .model-manager {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 15px;
+            }
+
+            .model-manager .setting-group {
+                margin-bottom: 0;
+            }
+        }
+
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px;
+            background: #f8f9fa;
+        }
+
+        /* PC大屏 - 聊天区域 */
+        @media (min-width: 1441px) {
+            .chat-messages {
+                padding: 40px 60px;
+            }
+        }
+
+        /* PC中屏 */
+        @media (min-width: 1024px) and (max-width: 1440px) {
+            .chat-messages {
+                padding: 32px 40px;
+            }
+        }
+
+        /* iPad */
+        @media (min-width: 768px) and (max-width: 1023px) {
+            .chat-messages {
+                padding: 24px 30px;
+            }
+        }
+
+        /* 手机 */
+        @media (max-width: 767px) {
+            .chat-messages {
+                padding: 20px 16px;
+            }
+        }
+
+        .message {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 12px;
+            animation: fadeIn 0.3s;
+            max-width: 100%;
+        }
+
+        /* PC大屏 - 限制消息宽度以提高可读性 */
+        @media (min-width: 1441px) {
+            .message {
+                max-width: 85%;
+            }
+
+            .message.user {
+                margin-left: auto;
+            }
+
+            .message.assistant {
+                margin-right: auto;
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+            font-size: 18px;
+        }
+
+        .message.user .message-avatar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .message.assistant .message-avatar {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .message.system .message-avatar {
+            background: #6c757d;
+            color: white;
+            font-size: 14px;
+        }
+
+        .message-content {
+            flex: 1;
+            padding: 15px 20px;
+            border-radius: 12px;
+            line-height: 1.6;
+            word-wrap: break-word;
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .message.assistant .message-content {
+            background: white;
+            color: #212529;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .message.system .message-content {
+            background: #e9ecef;
+            color: #495057;
+            font-style: italic;
+        }
+
+        .message.error .message-content {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .chat-input-container {
+            padding: 20px 30px;
+            background: white;
+            border-top: 1px solid #e9ecef;
+            flex-shrink: 0;
+        }
+
+        /* PC大屏 - 输入区域 */
+        @media (min-width: 1441px) {
+            .chat-input-container {
+                padding: 24px 60px;
+            }
+        }
+
+        /* PC中屏 */
+        @media (min-width: 1024px) and (max-width: 1440px) {
+            .chat-input-container {
+                padding: 22px 40px;
+            }
+        }
+
+        /* iPad */
+        @media (min-width: 768px) and (max-width: 1023px) {
+            .chat-input-container {
+                padding: 20px 30px;
+            }
+        }
+
+        /* 手机 */
+        @media (max-width: 767px) {
+            .chat-input-container {
+                padding: 16px 16px 20px 16px;
+            }
+        }
+
+        .chat-input-wrapper {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #dee2e6;
+            border-radius: 12px;
+            font-size: 14px;
+            resize: none;
+            font-family: inherit;
+            min-height: 50px;
+            max-height: 150px;
+            transition: border-color 0.3s;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn-send {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s;
+            min-width: 80px;
+        }
+
+        .btn-send:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-send:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-clear {
+            padding: 12px 20px;
+            background: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .btn-clear:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-indicator.connected {
+            background: #28a745;
+            box-shadow: 0 0 8px #28a745;
+        }
+
+        .status-indicator.disconnected {
+            background: #dc3545;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            font-size: 20px;
+            margin-bottom: 10px;
+            color: #495057;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+        }
+
+        /* PC大屏 - 空状态 */
+        @media (min-width: 1441px) {
+            .empty-state {
+                padding: 80px 40px;
+            }
+
+            .empty-state-icon {
+                font-size: 80px;
+            }
+
+            .empty-state h3 {
+                font-size: 24px;
+            }
+
+            .empty-state p {
+                font-size: 16px;
+            }
+        }
+
+        /* iPad */
+        @media (min-width: 768px) and (max-width: 1366px) {
+            .empty-state {
+                padding: 50px 30px;
+            }
+
+            .empty-state-icon {
+                font-size: 72px;
+            }
+
+            .empty-state h3 {
+                font-size: 22px;
+            }
+
+            .empty-state p {
+                font-size: 15px;
+            }
+        }
+
+        /* 手机 */
+        @media (max-width: 767px) {
+            .empty-state {
+                padding: 40px 20px;
+            }
+
+            .empty-state-icon {
+                font-size: 48px;
+            }
+
+            .empty-state h3 {
+                font-size: 18px;
+            }
+
+            .empty-state p {
+                font-size: 13px;
+            }
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .model-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+
+        /* 手机小屏幕特殊优化 */
+        @media (max-width: 767px) {
+            .header {
+                flex-direction: column;
+                gap: 12px;
+                align-items: flex-start;
+            }
+
+            .header-actions {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .message-content {
+                max-width: 88%;
+            }
+
+            .model-badge {
+                font-size: 11px;
+                padding: 3px 10px;
+                margin-left: 0;
+                margin-top: 4px;
+            }
+
+            .btn {
+                padding: 6px 12px;
+                font-size: 13px;
+            }
+
+            .chat-input {
+                font-size: 15px;
+            }
+
+            .btn-send, .btn-stop {
+                min-width: 70px;
+                padding: 10px 16px;
+                font-size: 13px;
+            }
+        }
+
+        /* 手机横屏优化 */
+        @media (max-width: 767px) and (orientation: landscape) {
+            .header {
+                padding: 12px 20px;
+                flex-direction: row;
+            }
+
+            .header h1 {
+                font-size: 16px;
+            }
+
+            .chat-messages {
+                padding: 16px 20px;
+            }
+
+            .message-avatar {
+                width: 32px;
+                height: 32px;
+                font-size: 14px;
+            }
+        }
+
+        /* iPad Pro 12.9英寸特别优化 */
+        @media (min-width: 1024px) and (max-width: 1366px) {
+            .message {
+                margin-bottom: 24px;
+            }
+
+            .message-avatar {
+                width: 44px;
+                height: 44px;
+                font-size: 20px;
+            }
+
+            .message-content {
+                font-size: 16px;
+                padding: 16px 22px;
+            }
+
+            .chat-input {
+                font-size: 16px;
+                padding: 14px 18px;
+            }
+        }
+
+        pre {
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+
+        code {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+
+        /* Markdown内容样式 */
+        .message-content h1,
+        .message-content h2,
+        .message-content h3,
+        .message-content h4,
+        .message-content h5,
+        .message-content h6 {
+            margin: 15px 0 10px 0;
+            font-weight: 600;
+            line-height: 1.4;
+        }
+
+        .message-content h1 { font-size: 1.8em; }
+        .message-content h2 { font-size: 1.5em; }
+        .message-content h3 { font-size: 1.3em; }
+
+        .message-content ul,
+        .message-content ol {
+            margin: 10px 0;
+            padding-left: 25px;
+        }
+
+        .message-content li {
+            margin: 5px 0;
+        }
+
+        .message-content blockquote {
+            border-left: 4px solid #667eea;
+            padding-left: 15px;
+            margin: 10px 0;
+            color: #555;
+            font-style: italic;
+        }
+
+        .message-content table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 10px 0;
+            display: block;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .message-content table th,
+        .message-content table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+            white-space: nowrap;
+        }
+
+        .message-content table th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+
+        /* PC大屏 - 表格 */
+        @media (min-width: 1441px) {
+            .message-content table {
+                display: table;
+            }
+
+            .message-content table th,
+            .message-content table td {
+                padding: 12px;
+                white-space: normal;
+            }
+        }
+
+        /* iPad - 表格 */
+        @media (min-width: 768px) and (max-width: 1366px) {
+            .message-content table {
+                display: table;
+            }
+
+            .message-content table th,
+            .message-content table td {
+                padding: 10px;
+            }
+        }
+
+        /* 手机 - 表格 */
+        @media (max-width: 767px) {
+            .message-content table th,
+            .message-content table td {
+                padding: 6px 8px;
+                font-size: 13px;
+            }
+        }
+
+        .message-content a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .message-content a:hover {
+            text-decoration: underline;
+        }
+
+        .message-content hr {
+            border: none;
+            border-top: 1px solid #ddd;
+            margin: 15px 0;
+        }
+
+        /* 代码块样式增强 */
+        .message-content pre {
+            position: relative;
+            background: #1e1e1e;
+            padding: 0;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+
+        .message-content pre code {
+            display: block;
+            padding: 15px;
+            overflow-x: auto;
+            background: transparent;
+            color: #e4e4e4;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        /* PC大屏 - 代码块 */
+        @media (min-width: 1441px) {
+            .message-content pre code {
+                font-size: 15px;
+                padding: 18px;
+            }
+        }
+
+        /* 手机 - 代码块 */
+        @media (max-width: 767px) {
+            .message-content pre code {
+                font-size: 13px;
+                padding: 12px;
+            }
+
+            .code-block-header {
+                padding: 6px 12px;
+                font-size: 11px;
+            }
+
+            .code-copy-btn {
+                padding: 3px 8px;
+                font-size: 11px;
+            }
+        }
+
+        .message.user .message-content pre code {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .code-block-wrapper {
+            position: relative;
+            margin: 15px 0;
+        }
+
+        .code-block-header {
+            background: #2d2d2d;
+            padding: 8px 15px;
+            border-radius: 8px 8px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: #aaa;
+        }
+
+        .code-block-language {
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .code-copy-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            padding: 4px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .code-copy-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .code-copy-btn.copied {
+            background: #28a745;
+            border-color: #28a745;
+        }
+
+        /* 行内代码 */
+        .message-content code:not(pre code) {
+            background: rgba(0, 0, 0, 0.08);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            color: #e01e5a;
+        }
+
+        .message.user .message-content code:not(pre code) {
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+        }
+
+        /* 流式输出光标动画 */
+        .typing-cursor {
+            display: inline-block;
+            width: 8px;
+            height: 18px;
+            background: #667eea;
+            margin-left: 2px;
+            animation: blink 1s infinite;
+            vertical-align: text-bottom;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        /* 停止生成按钮 */
+        .btn-stop {
+            padding: 12px 24px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s;
+            min-width: 80px;
+        }
+
+        .btn-stop:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+        }
+
+        /* 高亮当前正在生成的消息 */
+        .message.streaming .message-content {
+            border: 2px solid #667eea;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2); }
+            50% { box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4); }
+        }
+
+        /* 思考中动画 */
+        .thinking-dots {
+            display: inline-flex;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .thinking-dots span {
+            width: 8px;
+            height: 8px;
+            background: #667eea;
+            border-radius: 50%;
+            animation: thinking 1.4s infinite;
+        }
+
+        .thinking-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .thinking-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes thinking {
+            0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+            40% { transform: scale(1.2); opacity: 1; }
+        }
+
+        /* 设置面板增强 */
+        .setting-group .help-text {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 4px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.4s;
+            border-radius: 24px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.4s;
+            border-radius: 50%;
+        }
+
+        .toggle-switch input:checked + .toggle-slider {
+            background-color: #667eea;
+        }
+
+        .toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+
+        /* 消息操作按钮 */
+        .message-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .message:hover .message-actions {
+            opacity: 1;
+        }
+
+        .message-action-btn {
+            padding: 4px 8px;
+            background: rgba(0, 0, 0, 0.05);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            color: #666;
+            transition: all 0.2s;
+        }
+
+        .message-action-btn:hover {
+            background: rgba(0, 0, 0, 0.1);
+            color: #333;
+        }
+
+        .message.user .message-action-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .message.user .message-action-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* 滚动条美化 */
+        .chat-messages::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>💬 智谱AI对话工具</h1>
+                <span class="model-badge" id="currentModelBadge">未选择模型</span>
+            </div>
+            <div class="header-actions">
+                <span class="status-indicator" id="statusIndicator"></span>
+                <button class="btn btn-secondary" id="settingsBtn">⚙️ 设置</button>
+                <button class="btn btn-primary" id="clearBtn">🗑️ 清空对话</button>
+            </div>
+        </div>
+
+        <div class="settings-panel" id="settingsPanel">
+            <div class="setting-group">
+                <label for="apiKey">API Key <small>(保存在浏览器本地)</small></label>
+                <input type="password" id="apiKey" placeholder="请输入智谱AI API Key">
+            </div>
+            <div class="model-manager">
+                <div class="setting-group">
+                    <label for="modelSelect">选择模型</label>
+                    <select id="modelSelect">
+                        <option value="">-- 请选择模型 --</option>
+                        <option value="glm-4.5">GLM-4.5</option>
+                        <option value="glm-4-plus">GLM-4-Plus (最强大)</option>
+                        <option value="glm-4-0520">GLM-4-0520</option>
+                        <option value="glm-4">GLM-4</option>
+                        <option value="glm-4-air">GLM-4-Air (快速)</option>
+                        <option value="glm-4-airx">GLM-4-AirX (超快)</option>
+                        <option value="glm-4-flash">GLM-4-Flash (闪电)</option>
+                        <option value="custom">自定义模型...</option>
+                    </select>
+                </div>
+                <div class="setting-group" id="customModelGroup" style="display: none;">
+                    <label for="customModel">自定义模型名称</label>
+                    <input type="text" id="customModel" placeholder="例如: glm-4-custom">
+                </div>
+            </div>
+            <div class="setting-group">
+                <label for="systemPrompt">系统提示词 (可选)</label>
+                <input type="text" id="systemPrompt" placeholder="例如: 你是一个有用的AI助手" value="你是一个有用的AI助手。">
+            </div>
+            <div class="setting-group">
+                <label style="display: flex; justify-content: space-between; align-items: center;">
+                    <span>流式输出 🚀</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="streamToggle" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </label>
+                <div class="help-text">开启后将实时显示AI生成的内容（推荐）</div>
+            </div>
+            <div style="margin-top: 15px;">
+                <button class="btn btn-primary" id="saveSettingsBtn">💾 保存设置</button>
+            </div>
+        </div>
+
+        <div class="chat-container">
+            <div class="chat-messages" id="chatMessages">
+                <div class="empty-state">
+                    <div class="empty-state-icon">💭</div>
+                    <h3>开始对话</h3>
+                    <p>请先在设置中配置API Key和选择模型，然后开始与AI对话</p>
+                </div>
+            </div>
+
+            <div class="chat-input-container">
+                <div class="chat-input-wrapper">
+                    <textarea 
+                        id="chatInput" 
+                        class="chat-input" 
+                        placeholder="输入消息... (Shift+Enter 换行, Enter 发送)"
+                        rows="1"
+                    ></textarea>
+                    <button class="btn-send" id="sendBtn">发送</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 配置管理
+        const CONFIG_KEYS = {
+            API_KEY: 'zhipu_ai_api_key',
+            MODEL: 'zhipu_ai_model',
+            SYSTEM_PROMPT: 'zhipu_ai_system_prompt',
+            STREAM_ENABLED: 'zhipu_ai_stream_enabled',
+            CUSTOM_MODELS: 'zhipu_ai_custom_models'
+        };
+
+        const API_ENDPOINT = 'https://open.bigmodel.cn/api/paas/v4/chat/completions';
+
+        // DOM 元素
+        const elements = {
+            settingsPanel: document.getElementById('settingsPanel'),
+            settingsBtn: document.getElementById('settingsBtn'),
+            saveSettingsBtn: document.getElementById('saveSettingsBtn'),
+            clearBtn: document.getElementById('clearBtn'),
+            apiKeyInput: document.getElementById('apiKey'),
+            modelSelect: document.getElementById('modelSelect'),
+            customModelGroup: document.getElementById('customModelGroup'),
+            customModelInput: document.getElementById('customModel'),
+            systemPromptInput: document.getElementById('systemPrompt'),
+            streamToggle: document.getElementById('streamToggle'),
+            chatMessages: document.getElementById('chatMessages'),
+            chatInput: document.getElementById('chatInput'),
+            sendBtn: document.getElementById('sendBtn'),
+            statusIndicator: document.getElementById('statusIndicator'),
+            currentModelBadge: document.getElementById('currentModelBadge')
+        };
+
+        // 对话历史
+        let conversationHistory = [];
+        
+        // 当前流式请求控制器
+        let currentStreamController = null;
+        
+        // 配置 marked.js
+        if (typeof marked !== 'undefined') {
+            marked.setOptions({
+                highlight: function(code, lang) {
+                    if (lang && hljs.getLanguage(lang)) {
+                        try {
+                            return hljs.highlight(code, { language: lang }).value;
+                        } catch (err) {}
+                    }
+                    return hljs.highlightAuto(code).value;
+                },
+                breaks: true,
+                gfm: true
+            });
+        }
+
+        // 初始化
+        function init() {
+            loadSettings();
+            updateStatus();
+            setupEventListeners();
+            autoResizeTextarea();
+        }
+
+        // 加载设置
+        function loadSettings() {
+            const apiKey = localStorage.getItem(CONFIG_KEYS.API_KEY);
+            const model = localStorage.getItem(CONFIG_KEYS.MODEL);
+            const systemPrompt = localStorage.getItem(CONFIG_KEYS.SYSTEM_PROMPT);
+            const streamEnabled = localStorage.getItem(CONFIG_KEYS.STREAM_ENABLED);
+
+            if (apiKey) {
+                elements.apiKeyInput.value = apiKey;
+            }
+
+            if (model) {
+                if (elements.modelSelect.querySelector(`option[value="${model}"]`)) {
+                    elements.modelSelect.value = model;
+                } else {
+                    // 自定义模型
+                    elements.modelSelect.value = 'custom';
+                    elements.customModelGroup.style.display = 'block';
+                    elements.customModelInput.value = model;
+                }
+                elements.currentModelBadge.textContent = model;
+            }
+
+            if (systemPrompt) {
+                elements.systemPromptInput.value = systemPrompt;
+            }
+
+            // 默认开启流式输出
+            elements.streamToggle.checked = streamEnabled !== 'false';
+        }
+
+        // 保存设置
+        function saveSettings() {
+            const apiKey = elements.apiKeyInput.value.trim();
+            let model = elements.modelSelect.value;
+
+            if (!apiKey) {
+                showSystemMessage('请输入API Key', 'error');
+                return;
+            }
+
+            if (!model || model === '') {
+                showSystemMessage('请选择模型', 'error');
+                return;
+            }
+
+            if (model === 'custom') {
+                model = elements.customModelInput.value.trim();
+                if (!model) {
+                    showSystemMessage('请输入自定义模型名称', 'error');
+                    return;
+                }
+            }
+
+            const systemPrompt = elements.systemPromptInput.value.trim();
+            const streamEnabled = elements.streamToggle.checked;
+
+            // 保存到 localStorage
+            localStorage.setItem(CONFIG_KEYS.API_KEY, apiKey);
+            localStorage.setItem(CONFIG_KEYS.MODEL, model);
+            localStorage.setItem(CONFIG_KEYS.SYSTEM_PROMPT, systemPrompt);
+            localStorage.setItem(CONFIG_KEYS.STREAM_ENABLED, streamEnabled);
+
+            elements.currentModelBadge.textContent = model;
+            updateStatus();
+            elements.settingsPanel.classList.remove('active');
+            showSystemMessage('设置已保存');
+        }
+
+        // 更新连接状态
+        function updateStatus() {
+            const apiKey = localStorage.getItem(CONFIG_KEYS.API_KEY);
+            const model = localStorage.getItem(CONFIG_KEYS.MODEL);
+
+            if (apiKey && model) {
+                elements.statusIndicator.classList.add('connected');
+                elements.statusIndicator.classList.remove('disconnected');
+            } else {
+                elements.statusIndicator.classList.remove('connected');
+                elements.statusIndicator.classList.add('disconnected');
+            }
+        }
+
+        // 设置事件监听器
+        function setupEventListeners() {
+            elements.settingsBtn.addEventListener('click', toggleSettings);
+            elements.saveSettingsBtn.addEventListener('click', saveSettings);
+            elements.clearBtn.addEventListener('click', clearConversation);
+            elements.sendBtn.addEventListener('click', sendMessage);
+            elements.chatInput.addEventListener('keydown', handleInputKeydown);
+            elements.chatInput.addEventListener('input', autoResizeTextarea);
+            elements.modelSelect.addEventListener('change', handleModelSelectChange);
+        }
+
+        // 切换设置面板
+        function toggleSettings() {
+            elements.settingsPanel.classList.toggle('active');
+        }
+
+        // 处理模型选择变化
+        function handleModelSelectChange() {
+            if (elements.modelSelect.value === 'custom') {
+                elements.customModelGroup.style.display = 'block';
+            } else {
+                elements.customModelGroup.style.display = 'none';
+            }
+        }
+
+        // 处理输入框按键
+        function handleInputKeydown(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        }
+
+        // 自动调整输入框高度
+        function autoResizeTextarea() {
+            elements.chatInput.style.height = 'auto';
+            elements.chatInput.style.height = Math.min(elements.chatInput.scrollHeight, 150) + 'px';
+        }
+
+        // 发送消息
+        async function sendMessage() {
+            const message = elements.chatInput.value.trim();
+            if (!message) return;
+
+            const apiKey = localStorage.getItem(CONFIG_KEYS.API_KEY);
+            const model = localStorage.getItem(CONFIG_KEYS.MODEL);
+            const streamEnabled = localStorage.getItem(CONFIG_KEYS.STREAM_ENABLED) !== 'false';
+
+            if (!apiKey || !model) {
+                showSystemMessage('请先配置API Key和模型', 'error');
+                elements.settingsPanel.classList.add('active');
+                return;
+            }
+
+            // 显示用户消息
+            addMessage('user', message);
+            elements.chatInput.value = '';
+            autoResizeTextarea();
+
+            // 添加到对话历史
+            conversationHistory.push({
+                role: 'user',
+                content: message
+            });
+
+            // 更改按钮为停止按钮
+            elements.sendBtn.disabled = false;
+            elements.sendBtn.className = 'btn-stop';
+            elements.sendBtn.textContent = '⏹ 停止';
+            elements.sendBtn.onclick = stopGeneration;
+
+            try {
+                // 准备消息
+                const messages = [];
+                
+                // 添加系统提示
+                const systemPrompt = localStorage.getItem(CONFIG_KEYS.SYSTEM_PROMPT);
+                if (systemPrompt) {
+                    messages.push({
+                        role: 'system',
+                        content: systemPrompt
+                    });
+                }
+
+                // 添加对话历史
+                messages.push(...conversationHistory);
+
+                if (streamEnabled) {
+                    await sendStreamMessage(apiKey, model, messages);
+                } else {
+                    await sendNormalMessage(apiKey, model, messages);
+                }
+
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    showSystemMessage('已停止生成', 'system');
+                } else {
+                    console.error('发送消息失败:', error);
+                    showSystemMessage(`错误: ${error.message}`, 'error');
+                }
+                // 移除失败的用户消息
+                conversationHistory.pop();
+            } finally {
+                // 恢复发送按钮
+                resetSendButton();
+            }
+        }
+
+        // 普通消息发送（非流式）
+        async function sendNormalMessage(apiKey, model, messages) {
+            const response = await fetch(API_ENDPOINT, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    model: model,
+                    messages: messages,
+                    temperature: 0.7,
+                    stream: false
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error?.message || `API请求失败: ${response.status}`);
+            }
+
+            const data = await response.json();
+            const assistantMessage = data.choices[0].message.content;
+
+            // 显示助手回复
+            addMessage('assistant', assistantMessage);
+
+            // 添加到对话历史
+            conversationHistory.push({
+                role: 'assistant',
+                content: assistantMessage
+            });
+        }
+
+        // 流式消息发送
+        async function sendStreamMessage(apiKey, model, messages) {
+            // 创建 AbortController 用于取消请求
+            currentStreamController = new AbortController();
+
+            const response = await fetch(API_ENDPOINT, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    model: model,
+                    messages: messages,
+                    temperature: 0.7,
+                    stream: true
+                }),
+                signal: currentStreamController.signal
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error?.message || `API请求失败: ${response.status}`);
+            }
+
+            // 创建助手消息容器
+            const messageElement = createStreamMessageElement();
+            let fullContent = '';
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+
+            try {
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    const chunk = decoder.decode(value, { stream: true });
+                    const lines = chunk.split('\n');
+
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            const data = line.slice(6);
+                            
+                            if (data === '[DONE]') {
+                                continue;
+                            }
+
+                            try {
+                                const json = JSON.parse(data);
+                                const content = json.choices[0]?.delta?.content;
+                                
+                                if (content) {
+                                    fullContent += content;
+                                    updateStreamMessage(messageElement, fullContent);
+                                }
+                            } catch (e) {
+                                // 忽略解析错误
+                            }
+                        }
+                    }
+                }
+            } finally {
+                // 移除流式标记和光标
+                messageElement.classList.remove('streaming');
+                const cursor = messageElement.querySelector('.typing-cursor');
+                if (cursor) cursor.remove();
+
+                // 添加到对话历史
+                conversationHistory.push({
+                    role: 'assistant',
+                    content: fullContent
+                });
+
+                // 添加消息操作按钮
+                addMessageActions(messageElement, fullContent);
+            }
+        }
+
+        // 创建流式消息元素
+        function createStreamMessageElement() {
+            // 移除空状态
+            const emptyState = elements.chatMessages.querySelector('.empty-state');
+            if (emptyState) {
+                emptyState.remove();
+            }
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message assistant streaming';
+
+            const avatarDiv = document.createElement('div');
+            avatarDiv.className = 'message-avatar';
+            avatarDiv.textContent = '🤖';
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.innerHTML = '<span class="typing-cursor"></span>';
+
+            messageDiv.appendChild(avatarDiv);
+            messageDiv.appendChild(contentDiv);
+
+            elements.chatMessages.appendChild(messageDiv);
+            elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
+
+            return messageDiv;
+        }
+
+        // 更新流式消息内容
+        function updateStreamMessage(messageElement, content) {
+            const contentDiv = messageElement.querySelector('.message-content');
+            const renderedContent = renderMarkdown(content);
+            contentDiv.innerHTML = renderedContent + '<span class="typing-cursor"></span>';
+            
+            // 高亮代码块
+            contentDiv.querySelectorAll('pre code').forEach((block) => {
+                if (typeof hljs !== 'undefined') {
+                    hljs.highlightElement(block);
+                }
+            });
+
+            // 滚动到底部
+            elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
+        }
+
+        // 停止生成
+        function stopGeneration() {
+            if (currentStreamController) {
+                currentStreamController.abort();
+                currentStreamController = null;
+            }
+        }
+
+        // 重置发送按钮
+        function resetSendButton() {
+            elements.sendBtn.disabled = false;
+            elements.sendBtn.className = 'btn-send';
+            elements.sendBtn.textContent = '发送';
+            elements.sendBtn.onclick = sendMessage;
+            currentStreamController = null;
+        }
+
+        // 添加消息到聊天界面
+        function addMessage(role, content) {
+            // 移除空状态
+            const emptyState = elements.chatMessages.querySelector('.empty-state');
+            if (emptyState) {
+                emptyState.remove();
+            }
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${role}`;
+
+            const avatarDiv = document.createElement('div');
+            avatarDiv.className = 'message-avatar';
+            
+            if (role === 'user') {
+                avatarDiv.textContent = '👤';
+            } else if (role === 'assistant') {
+                avatarDiv.textContent = '🤖';
+            } else if (role === 'system') {
+                avatarDiv.textContent = 'ℹ️';
+            }
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            
+            // 使用Markdown渲染
+            const renderedContent = renderMarkdown(content);
+            contentDiv.innerHTML = renderedContent;
+            
+            // 高亮代码块
+            contentDiv.querySelectorAll('pre code').forEach((block) => {
+                if (typeof hljs !== 'undefined') {
+                    hljs.highlightElement(block);
+                }
+            });
+
+            messageDiv.appendChild(avatarDiv);
+            messageDiv.appendChild(contentDiv);
+
+            // 为助手消息添加操作按钮
+            if (role === 'assistant') {
+                addMessageActions(messageDiv, content);
+            }
+
+            elements.chatMessages.appendChild(messageDiv);
+            elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
+        }
+
+        // 渲染Markdown
+        function renderMarkdown(content) {
+            if (typeof marked === 'undefined') {
+                // 如果marked.js未加载，返回基本HTML
+                return content.replace(/\n/g, '<br>');
+            }
+
+            try {
+                let html = marked.parse(content);
+                
+                // 使用DOMPurify清理HTML（防止XSS）
+                if (typeof DOMPurify !== 'undefined') {
+                    html = DOMPurify.sanitize(html);
+                }
+
+                // 为代码块添加复制按钮
+                html = addCopyButtonToCode(html);
+
+                return html;
+            } catch (error) {
+                console.error('Markdown渲染失败:', error);
+                return content.replace(/\n/g, '<br>');
+            }
+        }
+
+        // 为代码块添加复制按钮
+        function addCopyButtonToCode(html) {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = html;
+
+            tempDiv.querySelectorAll('pre').forEach((pre, index) => {
+                const code = pre.querySelector('code');
+                if (!code) return;
+
+                // 获取语言
+                const language = Array.from(code.classList)
+                    .find(cls => cls.startsWith('language-'))
+                    ?.replace('language-', '') || 'text';
+
+                // 创建包装器
+                const wrapper = document.createElement('div');
+                wrapper.className = 'code-block-wrapper';
+
+                // 创建头部
+                const header = document.createElement('div');
+                header.className = 'code-block-header';
+                
+                const langSpan = document.createElement('span');
+                langSpan.className = 'code-block-language';
+                langSpan.textContent = language;
+
+                const copyBtn = document.createElement('button');
+                copyBtn.className = 'code-copy-btn';
+                copyBtn.textContent = '📋 复制';
+                copyBtn.onclick = function() {
+                    copyToClipboard(code.textContent, copyBtn);
+                };
+
+                header.appendChild(langSpan);
+                header.appendChild(copyBtn);
+
+                // 组装
+                wrapper.appendChild(header);
+                pre.style.marginTop = '0';
+                pre.style.borderRadius = '0 0 8px 8px';
+                wrapper.appendChild(pre.cloneNode(true));
+
+                pre.replaceWith(wrapper);
+            });
+
+            return tempDiv.innerHTML;
+        }
+
+        // 复制到剪贴板
+        function copyToClipboard(text, button) {
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = button.textContent;
+                button.textContent = '✅ 已复制';
+                button.classList.add('copied');
+                
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.classList.remove('copied');
+                }, 2000);
+            }).catch(err => {
+                console.error('复制失败:', err);
+                button.textContent = '❌ 失败';
+                setTimeout(() => {
+                    button.textContent = '📋 复制';
+                }, 2000);
+            });
+        }
+
+        // 添加消息操作按钮
+        function addMessageActions(messageDiv, content) {
+            const contentDiv = messageDiv.querySelector('.message-content');
+            
+            const actionsDiv = document.createElement('div');
+            actionsDiv.className = 'message-actions';
+
+            // 复制按钮
+            const copyBtn = document.createElement('button');
+            copyBtn.className = 'message-action-btn';
+            copyBtn.textContent = '📋 复制';
+            copyBtn.onclick = function() {
+                copyToClipboard(content, copyBtn);
+            };
+
+            actionsDiv.appendChild(copyBtn);
+            contentDiv.appendChild(actionsDiv);
+        }
+
+        // 显示系统消息
+        function showSystemMessage(content, type = 'system') {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+
+            const avatarDiv = document.createElement('div');
+            avatarDiv.className = 'message-avatar';
+            avatarDiv.textContent = type === 'error' ? '⚠️' : 'ℹ️';
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.textContent = content;
+
+            messageDiv.appendChild(avatarDiv);
+            messageDiv.appendChild(contentDiv);
+
+            elements.chatMessages.appendChild(messageDiv);
+            elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
+
+            // 3秒后自动移除系统消息
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 3000);
+        }
+
+        // 清空对话
+        function clearConversation() {
+            if (confirm('确定要清空所有对话记录吗?')) {
+                conversationHistory = [];
+                elements.chatMessages.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">💭</div>
+                        <h3>开始对话</h3>
+                        <p>请先在设置中配置API Key和选择模型，然后开始与AI对话</p>
+                    </div>
+                `;
+                showSystemMessage('对话已清空');
+            }
+        }
+
+        // 页面加载完成后初始化
+        init();
+    </script>
+</body>
+</html>
+

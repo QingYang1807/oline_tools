@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>工具箱 - 实用工具集合</title>
-    <link rel="stylesheet" href="assets/css/style.css">
     <meta name="color-scheme" content="light dark">
+    <title>门户 - 实用工具集合</title>
+    <link rel="stylesheet" href="assets/css/style.css">
     <style>
         * {
             margin: 0;
@@ -581,6 +581,7 @@
             .content-wrapper { padding: 16px 20px; }
         }
     </style>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 </head>
 <body>
     <!-- 动态背景 -->
@@ -940,103 +941,31 @@
             { name: "Markdown链接清理器", desc: "批量清理Markdown链接中的定位符片段", url: "tools/productivity/markdown_clean.html", category: "效率工具" }
         ];
 
-        let searchTimeout;
+        input.addEventListener('input', function(){
+            const q = this.value.trim().toLowerCase();
+            sections.forEach(section => {
+                let visible = 0;
+                section.querySelectorAll('.tool-card').forEach(card => {
+                    const text = (card.querySelector('h3').textContent + ' ' + card.querySelector('p').textContent).toLowerCase();
+                    const show = text.includes(q);
+                    card.style.display = show ? 'block' : 'none';
+                    if(show) visible++;
+                });
+                section.previousElementSibling.style.display = (visible === 0 && q !== '') ? 'none' : '';
+                section.style.display = (visible === 0 && q !== '') ? 'none' : 'grid';
+            });
+        });
 
-        // 搜索功能
-        function performSearch() {
-            const searchInput = document.getElementById('searchInput');
-            const query = searchInput.value.trim().toLowerCase();
-            
-            if (query === '') {
-                hideSuggestions();
-                return;
+        document.addEventListener('keydown', function(e){
+            if((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k'){
+                e.preventDefault();
+                input.focus();
             }
-
-            const results = toolsData.filter(tool => 
-                tool.name.toLowerCase().includes(query) || 
-                tool.desc.toLowerCase().includes(query) ||
-                tool.category.toLowerCase().includes(query)
-            );
-
-            showSuggestions(results, query);
-        }
-
-        // 显示搜索建议
-        function showSuggestions(results, query) {
-            const suggestionsContainer = document.getElementById('searchSuggestions');
-            
-            if (results.length === 0) {
-                suggestionsContainer.innerHTML = '<div class="suggestion-item">未找到相关工具</div>';
-                suggestionsContainer.style.display = 'block';
-                return;
+            if(e.key === 'Escape'){
+                input.value = '';
+                input.dispatchEvent(new Event('input'));
+                input.blur();
             }
-
-            const html = results.map(tool => `
-                <div class="suggestion-item" onclick="navigateToTool('${tool.url}')">
-                    <div class="suggestion-name">${highlightText(tool.name, query)}</div>
-                    <div class="suggestion-desc">${highlightText(tool.desc, query)}</div>
-                </div>
-            `).join('');
-
-            suggestionsContainer.innerHTML = html;
-            suggestionsContainer.style.display = 'block';
-        }
-
-        // 隐藏搜索建议
-        function hideSuggestions() {
-            const suggestionsContainer = document.getElementById('searchSuggestions');
-            suggestionsContainer.style.display = 'none';
-        }
-
-        // 高亮搜索文本
-        function highlightText(text, query) {
-            if (!query) return text;
-            const regex = new RegExp(`(${query})`, 'gi');
-            return text.replace(regex, '<span class="highlight">$1</span>');
-        }
-
-        // 导航到工具页面
-        function navigateToTool(url) {
-            window.location.href = url;
-        }
-
-        // 事件监听
-        document.addEventListener('DOMContentLoaded', function() {
-            const searchInput = document.getElementById('searchInput');
-            const suggestionsContainer = document.getElementById('searchSuggestions');
-
-            // 搜索输入事件
-            searchInput.addEventListener('input', function() {
-                clearTimeout(searchTimeout);
-                searchTimeout = setTimeout(performSearch, 300);
-            });
-
-            // 点击外部隐藏建议
-            document.addEventListener('click', function(e) {
-                if (!e.target.closest('.search-container')) {
-                    hideSuggestions();
-                }
-            });
-
-            // 键盘事件
-            searchInput.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') {
-                    const firstSuggestion = suggestionsContainer.querySelector('.suggestion-item');
-                    if (firstSuggestion) {
-                        firstSuggestion.click();
-                    }
-                } else if (e.key === 'Escape') {
-                    hideSuggestions();
-                    searchInput.blur();
-                }
-            });
-
-            // 聚焦时显示所有工具
-            searchInput.addEventListener('focus', function() {
-                if (this.value.trim() === '') {
-                    showSuggestions(toolsData, '');
-                }
-            });
         });
     </script>
 </body>

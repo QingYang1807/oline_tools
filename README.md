@@ -1,80 +1,42 @@
-# 工具箱
+# 工具箱门户
 
-一个简洁大方的在线工具集合，包含15个精选实用工具，按功能分类整理，提升工作效率。
+一个简约、好用、适配大中小屏的静态门户首页，聚合仓库内各类轻量工具。原先放在根目录的 HTML 预览工具已迁移至开发工具分类目录。
 
-## 🚀 快速开始
+## 访问入口
 
-1. 使用HTTP服务器运行项目：
-   ```bash
-   # Python 3
-   python -m http.server 8000
-   
-   # Python 2  
-   python -m SimpleHTTPServer 8000
-   
-   # Node.js
-   npx http-server
-   ```
+- 门户首页：打开仓库根目录 `index.html`
+- HTML 代码在线预览工具：`tools/development/html-preview/index.html`
+- 工具聚合页（旧版视觉）：`tools-portal.html`
 
-2. 访问 `http://localhost:8000` 查看工具门户
-
-## 📁 项目结构
+## 目录结构
 
 ```
-workspace/
-├── index.html                    # 工具门户首页
-├── assets/                       # 静态资源
-├── tools/                        # 工具分类目录
-│   ├── development/              # 开发工具 (4个)
-│   ├── documentation/            # 文档编辑 (5个)  
-│   ├── utilities/                # 实用工具 (3个)
-│   └── productivity/             # 效率工具 (3个)
-├── python_execution_engine/      # Python执行引擎后端
-└── TOOLS_README.md              # 详细工具文档
+/workspace/
+├── index.html                         # 全新门户首页（自适应多设备）
+├── tools/
+│   └── development/
+│       └── html-preview/
+│           ├── index.html            # HTML 预览工具页面
+│           ├── examples.js           # 示例代码
+│           ├── README.md             # 工具说明（原根目录）
+│           └── 使用说明.md           # 使用说明（原根目录）
+├── assets/
+│   └── css/
+│       └── style.css                 # 门户通用样式
+└── tools-portal.html                 # 旧版工具门户（保留，可访问）
 ```
 
-## 🛠️ 工具分类
+## 快捷键
 
-### ⚙️ 开发工具
-- API接口测试器
-- Base64/URL编解码
-- 文件内容对比
-- Python代码执行器
+- Ctrl/⌘ + K：聚焦搜索框
+- ESC：清空搜索并移除焦点
 
-### 📝 文档编辑
-- Markdown编辑器
-- LaTeX公式编辑器
-- Mermaid图表渲染器
+## 说明
 
-### 🛠️ 实用工具
-- 二维码解析工具
-- 密码生成器
-- 数据计算工具
-- 轻量化日历
+- 所有工具均为纯前端实现，无需安装，隐私友好。
+- 如果你在 `tools-portal.html` 中使用“HTML预览工具”入口，已自动跳转到新位置。
 
-### ⚡ 效率工具
-- 番茄钟待办事项
-- 学习打卡面板
-- 极简画板
+## 开发
 
-## 🎨 设计特点
-
-- **简洁大方**：现代化设计，避免过度装饰
-- **分类清晰**：按功能分类，便于查找
-- **响应式设计**：支持桌面端和移动端
-- **暗色模式**：自动适配系统主题
-- **无AI味**：专注于实用性
-
-## 🔒 隐私保护
-
-- 所有工具均运行在本地浏览器
-- 不收集任何用户数据
-- 不发送数据到外部服务器
-
-## 📖 详细文档
-
-查看 [TOOLS_README.md](./TOOLS_README.md) 获取完整的工具列表和使用说明。
-
-## 📄 许可证
-
-MIT License
+- 样式复用 `assets/css/style.css`，请保持风格一致。
+- 新增工具时建议在相应分类目录下创建文件并在首页添加入口。

@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工具箱门户 - 实用工具集合</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <meta name="color-scheme" content="light dark">
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --secondary: #6b7280;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg: #ffffff;
+            --card: #ffffff;
+            --fg: #1f2937;
+            --border: #e5e7eb;
+            --shadow: rgba(0, 0, 0, 0.1);
+            --shadow-lg: rgba(0, 0, 0, 0.15);
+            --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #0f172a;
+                --card: #1e293b;
+                --fg: #f1f5f9;
+                --border: #334155;
+                --shadow: rgba(0, 0, 0, 0.3);
+                --shadow-lg: rgba(0, 0, 0, 0.4);
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+            background: var(--bg);
+            color: var(--fg);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 40px 0;
+            background: var(--gradient);
+            color: white;
+            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .header > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .categories {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .category {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 16px var(--shadow);
+            transition: all 0.3s ease;
+        }
+
+        .category:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 32px var(--shadow-lg);
+        }
+
+        .category-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .category-icon {
+            font-size: 1.5rem;
+        }
+
+        .category-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--fg);
+        }
+
+        .category-count {
+            background: var(--primary);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .tools-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .tool-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            text-decoration: none;
+            color: var(--fg);
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tool-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--primary);
+            transform: scaleY(0);
+            transition: transform 0.2s ease;
+        }
+
+        .tool-item:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .tool-item:hover::before {
+            transform: scaleY(1);
+        }
+
+        .tool-icon {
+            font-size: 1.2rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        .tool-info {
+            flex: 1;
+        }
+
+        .tool-name {
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+
+        .tool-desc {
+            font-size: 0.85rem;
+            opacity: 0.7;
+        }
+
+        .tool-item:hover .tool-desc {
+            opacity: 0.9;
+        }
+
+        .quick-access {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 40px;
+            box-shadow: 0 4px 16px var(--shadow);
+        }
+
+        .quick-access h3 {
+            margin-bottom: 20px;
+            color: var(--fg);
+            font-size: 1.2rem;
+        }
+
+        .quick-buttons {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .quick-btn {
+            padding: 10px 20px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .quick-btn:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .footer {
+            text-align: center;
+            padding: 40px 0;
+            color: var(--secondary);
+            border-top: 1px solid var(--border);
+            margin-top: 40px;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .stats {
+                gap: 20px;
+            }
+
+            .categories {
+                grid-template-columns: 1fr;
+            }
+
+            .quick-buttons {
+                justify-content: center;
+            }
+        }
+
+        .search-box {
+            max-width: 500px;
+            margin: 0 auto 30px;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 16px 12px 44px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            background: var(--card);
+            color: var(--fg);
+            font-size: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--secondary);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>🛠️ 工具箱门户</h1>
+            <p>精选实用工具集合，提升工作效率，让工作更简单</p>
+            <div class="stats">
+                <div class="stat-item">
+                    <span class="stat-number">19</span>
+                    <span class="stat-label">实用工具</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">4</span>
+                    <span class="stat-label">功能分类</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">100%</span>
+                    <span class="stat-label">免费使用</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" class="search-input" placeholder="搜索工具..." id="searchInput">
+        </div>
+
+        <div class="quick-access">
+            <h3>🚀 快速访问</h3>
+            <div class="quick-buttons">
+                <a href="tools/development/html-preview/index.html" class="quick-btn">
+                    <span>🏠</span>
+                    <span>HTML预览工具</span>
+                </a>
+                <a href="tools/development/api-tester.html" class="quick-btn">
+                    <span>🔧</span>
+                    <span>API测试器</span>
+                </a>
+                <a href="tools/documentation/markdown-editor.html" class="quick-btn">
+                    <span>📝</span>
+                    <span>Markdown编辑器</span>
+                </a>
+                <a href="tools/utilities/password-generator.html" class="quick-btn">
+                    <span>🔐</span>
+                    <span>密码生成器</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="categories">
+            <!-- 开发工具 -->
+            <div class="category" data-category="development">
+                <div class="category-header">
+                    <span class="category-icon">⚙️</span>
+                    <span class="category-title">开发工具</span>
+                    <span class="category-count">6</span>
+                </div>
+                <div class="tools-grid">
+                    <a href="tools/development/api-tester.html" class="tool-item">
+                        <span class="tool-icon">🔧</span>
+                        <div class="tool-info">
+                            <div class="tool-name">API接口测试器</div>
+                            <div class="tool-desc">测试HTTP接口，支持多种请求方法</div>
+                        </div>
+                    </a>
+                    <a href="tools/development/base64-url-encoder.html" class="tool-item">
+                        <span class="tool-icon">🔤</span>
+                        <div class="tool-info">
+                            <div class="tool-name">Base64/URL编解码</div>
+                            <div class="tool-desc">快速编解码Base64和URL格式</div>
+                        </div>
+                    </a>
+                    <a href="tools/development/file-diff.html" class="tool-item">
+                        <span class="tool-icon">📊</span>
+                        <div class="tool-info">
+                            <div class="tool-name">文件内容对比</div>
+                            <div class="tool-desc">对比两个文本文件的差异</div>
+                        </div>
+                    </a>
+                    <a href="tools/development/advanced-file-diff.html" class="tool-item">
+                        <span class="tool-icon">📈</span>
+                        <div class="tool-info">
+                            <div class="tool-name">高级文件对比</div>
+                            <div class="tool-desc">增强版文件对比工具</div>
+                        </div>
+                    </a>
+                    <a href="tools/development/python-executor.html" class="tool-item">
+                        <span class="tool-icon">🐍</span>
+                        <div class="tool-info">
+                            <div class="tool-name">Python代码执行器</div>
+                            <div class="tool-desc">在线运行Python代码</div>
+                        </div>
+                    </a>
+                    <a href="tools/development/sql-rollback-generator.html" class="tool-item">
+                        <span class="tool-icon">🔄</span>
+                        <div class="tool-info">
+                            <div class="tool-name">SQL回滚生成工具</div>
+                            <div class="tool-desc">自动生成SQL回滚语句</div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 文档编辑 -->
+            <div class="category" data-category="documentation">
+                <div class="category-header">
+                    <span class="category-icon">📝</span>
+                    <span class="category-title">文档编辑</span>
+                    <span class="category-count">5</span>
+                </div>
+                <div class="tools-grid">
+                    <a href="tools/documentation/markdown-editor.html" class="tool-item">
+                        <span class="tool-icon">📄</span>
+                        <div class="tool-info">
+                            <div class="tool-name">Markdown编辑器</div>
+                            <div class="tool-desc">实时预览的Markdown编辑器</div>
+                        </div>
+                    </a>
+                    <a href="tools/documentation/latex-editor.html" class="tool-item">
+                        <span class="tool-icon">🧮</span>
+                        <div class="tool-info">
+                            <div class="tool-name">LaTeX公式编辑器</div>
+                            <div class="tool-desc">数学公式编辑和渲染</div>
+                        </div>
+                    </a>
+                    <a href="tools/documentation/mermaid.html" class="tool-item">
+                        <span class="tool-icon">📊</span>
+                        <div class="tool-info">
+                            <div class="tool-name">Mermaid图表渲染器</div>
+                            <div class="tool-desc">创建流程图、时序图等</div>
+                        </div>
+                    </a>
+                    <a href="tools/documentation/mermaid-v2.html" class="tool-item">
+                        <span class="tool-icon">📈</span>
+                        <div class="tool-info">
+                            <div class="tool-name">Mermaid图表渲染器v2</div>
+                            <div class="tool-desc">增强版Mermaid渲染器</div>
+                        </div>
+                    </a>
+                    <a href="tools/documentation/mermaid-history.html" class="tool-item">
+                        <span class="tool-icon">📚</span>
+                        <div class="tool-info">
+                            <div class="tool-name">Mermaid历史版本</div>
+                            <div class="tool-desc">历史版本Mermaid工具</div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 实用工具 -->
+            <div class="category" data-category="utilities">
+                <div class="category-header">
+                    <span class="tool-icon">🛠️</span>
+                    <span class="category-title">实用工具</span>
+                    <span class="category-count">4</span>
+                </div>
+                <div class="tools-grid">
+                    <a href="tools/utilities/calendar.html" class="tool-item">
+                        <span class="tool-icon">📅</span>
+                        <div class="tool-info">
+                            <div class="tool-name">轻量化日历</div>
+                            <div class="tool-desc">简洁的日历查看器</div>
+                        </div>
+                    </a>
+                    <a href="tools/utilities/password-generator.html" class="tool-item">
+                        <span class="tool-icon">🔐</span>
+                        <div class="tool-info">
+                            <div class="tool-name">密码生成器</div>
+                            <div class="tool-desc">生成安全随机密码</div>
+                        </div>
+                    </a>
+                    <a href="tools/utilities/qr-decoder.html" class="tool-item">
+                        <span class="tool-icon">📱</span>
+                        <div class="tool-info">
+                            <div class="tool-name">二维码解析工具</div>
+                            <div class="tool-desc">解析二维码内容</div>
+                        </div>
+                    </a>
+                    <a href="tools/utilities/data-calculator.html" class="tool-item">
+                        <span class="tool-icon">🧮</span>
+                        <div class="tool-info">
+                            <div class="tool-name">数据计算工具</div>
+                            <div class="tool-desc">进制转换、单位换算等</div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 效率工具 -->
+            <div class="category" data-category="productivity">
+                <div class="category-header">
+                    <span class="category-icon">⚡</span>
+                    <span class="category-title">效率工具</span>
+                    <span class="category-count">4</span>
+                </div>
+                <div class="tools-grid">
+                    <a href="tools/productivity/pomodoro.html" class="tool-item">
+                        <span class="tool-icon">🍅</span>
+                        <div class="tool-info">
+                            <div class="tool-name">番茄钟待办事项</div>
+                            <div class="tool-desc">时间管理和任务规划</div>
+                        </div>
+                    </a>
+                    <a href="tools/productivity/study-checkin.html" class="tool-item">
+                        <span class="tool-icon">📚</span>
+                        <div class="tool-info">
+                            <div class="tool-name">学习打卡面板</div>
+                            <div class="tool-desc">学习进度跟踪</div>
+                        </div>
+                    </a>
+                    <a href="tools/productivity/whiteboard.html" class="tool-item">
+                        <span class="tool-icon">🎨</span>
+                        <div class="tool-info">
+                            <div class="tool-name">极简画板</div>
+                            <div class="tool-desc">在线绘图和标注</div>
+                        </div>
+                    </a>
+                    <a href="tools/productivity/markdown_clean.html" class="tool-item">
+                        <span class="tool-icon">🧹</span>
+                        <div class="tool-info">
+                            <div class="tool-name">Markdown清理工具</div>
+                            <div class="tool-desc">清理和格式化Markdown文档</div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <p>🛠️ 工具箱门户 - 让工作更高效，让生活更简单</p>
+            <p style="margin-top: 8px; font-size: 0.9rem; opacity: 0.7;">
+                所有工具均为纯前端实现，保护用户隐私，无需安装
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        // 搜索功能
+        const searchInput = document.getElementById('searchInput');
+        const categories = document.querySelectorAll('.category');
+
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            
+            categories.forEach(category => {
+                const tools = category.querySelectorAll('.tool-item');
+                let visibleTools = 0;
+                
+                tools.forEach(tool => {
+                    const toolName = tool.querySelector('.tool-name').textContent.toLowerCase();
+                    const toolDesc = tool.querySelector('.tool-desc').textContent.toLowerCase();
+                    
+                    if (toolName.includes(searchTerm) || toolDesc.includes(searchTerm)) {
+                        tool.style.display = 'flex';
+                        visibleTools++;
+                    } else {
+                        tool.style.display = 'none';
+                    }
+                });
+                
+                // 如果该分类没有可见工具，隐藏整个分类
+                if (visibleTools === 0 && searchTerm !== '') {
+                    category.style.display = 'none';
+                } else {
+                    category.style.display = 'block';
+                }
+            });
+        });
+
+        // 添加键盘快捷键支持
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + K 聚焦搜索框
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                searchInput.focus();
+            }
+            
+            // ESC 清空搜索
+            if (e.key === 'Escape') {
+                searchInput.value = '';
+                searchInput.dispatchEvent(new Event('input'));
+                searchInput.blur();
+            }
+        });
+
+        // 添加工具点击统计（可选）
+        document.querySelectorAll('.tool-item').forEach(tool => {
+            tool.addEventListener('click', function() {
+                const toolName = this.querySelector('.tool-name').textContent;
+                console.log(`工具被点击: ${toolName}`);
+                // 这里可以添加统计代码
+            });
+        });
+
+        // 页面加载完成后的初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('工具箱门户已加载');
+            
+            // 检查所有工具链接是否有效
+            const toolLinks = document.querySelectorAll('.tool-item[href]');
+            console.log(`已注册 ${toolLinks.length} 个工具`);
+        });
+    </script>
+</body>
+</html>

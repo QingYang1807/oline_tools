@@ -130,14 +130,27 @@
             border-right: 1px solid rgba(0, 255, 157, 0.1);
             display: flex;
             flex-direction: column;
-            transition: transform 0.3s ease, width 0.3s ease;
+            transition: width 0.3s ease;
             position: relative;
             z-index: 200;
+            overflow: hidden;
         }
         
         .sidebar.collapsed {
-            width: 0;
-            transform: translateX(-100%);
+            width: 60px;
+        }
+        
+        .sidebar.collapsed .sidebar-header > *:not(.btn-toggle-sidebar),
+        .sidebar.collapsed .sidebar-content,
+        .sidebar.collapsed .sidebar-footer {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        
+        .sidebar.collapsed .btn-toggle-sidebar {
+            opacity: 1 !important;
+            pointer-events: auto !important;
         }
         
         .sidebar-header {
@@ -145,6 +158,7 @@
             border-bottom: 1px solid rgba(0, 255, 157, 0.1);
             display: flex;
             gap: 10px;
+            transition: opacity 0.3s ease;
         }
         
         .btn-new-chat {
@@ -183,6 +197,7 @@
             align-items: center;
             justify-content: center;
             font-size: 16px;
+            flex-shrink: 0;
         }
         
         .btn-toggle-sidebar:hover {
@@ -190,10 +205,42 @@
             border-color: #00ff9d;
         }
         
+        /* 收起状态下的切换按钮 */
+        .sidebar.collapsed .btn-toggle-sidebar {
+            position: absolute;
+            top: 20px;
+            left: 10px;
+            z-index: 1000;
+            background: rgba(0, 255, 157, 0.15);
+            border: 2px solid #00ff9d;
+            box-shadow: 0 4px 15px rgba(0, 255, 157, 0.5);
+        }
+        
+        .sidebar.collapsed .btn-toggle-sidebar:hover {
+            background: rgba(0, 255, 157, 0.3);
+            box-shadow: 0 6px 20px rgba(0, 255, 157, 0.7);
+            transform: translateX(3px);
+        }
+        
+        /* 展开按钮呼吸灯效果 */
+        .sidebar.collapsed .btn-toggle-sidebar {
+            animation: breathe 2s ease-in-out infinite;
+        }
+        
+        @keyframes breathe {
+            0%, 100% {
+                box-shadow: 0 4px 15px rgba(0, 255, 157, 0.5);
+            }
+            50% {
+                box-shadow: 0 4px 25px rgba(0, 255, 157, 0.8), 0 0 30px rgba(0, 255, 157, 0.4);
+            }
+        }
+        
         .sidebar-content {
             flex: 1;
             overflow-y: auto;
             padding: 10px;
+            transition: opacity 0.3s ease;
         }
         
         .section-title {
@@ -294,6 +341,7 @@
             border-top: 1px solid rgba(0, 255, 157, 0.1);
             display: flex;
             gap: 8px;
+            transition: opacity 0.3s ease;
         }
         
         .btn-sidebar-action {
@@ -452,6 +500,22 @@
                 transform: translateX(0);
             }
             
+            /* 移动端取消collapsed状态的样式 */
+            .sidebar.collapsed {
+                width: 280px;
+            }
+            
+            .sidebar.collapsed .sidebar-header,
+            .sidebar.collapsed .sidebar-content,
+            .sidebar.collapsed .sidebar-footer {
+                opacity: 1;
+                pointer-events: auto;
+            }
+            
+            .sidebar.collapsed .btn-toggle-sidebar {
+                position: static;
+            }
+            
             /* 移动端显示菜单按钮 */
             .btn-mobile-menu {
                 display: flex;
@@ -580,6 +644,8 @@
             border-bottom: 1px solid rgba(0, 255, 157, 0.1);
             display: none;
             flex-shrink: 0;
+            overflow-y: auto;
+            max-height: 70vh;
         }
 
         .settings-panel.active {
@@ -615,7 +681,68 @@
         /* 手机 */
         @media (max-width: 767px) {
             .settings-panel {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                z-index: 1000;
                 padding: 16px 20px;
+                padding-top: 60px;
+                padding-bottom: 80px;
+                max-height: 100vh;
+                border-bottom: none;
+                background: rgba(10, 14, 39, 0.98);
+            }
+            
+            .settings-panel h2 {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                background: rgba(10, 14, 39, 0.98);
+                padding: 16px 20px;
+                margin: 0;
+                border-bottom: 1px solid rgba(0, 255, 157, 0.1);
+                z-index: 1001;
+            }
+            
+            #closeSettingsBtn {
+                display: block !important;
+            }
+            
+            /* 移动端保存按钮固定在底部 */
+            .settings-panel > div:last-child {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                margin: 0;
+                padding: 12px 20px;
+                background: rgba(10, 14, 39, 0.98);
+                border-top: 1px solid rgba(0, 255, 157, 0.1);
+                z-index: 1002;
+            }
+            
+            #saveSettingsBtn {
+                width: 100%;
+                margin: 0;
+                border-radius: 8px;
+                padding: 14px;
+                font-size: 16px;
+            }
+            
+            .settings-panel::-webkit-scrollbar {
+                width: 4px;
+            }
+            
+            .settings-panel::-webkit-scrollbar-track {
+                background: rgba(255, 255, 255, 0.02);
+            }
+            
+            .settings-panel::-webkit-scrollbar-thumb {
+                background: rgba(0, 255, 157, 0.3);
+                border-radius: 2px;
             }
         }
 
@@ -636,7 +763,8 @@
         }
 
         .setting-group input,
-        .setting-group select {
+        .setting-group select,
+        .setting-group textarea {
             width: 100%;
             padding: 12px 16px;
             background: rgba(255, 255, 255, 0.05);
@@ -646,14 +774,58 @@
             font-size: 14px;
             color: #fff;
             transition: all 0.3s;
+            font-family: inherit;
+        }
+        
+        .setting-group input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+        
+        .setting-group input:hover,
+        .setting-group select:hover,
+        .setting-group textarea:hover {
+            border-color: rgba(0, 255, 157, 0.4);
+            background: rgba(255, 255, 255, 0.08);
         }
 
         .setting-group input:focus,
-        .setting-group select:focus {
+        .setting-group select:focus,
+        .setting-group textarea:focus {
             outline: none;
             border-color: #00ff9d;
             background: rgba(0, 255, 157, 0.08);
             box-shadow: 0 0 20px rgba(0, 255, 157, 0.2);
+        }
+        
+        .setting-group textarea {
+            min-height: 80px;
+            resize: vertical;
+            line-height: 1.5;
+        }
+        
+        .setting-group textarea::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+        
+        /* 数字输入框样式优化 */
+        .setting-group input[type="number"] {
+            appearance: textfield;
+            -moz-appearance: textfield;
+        }
+        
+        .setting-group input[type="number"]::-webkit-inner-spin-button,
+        .setting-group input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        /* 密码输入框特殊样式 */
+        .setting-group input[type="password"] {
+            letter-spacing: 2px;
+        }
+        
+        .setting-group input[type="password"]::placeholder {
+            letter-spacing: normal;
         }
 
         .setting-group label {
@@ -1303,14 +1475,51 @@
         /* 手机小屏幕特殊优化 */
         @media (max-width: 767px) {
             .header {
-                flex-direction: column;
-                gap: 12px;
-                align-items: flex-start;
+                flex-direction: row;
+                gap: 8px;
+                align-items: center;
+                padding: 12px 16px;
+                justify-content: space-between;
+            }
+            
+            .header h1 {
+                font-size: 14px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
 
             .header-actions {
-                width: 100%;
-                justify-content: space-between;
+                display: flex;
+                gap: 6px;
+                flex-shrink: 0;
+            }
+            
+            /* 移动端隐藏顶部设置按钮 */
+            #settingsBtn {
+                display: none;
+            }
+            
+            /* 移动端隐藏新建对话按钮（使用侧边栏的） */
+            #newChatBtnHeader {
+                display: none;
+            }
+            
+            /* 移动端隐藏状态指示器 */
+            #statusIndicator {
+                display: none;
+            }
+            
+            /* 移动端模型标签样式 */
+            .model-badge {
+                display: none;
+            }
+            
+            /* 移动端侧边栏底部布局调整为2x2网格 */
+            .sidebar-footer {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
             }
 
             .message-content {
@@ -1318,15 +1527,19 @@
             }
 
             .model-badge {
-                font-size: 11px;
-                padding: 3px 10px;
-                margin-left: 0;
-                margin-top: 4px;
+                display: none;
             }
 
             .btn {
-                padding: 6px 12px;
-                font-size: 13px;
+                padding: 6px 10px;
+                font-size: 12px;
+                white-space: nowrap;
+            }
+            
+            .btn-mobile-menu {
+                width: 36px;
+                height: 36px;
+                font-size: 18px;
             }
 
             .chat-input {
@@ -2064,6 +2277,10 @@
             </div>
             
             <div class="sidebar-footer">
+                <button class="btn-sidebar-action" id="settingsBtnSidebar" title="设置">
+                    <span class="icon">⚙️</span>
+                    <span class="text">设置</span>
+                </button>
                 <button class="btn-sidebar-action" id="exportBtn" title="导出对话">
                     <span class="icon">📥</span>
                     <span class="text">导出</span>
@@ -2089,19 +2306,23 @@
                 <button class="btn-mobile-menu" id="mobileMenuBtn" title="打开菜单">
                     <span>☰</span>
                 </button>
-                <div>
+                <div style="display: flex; align-items: center; flex: 1; min-width: 0; gap: 8px;">
                     <h1>💬 智谱AI对话工具</h1>
                     <span class="model-badge" id="currentModelBadge">未选择模型</span>
                 </div>
                 <div class="header-actions">
                     <span class="status-indicator" id="statusIndicator"></span>
                     <button class="btn btn-secondary" id="settingsBtn">⚙️ 设置</button>
-                    <button class="btn btn-primary" id="clearBtn">🗑️ 清空对话</button>
+                    <button class="btn btn-primary" id="newChatBtnHeader">✨ 新建对话</button>
+                    <button class="btn btn-secondary" id="clearBtn">🗑️ 清空对话</button>
                 </div>
             </div>
 
         <div class="settings-panel" id="settingsPanel">
-            <h2 style="margin: 0 0 15px 0; font-size: 24px;">⚙️ 设置</h2>
+            <h2 style="margin: 0 0 15px 0; font-size: 24px; display: flex; justify-content: space-between; align-items: center;">
+                <span>⚙️ 设置</span>
+                <button id="closeSettingsBtn" style="display: none; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(0, 255, 157, 0.3); color: #fff; border-radius: 8px; padding: 8px 12px; cursor: pointer; font-size: 18px;">✕</button>
+            </h2>
             <div style="margin-bottom: 20px; padding: 12px; background: rgba(0, 255, 157, 0.1); border-radius: 8px; border-left: 3px solid #00ff9d; font-size: 14px; line-height: 1.6;">
                 💡 <strong>提示：</strong>除API Key外，所有配置都会独立保存到当前对话中。切换对话时会自动加载对应配置。
             </div>
@@ -2136,7 +2357,7 @@
             </div>
             <div class="setting-group">
                 <label for="systemPrompt">系统提示词</label>
-                <textarea id="systemPrompt" placeholder="例如: 你是一个有用的AI助手" style="min-height: 80px; resize: vertical;">你是一个有用的AI助手。</textarea>
+                <textarea id="systemPrompt" placeholder="例如: 你是一个有用的AI助手">你是一个有用的AI助手。</textarea>
                 <div class="help-text">为当前对话设置角色和行为指导</div>
             </div>
             
@@ -2380,7 +2601,10 @@
             // 原有元素
             settingsPanel: document.getElementById('settingsPanel'),
             settingsBtn: document.getElementById('settingsBtn'),
+            settingsBtnSidebar: document.getElementById('settingsBtnSidebar'),
+            closeSettingsBtn: document.getElementById('closeSettingsBtn'),
             saveSettingsBtn: document.getElementById('saveSettingsBtn'),
+            newChatBtnHeader: document.getElementById('newChatBtnHeader'),
             clearBtn: document.getElementById('clearBtn'),
             apiKeyInput: document.getElementById('apiKey'),
             modelSelect: document.getElementById('modelSelect'),
@@ -2716,6 +2940,12 @@
                 return;
             }
 
+            // 检查是否有当前会话
+            if (!currentSessionId) {
+                showSystemMessage('请先创建对话', 'error');
+                return;
+            }
+
             if (!model || model === '') {
                 showSystemMessage('请选择模型', 'error');
                 return;
@@ -2740,26 +2970,32 @@
             localStorage.setItem(CONFIG_KEYS.API_KEY, apiKey);
 
             // 保存到当前会话配置
-            if (currentSessionId) {
-                const session = chatSessions.find(s => s.id === currentSessionId);
-                if (session) {
-                    session.config = {
-                        model: model,
-                        temperature: temperature,
-                        top_p: topP,
-                        max_tokens: maxTokens,
-                        context_length: contextLength,
-                        stream_enabled: streamEnabled,
-                        system_prompt: systemPrompt
-                    };
-                    saveSessions();
-                }
+            const session = chatSessions.find(s => s.id === currentSessionId);
+            if (session) {
+                session.config = {
+                    model: model,
+                    temperature: temperature,
+                    top_p: topP,
+                    max_tokens: maxTokens,
+                    context_length: contextLength,
+                    stream_enabled: streamEnabled,
+                    system_prompt: systemPrompt
+                };
+                saveSessions();
             }
 
             elements.currentModelBadge.textContent = model;
             updateStatus();
             updateModelCapabilities(model);
+            
+            // 关闭设置面板
             elements.settingsPanel.classList.remove('active');
+            
+            // 移动端关闭侧边栏
+            if (window.innerWidth <= 767) {
+                closeSidebar();
+            }
+            
             showSystemMessage('设置已保存到当前对话');
         }
         
@@ -2874,7 +3110,9 @@
         // 设置事件监听器
         function setupEventListeners() {
             elements.settingsBtn.addEventListener('click', toggleSettings);
+            elements.closeSettingsBtn.addEventListener('click', toggleSettings);
             elements.saveSettingsBtn.addEventListener('click', saveSettings);
+            elements.newChatBtnHeader.addEventListener('click', createNewSession);
             elements.clearBtn.addEventListener('click', clearConversation);
             // 发送按钮使用包装函数，避免async问题
             elements.sendBtn.addEventListener('click', (e) => {
@@ -3827,7 +4065,7 @@
                 saveCurrentSession();
             }
             
-            // 使用当前全局配置作为新会话的默认配置
+            // 使用当前UI配置作为新会话的默认配置
             const newSession = {
                 id: 'session_' + Date.now(),
                 title: '新对话',
@@ -3836,13 +4074,13 @@
                 updatedAt: Date.now(),
                 // 会话专属配置
                 config: {
-                    model: localStorage.getItem(CONFIG_KEYS.MODEL) || '',
-                    temperature: 0.7,
-                    top_p: 0.9,
-                    max_tokens: 4096,
-                    context_length: 20, // 保留最近20条消息作为上下文
-                    stream_enabled: localStorage.getItem(CONFIG_KEYS.STREAM_ENABLED) !== 'false',
-                    system_prompt: localStorage.getItem(CONFIG_KEYS.SYSTEM_PROMPT) || '你是一个有用的AI助手。'
+                    model: currentSelectedModel || localStorage.getItem(CONFIG_KEYS.MODEL) || '',
+                    temperature: parseFloat(elements.temperatureInput?.value) || 0.7,
+                    top_p: parseFloat(elements.topPInput?.value) || 0.9,
+                    max_tokens: parseInt(elements.maxTokensInput?.value) || 4096,
+                    context_length: parseInt(elements.contextLengthInput?.value) || 20,
+                    stream_enabled: elements.streamToggle?.checked !== false,
+                    system_prompt: elements.systemPromptInput?.value || '你是一个有用的AI助手。'
                 }
             };
             
@@ -4093,7 +4331,16 @@
         
         // 切换侧边栏
         function toggleSidebar() {
-            elements.sidebar.classList.toggle('collapsed');
+            const isCollapsed = elements.sidebar.classList.toggle('collapsed');
+            
+            // 更新按钮图标和提示
+            if (isCollapsed) {
+                elements.toggleSidebarBtn.innerHTML = '<span>▶</span>';
+                elements.toggleSidebarBtn.title = '展开侧边栏';
+            } else {
+                elements.toggleSidebarBtn.innerHTML = '<span>◀</span>';
+                elements.toggleSidebarBtn.title = '收起侧边栏';
+            }
         }
         
         // 打开侧边栏（移动端）
@@ -4114,6 +4361,13 @@
             elements.toggleSidebarBtn.addEventListener('click', toggleSidebar);
             elements.mobileMenuBtn.addEventListener('click', openSidebar);
             elements.sidebarOverlay.addEventListener('click', closeSidebar);
+            elements.settingsBtnSidebar.addEventListener('click', () => {
+                toggleSettings();
+                // 移动端打开设置后关闭侧边栏
+                if (window.innerWidth <= 767) {
+                    closeSidebar();
+                }
+            });
             elements.exportBtn.addEventListener('click', exportChats);
             elements.importBtn.addEventListener('click', () => elements.importFileInput.click());
             elements.importFileInput.addEventListener('change', importChats);

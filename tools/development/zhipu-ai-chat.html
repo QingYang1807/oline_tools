@@ -14,6 +14,8 @@
     <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
     <!-- DOMPurify - XSS防护 -->
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+    <!-- 腾讯云 COS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/cos-js-sdk-v5@1.4.22/dist/cos-js-sdk-v5.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -846,195 +848,19 @@
             padding: 6px 8px;
         }
 
-        /* 可搜索下拉框样式 */
-        .searchable-select {
-            position: relative;
-            width: 100%;
-        }
-
-        .searchable-select-trigger {
-            width: 100%;
-            padding: 12px 36px 12px 16px;
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(0, 255, 157, 0.2);
-            border-radius: 10px;
-            font-size: 14px;
-            color: #fff;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-align: left;
-            position: relative;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .searchable-select-trigger:hover {
-            border-color: #00ff9d;
-            background: rgba(0, 255, 157, 0.08);
-        }
-
-        .searchable-select-trigger::after {
-            content: '▼';
-            position: absolute;
-            right: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #00ff9d;
-            font-size: 12px;
-            transition: transform 0.3s;
-        }
-
-        .searchable-select-trigger.active::after {
-            transform: translateY(-50%) rotate(180deg);
-        }
-
-        .searchable-select-dropdown {
-            position: absolute;
-            top: calc(100% + 5px);
-            left: 0;
-            right: 0;
-            background: rgba(26, 31, 58, 0.98);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(0, 255, 157, 0.3);
-            border-radius: 10px;
-            max-height: 400px;
-            overflow: hidden;
-            z-index: 1000;
-            display: none;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-        }
-
-        .searchable-select-dropdown.active {
-            display: block;
-            animation: dropdownSlide 0.2s ease;
-        }
-
-        @keyframes dropdownSlide {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .searchable-select-search {
-            padding: 10px;
-            border-bottom: 1px solid rgba(0, 255, 157, 0.2);
-            position: sticky;
-            top: 0;
-            background: rgba(26, 31, 58, 0.98);
-            z-index: 1;
-        }
-
-        .searchable-select-search input {
-            width: 100%;
-            padding: 8px 12px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(0, 255, 157, 0.2);
-            border-radius: 6px;
-            color: #fff;
-            font-size: 13px;
-            outline: none;
-            transition: all 0.3s;
-        }
-
-        .searchable-select-search input:focus {
-            border-color: #00ff9d;
-            background: rgba(0, 255, 157, 0.08);
-        }
-
-        .searchable-select-search input::placeholder {
-            color: rgba(255, 255, 255, 0.4);
-        }
-
-        .searchable-select-options {
-            max-height: 340px;
-            overflow-y: auto;
-            padding: 5px 0;
-        }
-
-        .searchable-select-group {
-            margin: 8px 0;
-        }
-
-        .searchable-select-group-label {
-            padding: 8px 12px;
-            background: rgba(0, 255, 157, 0.1);
-            color: #00ff9d;
-            font-weight: bold;
-            font-size: 12px;
-            position: sticky;
-            top: 0;
-            backdrop-filter: blur(10px);
-            border-left: 3px solid #00ff9d;
-        }
-
-        .searchable-select-option {
-            padding: 10px 16px 10px 20px;
-            color: rgba(255, 255, 255, 0.9);
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 13px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .searchable-select-option:hover {
-            background: rgba(0, 255, 157, 0.15);
-            padding-left: 24px;
-        }
-
-        .searchable-select-option.selected {
-            background: rgba(0, 255, 157, 0.2);
-            color: #00ff9d;
-            font-weight: 600;
-        }
-
-        .searchable-select-option.selected::after {
-            content: '✓';
-            color: #00ff9d;
-            font-weight: bold;
-        }
-
-        .searchable-select-option.hidden {
-            display: none;
-        }
-
-        .searchable-select-no-results {
-            padding: 20px;
-            text-align: center;
-            color: rgba(255, 255, 255, 0.5);
-            font-size: 13px;
-        }
-
-        /* 滚动条美化 */
-        .searchable-select-options::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .searchable-select-options::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.02);
-        }
-
-        .searchable-select-options::-webkit-scrollbar-thumb {
-            background: rgba(0, 255, 157, 0.3);
-            border-radius: 3px;
-        }
-
-        .searchable-select-options::-webkit-scrollbar-thumb:hover {
-            background: rgba(0, 255, 157, 0.5);
-        }
-
+        /* 模型选择器样式 */
         .model-manager {
-            display: flex;
-            gap: 10px;
-            align-items: flex-end;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .model-manager .setting-group:first-child {
+            grid-column: 1;
+        }
+        
+        .model-manager .setting-group:nth-child(2) {
+            grid-column: 2;
         }
 
         .model-manager .setting-group {
@@ -1045,32 +871,16 @@
         /* 手机上模型管理器堆叠显示 */
         @media (max-width: 767px) {
             .model-manager {
-                flex-direction: column;
-                align-items: stretch;
+                grid-template-columns: 1fr;
                 gap: 15px;
             }
-
-            .model-manager .setting-group {
-                margin-bottom: 0;
+            
+            .model-manager .setting-group:first-child {
+                grid-column: 1;
             }
             
-            /* 移动端可搜索下拉框适配 */
-            .searchable-select-dropdown {
-                max-height: 60vh;
-            }
-            
-            .searchable-select-options {
-                max-height: calc(60vh - 60px);
-            }
-            
-            .searchable-select-option {
-                padding: 12px 16px 12px 20px;
-                font-size: 14px;
-            }
-            
-            .searchable-select-group-label {
-                padding: 10px 12px;
-                font-size: 13px;
+            .model-manager .setting-group:nth-child(2) {
+                grid-column: 1;
             }
         }
 
@@ -2332,21 +2142,15 @@
             </div>
             <div class="model-manager">
                 <div class="setting-group">
-                    <label for="modelSelect">选择模型 <small>(支持搜索)</small></label>
-                    <div class="searchable-select" id="modelSelectContainer">
-                        <div class="searchable-select-trigger" id="modelSelectTrigger">
-                            -- 请选择模型 --
-                        </div>
-                        <div class="searchable-select-dropdown" id="modelSelectDropdown">
-                            <div class="searchable-select-search">
-                                <input type="text" id="modelSearchInput" placeholder="🔍 搜索模型名称或描述...">
-                            </div>
-                            <div class="searchable-select-options" id="modelSelectOptions"></div>
-                        </div>
-                    </div>
-                    <!-- 隐藏的原生select用于保持兼容性 -->
-                    <select id="modelSelect" style="display: none;">
-                        <option value="">-- 请选择模型 --</option>
+                    <label for="categorySelect">模型分类</label>
+                    <select id="categorySelect" class="category-select">
+                        <option value="">-- 请先选择分类 --</option>
+                    </select>
+                </div>
+                <div class="setting-group">
+                    <label for="modelSelect">选择模型 <small>(先选择分类)</small></label>
+                    <select id="modelSelect" class="model-select">
+                        <option value="">-- 请先选择分类 --</option>
                     </select>
                 </div>
                 <div class="setting-group" id="customModelGroup">
@@ -2399,6 +2203,45 @@
                 </label>
                 <div class="help-text">开启后将实时显示AI生成的内容（推荐）</div>
             </div>
+            
+            <!-- 腾讯云 COS 配置 -->
+            <div style="margin-top: 20px; padding: 15px; background: rgba(255, 255, 255, 0.05); border-radius: 8px; border: 1px solid rgba(0, 255, 157, 0.2);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; cursor: pointer;" onclick="document.getElementById('cosConfigSection').style.display = document.getElementById('cosConfigSection').style.display === 'none' ? 'block' : 'none';">
+                    <h3 style="margin: 0; font-size: 16px; color: rgba(255, 255, 255, 0.9);">
+                        ☁️ 腾讯云COS配置 <small style="color: rgba(255, 255, 255, 0.5);">(用于GLM-4V-Flash图片上传)</small>
+                    </h3>
+                    <span style="color: rgba(255, 255, 255, 0.5);">▼</span>
+                </div>
+                <div id="cosConfigSection" style="display: none;">
+                    <div style="margin-bottom: 12px; padding: 10px; background: rgba(255, 200, 0, 0.1); border-radius: 6px; border-left: 3px solid #ffc800; font-size: 13px; line-height: 1.5;">
+                        ⚠️ <strong>提示：</strong>配置后，GLM-4V-Flash模型将自动上传图片到您的腾讯云COS。秘钥仅保存在浏览器本地，不会上传到服务器。
+                    </div>
+                    <div class="setting-group">
+                        <label for="cosSecretId">SecretId</label>
+                        <input type="password" id="cosSecretId" placeholder="请输入腾讯云SecretId">
+                    </div>
+                    <div class="setting-group">
+                        <label for="cosSecretKey">SecretKey</label>
+                        <input type="password" id="cosSecretKey" placeholder="请输入腾讯云SecretKey">
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div class="setting-group">
+                            <label for="cosBucket">Bucket名称</label>
+                            <input type="text" id="cosBucket" placeholder="例如: my-bucket-1250000000">
+                            <div class="help-text">格式: bucket-appid</div>
+                        </div>
+                        <div class="setting-group">
+                            <label for="cosRegion">Region</label>
+                            <input type="text" id="cosRegion" placeholder="例如: ap-guangzhou">
+                            <div class="help-text">如: ap-beijing, ap-shanghai</div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 10px; padding: 8px; background: rgba(0, 255, 157, 0.05); border-radius: 6px; font-size: 12px; color: rgba(255, 255, 255, 0.7);">
+                        📖 <a href="https://console.cloud.tencent.com/cos" target="_blank" style="color: #00ff9d; text-decoration: none;">点击前往腾讯云COS控制台</a> 获取配置信息
+                    </div>
+                </div>
+            </div>
+            
             <div style="margin-top: 15px;">
                 <button class="btn btn-primary" id="saveSettingsBtn">💾 保存设置</button>
             </div>
@@ -2441,7 +2284,12 @@
             STREAM_ENABLED: 'zhipu_ai_stream_enabled',
             CUSTOM_MODELS: 'zhipu_ai_custom_models',
             CHAT_SESSIONS: 'zhipu_ai_chat_sessions',
-            CURRENT_SESSION: 'zhipu_ai_current_session'
+            CURRENT_SESSION: 'zhipu_ai_current_session',
+            // 腾讯云 COS 配置
+            COS_SECRET_ID: 'tencent_cos_secret_id',
+            COS_SECRET_KEY: 'tencent_cos_secret_key',
+            COS_BUCKET: 'tencent_cos_bucket',
+            COS_REGION: 'tencent_cos_region'
         };
 
         // API 端点配置
@@ -2519,7 +2367,7 @@
                     { value: 'glm-4v-plus', label: 'GLM-4V-Plus (视频和多图片理解)' },
                     { value: 'glm-4v-plus-0111', label: 'GLM-4V-Plus-0111 (可变分辨率)' },
                     { value: 'glm-4v', label: 'GLM-4V (图像理解)' },
-                    { value: 'glm-4v-flash', label: 'GLM-4V-Flash (免费图像理解) 💰' }
+                    { value: 'glm-4v-flash', label: 'GLM-4V-Flash (免费·自动上传COS) 💰☁️' }
                 ]
             },
             {
@@ -2607,12 +2455,8 @@
             newChatBtnHeader: document.getElementById('newChatBtnHeader'),
             clearBtn: document.getElementById('clearBtn'),
             apiKeyInput: document.getElementById('apiKey'),
+            categorySelect: document.getElementById('categorySelect'),
             modelSelect: document.getElementById('modelSelect'),
-            modelSelectContainer: document.getElementById('modelSelectContainer'),
-            modelSelectTrigger: document.getElementById('modelSelectTrigger'),
-            modelSelectDropdown: document.getElementById('modelSelectDropdown'),
-            modelSelectOptions: document.getElementById('modelSelectOptions'),
-            modelSearchInput: document.getElementById('modelSearchInput'),
             customModelGroup: document.getElementById('customModelGroup'),
             customModelInput: document.getElementById('customModel'),
             systemPromptInput: document.getElementById('systemPrompt'),
@@ -2629,6 +2473,11 @@
             uploadImageBtn: document.getElementById('uploadImageBtn'),
             imageInput: document.getElementById('imageInput'),
             imagePreviewContainer: document.getElementById('imagePreviewContainer'),
+            // 腾讯云 COS 配置元素
+            cosSecretIdInput: document.getElementById('cosSecretId'),
+            cosSecretKeyInput: document.getElementById('cosSecretKey'),
+            cosBucketInput: document.getElementById('cosBucket'),
+            cosRegionInput: document.getElementById('cosRegion'),
             // 侧边栏元素
             sidebar: document.getElementById('sidebar'),
             sidebarOverlay: document.getElementById('sidebarOverlay'),
@@ -2738,150 +2587,81 @@
             });
         }
 
-        // 初始化可搜索下拉框
-        function initSearchableSelect() {
-            let selectedValue = '';
+        // 初始化模型选择器（两级选择）
+        function initModelSelector() {
+            // 初始化时禁用模型选择框
+            elements.modelSelect.disabled = true;
             
-            // 渲染选项
-            function renderOptions(filterText = '') {
-                elements.modelSelectOptions.innerHTML = '';
-                let hasResults = false;
+            // 初始化分类选择框
+            MODEL_DATA.forEach((groupData, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = groupData.group;
+                elements.categorySelect.appendChild(option);
+            });
+            
+            // 分类选择变化时，更新模型选择框
+            elements.categorySelect.addEventListener('change', function() {
+                const categoryIndex = this.value;
+                elements.modelSelect.innerHTML = '<option value="">-- 请选择模型 --</option>';
                 
-                MODEL_DATA.forEach(groupData => {
-                    const groupDiv = document.createElement('div');
-                    groupDiv.className = 'searchable-select-group';
-                    
-                    const groupLabel = document.createElement('div');
-                    groupLabel.className = 'searchable-select-group-label';
-                    groupLabel.textContent = groupData.group;
-                    
-                    const groupOptions = document.createElement('div');
-                    
-                    groupData.models.forEach(model => {
-                        // 搜索过滤
-                        if (filterText && !model.value.toLowerCase().includes(filterText.toLowerCase()) && 
-                            !model.label.toLowerCase().includes(filterText.toLowerCase())) {
-                            return;
-                        }
-                        
-                        hasResults = true;
-                        const optionDiv = document.createElement('div');
-                        optionDiv.className = 'searchable-select-option';
-                        if (model.value === selectedValue) {
-                            optionDiv.classList.add('selected');
-                        }
-                        optionDiv.textContent = model.label;
-                        optionDiv.dataset.value = model.value;
-                        optionDiv.dataset.label = model.label;
-                        
-                        optionDiv.onclick = () => selectOption(model.value, model.label);
-                        groupOptions.appendChild(optionDiv);
-                    });
-                    
-                    if (groupOptions.children.length > 0) {
-                        groupDiv.appendChild(groupLabel);
-                        groupDiv.appendChild(groupOptions);
-                        elements.modelSelectOptions.appendChild(groupDiv);
-                    }
+                if (categoryIndex === '') {
+                    elements.modelSelect.disabled = true;
+                    currentSelectedModel = '';
+                    return;
+                }
+                
+                elements.modelSelect.disabled = false;
+                const selectedGroup = MODEL_DATA[categoryIndex];
+                
+                selectedGroup.models.forEach(model => {
+                    const option = document.createElement('option');
+                    option.value = model.value;
+                    option.textContent = model.label;
+                    elements.modelSelect.appendChild(option);
                 });
-                
-                // 显示无结果提示
-                if (!hasResults) {
-                    const noResultsDiv = document.createElement('div');
-                    noResultsDiv.className = 'searchable-select-no-results';
-                    noResultsDiv.textContent = '未找到匹配的模型';
-                    elements.modelSelectOptions.appendChild(noResultsDiv);
-                }
-            }
+            });
             
-            // 选择选项
-            function selectOption(value, label) {
-                selectedValue = value;
-                currentSelectedModel = value; // 更新全局变量
-                elements.modelSelectTrigger.textContent = label;
-                elements.modelSelect.value = value;
-                closeDropdown();
-                
-                // 触发change事件
+            // 模型选择变化时
+            elements.modelSelect.addEventListener('change', function() {
+                const value = this.value;
+                currentSelectedModel = value;
                 handleModelSelectChange();
-            }
-            
-            // 打开下拉框
-            function openDropdown() {
-                elements.modelSelectDropdown.classList.add('active');
-                elements.modelSelectTrigger.classList.add('active');
-                elements.modelSearchInput.value = '';
-                renderOptions();
-                // 自动聚焦搜索框
-                setTimeout(() => elements.modelSearchInput.focus(), 100);
-            }
-            
-            // 关闭下拉框
-            function closeDropdown() {
-                elements.modelSelectDropdown.classList.remove('active');
-                elements.modelSelectTrigger.classList.remove('active');
-                elements.modelSearchInput.value = '';
-            }
-            
-            // 切换下拉框
-            function toggleDropdown() {
-                if (elements.modelSelectDropdown.classList.contains('active')) {
-                    closeDropdown();
-                } else {
-                    openDropdown();
-                }
-            }
-            
-            // 事件绑定
-            elements.modelSelectTrigger.addEventListener('click', toggleDropdown);
-            
-            // 搜索输入
-            elements.modelSearchInput.addEventListener('input', (e) => {
-                renderOptions(e.target.value);
-            });
-            
-            // 阻止搜索框点击事件冒泡
-            elements.modelSearchInput.addEventListener('click', (e) => {
-                e.stopPropagation();
-            });
-            
-            // 点击外部关闭
-            document.addEventListener('click', (e) => {
-                if (!elements.modelSelectContainer.contains(e.target)) {
-                    closeDropdown();
-                }
-            });
-            
-            // 键盘支持
-            elements.modelSearchInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape') {
-                    closeDropdown();
-                }
             });
             
             // 公开方法：设置值
             window.setModelSelectValue = function(value) {
-                const model = MODEL_DATA.flatMap(g => g.models).find(m => m.value === value);
-                if (model) {
-                    selectOption(model.value, model.label);
-                } else if (value) {
-                    // 自定义模型
-                    selectedValue = value;
-                    currentSelectedModel = value; // 更新全局变量
-                    elements.modelSelectTrigger.textContent = value;
-                    elements.modelSelect.value = value;
+                // 查找模型所在的分类
+                for (let i = 0; i < MODEL_DATA.length; i++) {
+                    const group = MODEL_DATA[i];
+                    const model = group.models.find(m => m.value === value);
+                    if (model) {
+                        // 设置分类
+                        elements.categorySelect.value = i;
+                        // 触发分类change事件以更新模型列表
+                        const event = new Event('change');
+                        elements.categorySelect.dispatchEvent(event);
+                        // 等待DOM更新后设置模型
+                        setTimeout(() => {
+                            elements.modelSelect.value = value;
+                            currentSelectedModel = value;
+                        }, 0);
+                        return;
+                    }
+                }
+                
+                // 如果没找到，可能是自定义模型
+                if (value) {
+                    currentSelectedModel = value;
                 }
             };
-            
-            // 初始渲染
-            renderOptions();
         }
         
         // 初始化
         function init() {
             createDataStreams();
             createNeuralNetwork();
-            initSearchableSelect();
+            initModelSelector();
             setupEventListeners();
             setupSidebarListeners();
             autoResizeTextarea();
@@ -2915,11 +2695,22 @@
 
         // 加载设置
         function loadSettings() {
-            // 仅从localStorage加载API Key
+            // 从localStorage加载API Key和COS配置
             const apiKey = localStorage.getItem(CONFIG_KEYS.API_KEY);
             if (apiKey) {
                 elements.apiKeyInput.value = apiKey;
             }
+            
+            // 加载腾讯云 COS 配置
+            const cosSecretId = localStorage.getItem(CONFIG_KEYS.COS_SECRET_ID);
+            const cosSecretKey = localStorage.getItem(CONFIG_KEYS.COS_SECRET_KEY);
+            const cosBucket = localStorage.getItem(CONFIG_KEYS.COS_BUCKET);
+            const cosRegion = localStorage.getItem(CONFIG_KEYS.COS_REGION);
+            
+            if (cosSecretId) elements.cosSecretIdInput.value = cosSecretId;
+            if (cosSecretKey) elements.cosSecretKeyInput.value = cosSecretKey;
+            if (cosBucket) elements.cosBucketInput.value = cosBucket;
+            if (cosRegion) elements.cosRegionInput.value = cosRegion;
             
             // 其他配置从当前会话加载
             if (currentSessionId) {
@@ -2966,8 +2757,19 @@
             const maxTokens = parseInt(elements.maxTokensInput.value) || 4096;
             const contextLength = parseInt(elements.contextLengthInput.value) || 20;
 
-            // 保存到 localStorage（仅API Key）
+            // 保存到 localStorage（API Key 和 COS 配置）
             localStorage.setItem(CONFIG_KEYS.API_KEY, apiKey);
+            
+            // 保存腾讯云 COS 配置
+            const cosSecretId = elements.cosSecretIdInput.value.trim();
+            const cosSecretKey = elements.cosSecretKeyInput.value.trim();
+            const cosBucket = elements.cosBucketInput.value.trim();
+            const cosRegion = elements.cosRegionInput.value.trim();
+            
+            if (cosSecretId) localStorage.setItem(CONFIG_KEYS.COS_SECRET_ID, cosSecretId);
+            if (cosSecretKey) localStorage.setItem(CONFIG_KEYS.COS_SECRET_KEY, cosSecretKey);
+            if (cosBucket) localStorage.setItem(CONFIG_KEYS.COS_BUCKET, cosBucket);
+            if (cosRegion) localStorage.setItem(CONFIG_KEYS.COS_REGION, cosRegion);
 
             // 保存到当前会话配置
             const session = chatSessions.find(s => s.id === currentSessionId);
@@ -3022,34 +2824,194 @@
             }
         }
         
+        // 上传图片到腾讯云COS并返回URL
+        async function uploadImageToHost(file) {
+            try {
+                // 检查COS配置
+                const cosSecretId = localStorage.getItem(CONFIG_KEYS.COS_SECRET_ID);
+                const cosSecretKey = localStorage.getItem(CONFIG_KEYS.COS_SECRET_KEY);
+                const cosBucket = localStorage.getItem(CONFIG_KEYS.COS_BUCKET);
+                const cosRegion = localStorage.getItem(CONFIG_KEYS.COS_REGION);
+                
+                if (!cosSecretId || !cosSecretKey || !cosBucket || !cosRegion) {
+                    showSystemMessage('请先在设置中配置腾讯云COS信息', 'error');
+                    // 打开设置面板并展开COS配置
+                    elements.settingsPanel.classList.add('active');
+                    document.getElementById('cosConfigSection').style.display = 'block';
+                    return null;
+                }
+                
+                showSystemMessage('正在上传图片到腾讯云COS...', 'system');
+                
+                // 初始化COS实例
+                const cos = new COS({
+                    SecretId: cosSecretId,
+                    SecretKey: cosSecretKey
+                });
+                
+                // 生成文件名（使用时间戳 + 随机数）
+                const timestamp = Date.now();
+                const randomStr = Math.random().toString(36).substring(2, 8);
+                const fileExt = file.name.split('.').pop() || 'jpg';
+                const fileName = `zhipu-ai/${timestamp}-${randomStr}.${fileExt}`;
+                
+                // 上传文件
+                return new Promise((resolve, reject) => {
+                    cos.putObject({
+                        Bucket: cosBucket,
+                        Region: cosRegion,
+                        Key: fileName,
+                        Body: file,
+                        onProgress: function(progressData) {
+                            const percent = Math.round(progressData.percent * 100);
+                            if (percent > 0 && percent < 100) {
+                                showSystemMessage(`上传进度: ${percent}%`, 'system');
+                            }
+                        }
+                    }, function(err, data) {
+                        if (err) {
+                            console.error('COS上传失败:', err);
+                            showSystemMessage('图片上传失败: ' + err.message, 'error');
+                            reject(err);
+                        } else {
+                            // 构建图片URL
+                            const imageUrl = `https://${data.Location}`;
+                            showSystemMessage('图片上传成功！', 'system');
+                            resolve(imageUrl);
+                        }
+                    });
+                });
+                
+            } catch (error) {
+                console.error('图片上传失败:', error);
+                showSystemMessage('图片上传失败: ' + error.message, 'error');
+                return null;
+            }
+        }
+        
         // 处理图片上传
-        function handleImageUpload(e) {
+        async function handleImageUpload(e) {
             const files = Array.from(e.target.files);
             if (files.length === 0) return;
             
-            files.forEach(file => {
+            // 检查当前模型
+            const session = chatSessions.find(s => s.id === currentSessionId);
+            const model = session?.config?.model || currentSelectedModel;
+            const modelType = getModelType(model);
+            
+            if (modelType !== 'VISION') {
+                showSystemMessage('当前模型不支持图片输入，请切换到视觉模型', 'error');
+                e.target.value = '';
+                return;
+            }
+            
+            for (const file of files) {
                 if (!file.type.startsWith('image/')) {
                     showSystemMessage('只能上传图片文件', 'error');
-                    return;
+                    continue;
                 }
                 
                 // 检查文件大小（限制10MB）
                 if (file.size > 10 * 1024 * 1024) {
                     showSystemMessage('图片大小不能超过10MB', 'error');
-                    return;
+                    continue;
                 }
                 
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    const base64Data = event.target.result;
-                    selectedImages.push(base64Data);
-                    updateImagePreview();
-                };
-                reader.readAsDataURL(file);
-            });
+                // GLM-4V-Flash 需要上传到图床获取URL
+                if (model === 'glm-4v-flash') {
+                    const imageUrl = await uploadImageToHost(file);
+                    if (imageUrl) {
+                        selectedImages.push(imageUrl);
+                        updateImagePreview();
+                    }
+                } else {
+                    // 其他视觉模型使用Base64
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        const base64Data = event.target.result;
+                        selectedImages.push(base64Data);
+                        updateImagePreview();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
             
             // 清空input以允许重复选择相同文件
             e.target.value = '';
+        }
+        
+        // 处理粘贴图片（Ctrl+V / Cmd+V）
+        async function handlePasteImage(e) {
+            // 如果正在编辑文本框且不是设置面板，忽略粘贴事件
+            const activeElement = document.activeElement;
+            const isTextInput = activeElement.tagName === 'INPUT' || 
+                               activeElement.tagName === 'TEXTAREA';
+            
+            // 检查剪贴板是否有图片数据
+            const items = e.clipboardData?.items;
+            if (!items) return;
+            
+            let hasImage = false;
+            
+            for (let i = 0; i < items.length; i++) {
+                const item = items[i];
+                
+                // 检查是否是图片类型
+                if (item.type.indexOf('image') !== -1) {
+                    hasImage = true;
+                    
+                    // 检查当前模型是否支持图片
+                    const session = chatSessions.find(s => s.id === currentSessionId);
+                    const model = session?.config?.model || currentSelectedModel;
+                    const modelType = getModelType(model);
+                    
+                    if (modelType !== 'VISION') {
+                        showSystemMessage('当前模型不支持图片输入，请切换到视觉模型（如 GLM-4V 系列）', 'error');
+                        e.preventDefault();
+                        return;
+                    }
+                    
+                    // 阻止默认行为
+                    e.preventDefault();
+                    
+                    // 获取图片文件
+                    const file = item.getAsFile();
+                    if (!file) continue;
+                    
+                    // 检查文件大小（限制10MB）
+                    if (file.size > 10 * 1024 * 1024) {
+                        showSystemMessage('图片大小不能超过10MB', 'error');
+                        continue;
+                    }
+                    
+                    // GLM-4V-Flash 需要上传到图床获取URL
+                    if (model === 'glm-4v-flash') {
+                        const imageUrl = await uploadImageToHost(file);
+                        if (imageUrl) {
+                            selectedImages.push(imageUrl);
+                            updateImagePreview();
+                            showSystemMessage('图片已上传并粘贴，可以继续输入文字或发送', 'system');
+                        }
+                    } else {
+                        // 其他视觉模型使用Base64
+                        const reader = new FileReader();
+                        reader.onload = function(event) {
+                            const base64Data = event.target.result;
+                            selectedImages.push(base64Data);
+                            updateImagePreview();
+                            showSystemMessage('图片已粘贴，可以继续输入文字或发送', 'system');
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                }
+            }
+            
+            // 如果粘贴了图片，将焦点移到输入框
+            if (hasImage && elements.chatInput) {
+                setTimeout(() => {
+                    elements.chatInput.focus();
+                }, 100);
+            }
         }
         
         // 更新图片预览
@@ -3135,6 +3097,9 @@
             // modelSelect的change事件已在initSearchableSelect中处理
             elements.uploadImageBtn.addEventListener('click', () => elements.imageInput.click());
             elements.imageInput.addEventListener('change', handleImageUpload);
+            
+            // 添加粘贴事件监听器（支持Ctrl+V或Cmd+V粘贴图片）
+            document.addEventListener('paste', handlePasteImage);
         }
 
         // 切换设置面板
@@ -3259,9 +3224,9 @@
                 // 准备消息
                 const messages = [];
                 
-                // 添加系统提示（视觉模型和语音模型可能不支持）
+                // 添加系统提示（视觉模型和语音模型不支持system消息）
                 const systemPrompt = config.system_prompt || '你是一个有用的AI助手。';
-                if (systemPrompt && modelType !== 'VOICE') {
+                if (systemPrompt && modelType !== 'VOICE' && modelType !== 'VISION') {
                     messages.push({
                         role: 'system',
                         content: systemPrompt
@@ -3273,7 +3238,10 @@
                 const historyToSend = conversationHistory.slice(-contextLength);
                 messages.push(...historyToSend);
 
-                if (streamEnabled) {
+                // 视觉模型强制使用非流式调用（因为不支持stream参数）
+                if (modelType === 'VISION') {
+                    await sendNormalMessage(apiKey, model, messages);
+                } else if (streamEnabled) {
                     await sendStreamMessage(apiKey, model, messages);
                 } else {
                     await sendNormalMessage(apiKey, model, messages);
@@ -3312,20 +3280,30 @@
                 max_tokens: 4096
             };
             
+            // 获取模型类型
+            const modelType = getModelType(model);
+            
+            // 构建请求体
+            const requestBody = {
+                model: model,
+                messages: messages
+            };
+            
+            // 视觉模型不需要这些参数
+            if (modelType !== 'VISION') {
+                requestBody.temperature = config.temperature;
+                requestBody.top_p = config.top_p;
+                requestBody.max_tokens = config.max_tokens;
+                requestBody.stream = false;
+            }
+            
             const response = await fetch(API_ENDPOINTS.CHAT, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${apiKey}`
                 },
-                body: JSON.stringify({
-                    model: model,
-                    messages: messages,
-                    temperature: config.temperature,
-                    top_p: config.top_p,
-                    max_tokens: config.max_tokens,
-                    stream: false
-                })
+                body: JSON.stringify(requestBody)
             });
 
             if (!response.ok) {
@@ -3336,6 +3314,14 @@
             }
 
             const data = await response.json();
+            console.log('API响应数据:', data);
+            
+            // 安全地提取响应内容
+            if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+                loadingMsg.remove();
+                throw new Error('API响应格式异常');
+            }
+            
             const assistantMessage = data.choices[0].message.content;
 
             // 移除加载消息
@@ -3363,6 +3349,23 @@
                 top_p: 0.9,
                 max_tokens: 4096
             };
+            
+            // 获取模型类型
+            const modelType = getModelType(model);
+            
+            // 构建请求体
+            const requestBody = {
+                model: model,
+                messages: messages
+            };
+            
+            // 视觉模型不需要这些参数
+            if (modelType !== 'VISION') {
+                requestBody.temperature = config.temperature;
+                requestBody.top_p = config.top_p;
+                requestBody.max_tokens = config.max_tokens;
+                requestBody.stream = true;
+            }
 
             const response = await fetch(API_ENDPOINTS.CHAT, {
                 method: 'POST',
@@ -3370,14 +3373,7 @@
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${apiKey}`
                 },
-                body: JSON.stringify({
-                    model: model,
-                    messages: messages,
-                    temperature: config.temperature,
-                    top_p: config.top_p,
-                    max_tokens: config.max_tokens,
-                    stream: true
-                }),
+                body: JSON.stringify(requestBody),
                 signal: currentStreamController.signal
             });
 

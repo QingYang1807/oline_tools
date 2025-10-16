@@ -1103,6 +1103,31 @@
             box-shadow: 0 0 30px rgba(0, 255, 157, 0.2);
         }
 
+        .input-stats {
+            display: flex;
+            justify-content: start;
+            margin-top: 8px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+            padding: 0 4px;
+        }
+
+        .input-stats .char-count,
+        .input-stats .token-count {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid rgba(0, 255, 157, 0.2);
+        }
+
+        .input-stats .char-count {
+            color: #00ff9d;
+        }
+
+        .input-stats .token-count {
+            color: #ffd700;
+        }
+
         .btn-send {
             padding: 14px 32px;
             background: linear-gradient(135deg, #00ff9d, #00d4ff);
@@ -2161,7 +2186,32 @@
             </div>
             <div class="setting-group">
                 <label for="systemPrompt">系统提示词</label>
-                <textarea id="systemPrompt" placeholder="例如: 你是一个有用的AI助手">你是一个有用的AI助手。</textarea>
+                <textarea id="systemPrompt" placeholder="例如: 你是一个有用的AI助手">你是一个专业、智能的AI助手，具备以下核心能力：
+
+🎯 **意图识别与理解**
+- 准确理解用户的真实意图，无论问题表述是否清晰
+- 识别隐含需求，主动提供相关建议
+- 区分不同问题类型（技术、生活、学习、工作等）
+
+💡 **回答质量保证**
+- 提供准确、可靠、有价值的信息
+- 基于事实和逻辑，避免主观臆测
+- 承认知识边界，不确定时明确说明"我不确定"或"需要更多信息"
+- 提供多个角度的思考和建议
+
+🔍 **深度分析与洞察**
+- 不仅回答"是什么"，更要解释"为什么"和"怎么做"
+- 提供背景知识和相关概念
+- 指出潜在的问题和风险
+- 给出实用的行动建议
+
+🤝 **用户体验优化**
+- 语言简洁明了，避免冗余
+- 根据用户水平调整解释深度
+- 主动提供相关资源和进一步学习建议
+- 保持专业而友好的语调
+
+请始终以用户的最佳利益为出发点，提供最有价值的帮助。</textarea>
                 <div class="help-text">为当前对话设置角色和行为指导</div>
             </div>
             
@@ -2265,10 +2315,14 @@
                     <textarea 
                         id="chatInput" 
                         class="chat-input" 
-                        placeholder="输入消息... (Shift+Enter 换行, Enter 发送)"
+                        placeholder="输入消息... (Enter 换行, Shift+Enter 发送)"
                         rows="1"
                     ></textarea>
                     <button class="btn-send" id="sendBtn">发送</button>
+                </div>
+                <div class="input-stats" id="inputStats">
+                    <span class="char-count">字符数: 0</span>
+                    <span class="token-count">Token数: 0</span>
                 </div>
                 <input type="file" id="imageInput" accept="image/*" multiple style="display: none;">
             </div>
@@ -2469,6 +2523,7 @@
             chatInput: document.getElementById('chatInput'),
             sendBtn: document.getElementById('sendBtn'),
             statusIndicator: document.getElementById('statusIndicator'),
+            inputStats: document.getElementById('inputStats'),
             currentModelBadge: document.getElementById('currentModelBadge'),
             uploadImageBtn: document.getElementById('uploadImageBtn'),
             imageInput: document.getElementById('imageInput'),
@@ -2506,6 +2561,9 @@
         // 会话管理
         let chatSessions = [];
         let currentSessionId = null;
+        
+        // 初始化标志，防止页面刷新时清空数据
+        let isInitializing = true;
         
         // 配置 marked.js
         if (typeof marked !== 'undefined') {
@@ -2688,6 +2746,12 @@
             // 加载设置（API Key等）
             loadSettings();
             updateStatus();
+            
+            // 初始化输入统计
+            updateInputStats();
+            
+            // 初始化完成
+            isInitializing = false;
         }
         
         // 将deleteSession设置为全局函数，供HTML onclick调用
@@ -2711,6 +2775,24 @@
             if (cosSecretKey) elements.cosSecretKeyInput.value = cosSecretKey;
             if (cosBucket) elements.cosBucketInput.value = cosBucket;
             if (cosRegion) elements.cosRegionInput.value = cosRegion;
+            
+            // 设置默认模型为 glm-4.6
+            const savedModel = localStorage.getItem(CONFIG_KEYS.MODEL);
+            if (!savedModel) {
+                // 如果没有保存的模型，设置默认模型为 glm-4.6
+                localStorage.setItem(CONFIG_KEYS.MODEL, 'glm-4.6');
+                currentSelectedModel = 'glm-4.6';
+                // 设置模型选择器
+                window.setModelSelectValue('glm-4.6');
+                elements.currentModelBadge.textContent = 'glm-4.6';
+                updateModelCapabilities('glm-4.6');
+            } else {
+                // 加载保存的模型
+                currentSelectedModel = savedModel;
+                window.setModelSelectValue(savedModel);
+                elements.currentModelBadge.textContent = savedModel;
+                updateModelCapabilities(savedModel);
+            }
             
             // 其他配置从当前会话加载
             if (currentSessionId) {
@@ -2808,18 +2890,18 @@
             // 根据模型类型显示/隐藏图片上传按钮
             if (modelType === 'VISION') {
                 elements.uploadImageBtn.style.display = 'block';
-                elements.chatInput.placeholder = '输入消息或上传图片... (Shift+Enter 换行, Enter 发送)';
+                elements.chatInput.placeholder = '输入消息或上传图片... (Enter 换行, Shift+Enter 发送)';
             } else if (modelType === 'IMAGE_GEN') {
                 elements.uploadImageBtn.style.display = 'none';
-                elements.chatInput.placeholder = '描述你想生成的图片... (Enter 发送)';
+                elements.chatInput.placeholder = '描述你想生成的图片... (Enter 换行, Shift+Enter 发送)';
                 clearSelectedImages();
             } else if (modelType === 'VIDEO_GEN') {
                 elements.uploadImageBtn.style.display = 'none';
-                elements.chatInput.placeholder = '描述你想生成的视频... (Enter 发送)';
+                elements.chatInput.placeholder = '描述你想生成的视频... (Enter 换行, Shift+Enter 发送)';
                 clearSelectedImages();
             } else {
                 elements.uploadImageBtn.style.display = 'none';
-                elements.chatInput.placeholder = '输入消息... (Shift+Enter 换行, Enter 发送)';
+                elements.chatInput.placeholder = '输入消息... (Enter 换行, Shift+Enter 发送)';
                 clearSelectedImages();
             }
         }
@@ -3124,7 +3206,8 @@
 
         // 处理输入框按键
         function handleInputKeydown(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
+            if (e.key === 'Enter' && e.shiftKey) {
+                // Shift+Enter 发送消息
                 e.preventDefault();
                 sendMessage().catch(err => {
                     console.error('发送消息失败:', err);
@@ -3132,12 +3215,44 @@
                     resetSendButton();
                 });
             }
+            // 普通回车键允许换行，不需要特殊处理
         }
 
         // 自动调整输入框高度
         function autoResizeTextarea() {
             elements.chatInput.style.height = 'auto';
             elements.chatInput.style.height = Math.min(elements.chatInput.scrollHeight, 150) + 'px';
+            // 更新统计信息
+            updateInputStats();
+        }
+
+        // 更新输入统计信息
+        function updateInputStats() {
+            const text = elements.chatInput.value;
+            const charCount = text.length;
+            const tokenCount = estimateTokenCount(text);
+            
+            const charCountSpan = elements.inputStats.querySelector('.char-count');
+            const tokenCountSpan = elements.inputStats.querySelector('.token-count');
+            
+            if (charCountSpan) {
+                charCountSpan.textContent = `字符数: ${charCount}`;
+            }
+            if (tokenCountSpan) {
+                tokenCountSpan.textContent = `Token数: ${tokenCount}`;
+            }
+        }
+
+        // 估算Token数量（简单估算，实际可能略有差异）
+        function estimateTokenCount(text) {
+            if (!text) return 0;
+            
+            // 中文字符按1.5个token计算，英文单词按1个token计算
+            const chineseChars = (text.match(/[\u4e00-\u9fff]/g) || []).length;
+            const englishWords = text.replace(/[\u4e00-\u9fff]/g, '').trim().split(/\s+/).filter(word => word.length > 0).length;
+            const otherChars = text.replace(/[\u4e00-\u9fff\s]/g, '').length;
+            
+            return Math.ceil(chineseChars * 1.5 + englishWords + otherChars * 0.5);
         }
 
         // 发送消息
@@ -3205,11 +3320,7 @@
                 userContent = message;
             }
 
-            // 添加到对话历史
-            conversationHistory.push({
-                role: 'user',
-                content: userContent
-            });
+            // 用户消息已通过addMessage函数添加到对话历史
             
             // 清空选中的图片
             clearSelectedImages();
@@ -3225,7 +3336,7 @@
                 const messages = [];
                 
                 // 添加系统提示（视觉模型和语音模型不支持system消息）
-                const systemPrompt = config.system_prompt || '你是一个有用的AI助手。';
+                const systemPrompt = config.system_prompt || '你是一个专业、智能的AI助手，具备以下核心能力：\n\n🎯 **意图识别与理解**\n- 准确理解用户的真实意图，无论问题表述是否清晰\n- 识别隐含需求，主动提供相关建议\n- 区分不同问题类型（技术、生活、学习、工作等）\n\n💡 **回答质量保证**\n- 提供准确、可靠、有价值的信息\n- 基于事实和逻辑，避免主观臆测\n- 承认知识边界，不确定时明确说明"我不确定"或"需要更多信息"\n- 提供多个角度的思考和建议\n\n🔍 **深度分析与洞察**\n- 不仅回答"是什么"，更要解释"为什么"和"怎么做"\n- 提供背景知识和相关概念\n- 指出潜在的问题和风险\n- 给出实用的行动建议\n\n🤝 **用户体验优化**\n- 语言简洁明了，避免冗余\n- 根据用户水平调整解释深度\n- 主动提供相关资源和进一步学习建议\n- 保持专业而友好的语调\n\n请始终以用户的最佳利益为出发点，提供最有价值的帮助。';
                 if (systemPrompt && modelType !== 'VOICE' && modelType !== 'VISION') {
                     messages.push({
                         role: 'system',
@@ -3329,12 +3440,6 @@
 
             // 显示助手回复（会自动解析思考过程）
             addMessage('assistant', assistantMessage);
-
-            // 添加到对话历史
-            conversationHistory.push({
-                role: 'assistant',
-                content: assistantMessage
-            });
         }
 
         // 流式消息发送
@@ -3454,11 +3559,16 @@
                     });
                 }
 
-                // 添加到对话历史
+                // 将助手回复添加到对话历史并保存到localStorage
                 conversationHistory.push({
                     role: 'assistant',
                     content: fullContent
                 });
+
+                // 保存当前会话到localStorage
+                if (currentSessionId) {
+                    saveCurrentSession();
+                }
 
                 // 添加消息操作按钮
                 addMessageActions(messageElement, fullContent);
@@ -3590,7 +3700,7 @@
         }
 
         // 添加消息到聊天界面
-        function addMessage(role, content, images = null) {
+        function addMessage(role, content, images = null, addToHistory = true) {
             // 移除空状态
             const emptyState = elements.chatMessages.querySelector('.empty-state');
             if (emptyState) {
@@ -3695,6 +3805,42 @@
 
             elements.chatMessages.appendChild(messageDiv);
             elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
+
+            // 将消息添加到对话历史并保存到localStorage（仅在addToHistory为true时）
+            if (addToHistory && (role === 'user' || role === 'assistant')) {
+                // 构建消息内容
+                let messageContent;
+                if (images && images.length > 0) {
+                    // 图片消息
+                    messageContent = images.map(url => ({
+                        type: 'image_url',
+                        image_url: { url: url }
+                    }));
+                    if (content) {
+                        messageContent.unshift({
+                            type: 'text',
+                            text: content
+                        });
+                    }
+                } else if (typeof content === 'string') {
+                    messageContent = content;
+                } else if (Array.isArray(content)) {
+                    messageContent = content;
+                } else {
+                    messageContent = '';
+                }
+
+                // 添加到对话历史
+                conversationHistory.push({
+                    role: role,
+                    content: messageContent
+                });
+
+                // 保存当前会话到localStorage
+                if (currentSessionId) {
+                    saveCurrentSession();
+                }
+            }
         }
 
         // 渲染Markdown
@@ -4004,7 +4150,7 @@
                     max_tokens: parseInt(elements.maxTokensInput.value) || 4096,
                     context_length: parseInt(elements.contextLengthInput.value) || 20,
                     stream_enabled: elements.streamToggle.checked,
-                    system_prompt: elements.systemPromptInput.value || '你是一个有用的AI助手。'
+                    system_prompt: elements.systemPromptInput.value || '你是一个专业、智能的AI助手，具备以下核心能力：\n\n🎯 **意图识别与理解**\n- 准确理解用户的真实意图，无论问题表述是否清晰\n- 识别隐含需求，主动提供相关建议\n- 区分不同问题类型（技术、生活、学习、工作等）\n\n💡 **回答质量保证**\n- 提供准确、可靠、有价值的信息\n- 基于事实和逻辑，避免主观臆测\n- 承认知识边界，不确定时明确说明"我不确定"或"需要更多信息"\n- 提供多个角度的思考和建议\n\n🔍 **深度分析与洞察**\n- 不仅回答"是什么"，更要解释"为什么"和"怎么做"\n- 提供背景知识和相关概念\n- 指出潜在的问题和风险\n- 给出实用的行动建议\n\n🤝 **用户体验优化**\n- 语言简洁明了，避免冗余\n- 根据用户水平调整解释深度\n- 主动提供相关资源和进一步学习建议\n- 保持专业而友好的语调\n\n请始终以用户的最佳利益为出发点，提供最有价值的帮助。'
                 };
                 
                 // 更新标题为第一条用户消息
@@ -4051,7 +4197,7 @@
             if (elements.maxTokensInput) elements.maxTokensInput.value = config.max_tokens || 4096;
             if (elements.contextLengthInput) elements.contextLengthInput.value = config.context_length || 20;
             if (elements.streamToggle) elements.streamToggle.checked = config.stream_enabled !== false;
-            if (elements.systemPromptInput) elements.systemPromptInput.value = config.system_prompt || '你是一个有用的AI助手。';
+            if (elements.systemPromptInput) elements.systemPromptInput.value = config.system_prompt || '你是一个专业、智能的AI助手，具备以下核心能力：\n\n🎯 **意图识别与理解**\n- 准确理解用户的真实意图，无论问题表述是否清晰\n- 识别隐含需求，主动提供相关建议\n- 区分不同问题类型（技术、生活、学习、工作等）\n\n💡 **回答质量保证**\n- 提供准确、可靠、有价值的信息\n- 基于事实和逻辑，避免主观臆测\n- 承认知识边界，不确定时明确说明"我不确定"或"需要更多信息"\n- 提供多个角度的思考和建议\n\n🔍 **深度分析与洞察**\n- 不仅回答"是什么"，更要解释"为什么"和"怎么做"\n- 提供背景知识和相关概念\n- 指出潜在的问题和风险\n- 给出实用的行动建议\n\n🤝 **用户体验优化**\n- 语言简洁明了，避免冗余\n- 根据用户水平调整解释深度\n- 主动提供相关资源和进一步学习建议\n- 保持专业而友好的语调\n\n请始终以用户的最佳利益为出发点，提供最有价值的帮助。';
         }
         
         // 创建新会话
@@ -4070,13 +4216,13 @@
                 updatedAt: Date.now(),
                 // 会话专属配置
                 config: {
-                    model: currentSelectedModel || localStorage.getItem(CONFIG_KEYS.MODEL) || '',
+                    model: currentSelectedModel || localStorage.getItem(CONFIG_KEYS.MODEL) || 'glm-4.6',
                     temperature: parseFloat(elements.temperatureInput?.value) || 0.7,
                     top_p: parseFloat(elements.topPInput?.value) || 0.9,
                     max_tokens: parseInt(elements.maxTokensInput?.value) || 4096,
                     context_length: parseInt(elements.contextLengthInput?.value) || 20,
                     stream_enabled: elements.streamToggle?.checked !== false,
-                    system_prompt: elements.systemPromptInput?.value || '你是一个有用的AI助手。'
+                    system_prompt: elements.systemPromptInput?.value || '你是一个专业、智能的AI助手，具备以下核心能力：\n\n🎯 **意图识别与理解**\n- 准确理解用户的真实意图，无论问题表述是否清晰\n- 识别隐含需求，主动提供相关建议\n- 区分不同问题类型（技术、生活、学习、工作等）\n\n💡 **回答质量保证**\n- 提供准确、可靠、有价值的信息\n- 基于事实和逻辑，避免主观臆测\n- 承认知识边界，不确定时明确说明"我不确定"或"需要更多信息"\n- 提供多个角度的思考和建议\n\n🔍 **深度分析与洞察**\n- 不仅回答"是什么"，更要解释"为什么"和"怎么做"\n- 提供背景知识和相关概念\n- 指出潜在的问题和风险\n- 给出实用的行动建议\n\n🤝 **用户体验优化**\n- 语言简洁明了，避免冗余\n- 根据用户水平调整解释深度\n- 主动提供相关资源和进一步学习建议\n- 保持专业而友好的语调\n\n请始终以用户的最佳利益为出发点，提供最有价值的帮助。'
                 }
             };
             
@@ -4104,8 +4250,8 @@
         
         // 切换会话
         function switchSession(sessionId) {
-            // 保存当前会话
-            if (currentSessionId) {
+            // 只有在非初始化状态且conversationHistory不为空时才保存当前会话
+            if (!isInitializing && currentSessionId && conversationHistory.length > 0) {
                 saveCurrentSession();
             }
             
@@ -4115,13 +4261,13 @@
             // 兼容旧版本会话，添加默认配置
             if (!session.config) {
                 session.config = {
-                    model: localStorage.getItem(CONFIG_KEYS.MODEL) || '',
+                    model: localStorage.getItem(CONFIG_KEYS.MODEL) || 'glm-4.6',
                     temperature: 0.7,
                     top_p: 0.9,
                     max_tokens: 4096,
                     context_length: 20,
                     stream_enabled: true,
-                    system_prompt: '你是一个有用的AI助手。'
+                    system_prompt: '你是一个专业、智能的AI助手，具备以下核心能力：\n\n🎯 **意图识别与理解**\n- 准确理解用户的真实意图，无论问题表述是否清晰\n- 识别隐含需求，主动提供相关建议\n- 区分不同问题类型（技术、生活、学习、工作等）\n\n💡 **回答质量保证**\n- 提供准确、可靠、有价值的信息\n- 基于事实和逻辑，避免主观臆测\n- 承认知识边界，不确定时明确说明"我不确定"或"需要更多信息"\n- 提供多个角度的思考和建议\n\n🔍 **深度分析与洞察**\n- 不仅回答"是什么"，更要解释"为什么"和"怎么做"\n- 提供背景知识和相关概念\n- 指出潜在的问题和风险\n- 给出实用的行动建议\n\n🤝 **用户体验优化**\n- 语言简洁明了，避免冗余\n- 根据用户水平调整解释深度\n- 主动提供相关资源和进一步学习建议\n- 保持专业而友好的语调\n\n请始终以用户的最佳利益为出发点，提供最有价值的帮助。'
                 };
             }
             
@@ -4148,7 +4294,7 @@
                         const content = typeof msg.content === 'string' 
                             ? msg.content 
                             : msg.content.find(c => c.type === 'text')?.text || '';
-                        addMessage(msg.role, content);
+                        addMessage(msg.role, content, null, false); // 不添加到历史记录，避免重复
                     }
                 });
             }

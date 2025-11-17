@@ -1,0 +1,1282 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mermaid 可视化渲染器 v3 - 全格式支持版</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@11.4.0/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            min-height: 600px;
+        }
+
+        .editor-panel {
+            padding: 30px;
+            background: #f8f9fa;
+            border-right: 1px solid #e9ecef;
+        }
+
+        .preview-panel {
+            padding: 30px;
+            background: white;
+            position: relative;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+            font-size: 1.1em;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 400px;
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #4facfe;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(79, 172, 254, 0.3);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(86, 171, 47, 0.3);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .preview-container {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            min-height: 400px;
+            position: relative;
+            overflow: auto;
+        }
+
+        .mermaid {
+            text-align: center;
+        }
+
+        .status-message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 500;
+            display: none;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .examples {
+            margin-top: 20px;
+        }
+
+        .example-btn {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            color: #495057;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            cursor: pointer;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .example-btn:hover {
+            background: #e9ecef;
+            transform: translateY(-1px);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #4facfe;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .copy-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+
+        .copy-notification.show {
+            transform: translateX(0);
+        }
+
+        /* 全屏模态框样式 */
+        .fullscreen-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 2000;
+            flex-direction: column;
+        }
+
+        .fullscreen-modal.show {
+            display: flex;
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.2em;
+            font-weight: 500;
+        }
+
+        .modal-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .control-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .modal-content {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+            background: white;
+        }
+
+        .fullscreen-container {
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            cursor: grab;
+            transition: transform 0.1s ease;
+        }
+
+        .fullscreen-container:active {
+            cursor: grabbing;
+        }
+
+        .fullscreen-container svg {
+            max-width: none;
+            max-height: none;
+            transition: transform 0.3s ease;
+            transform-origin: center center;
+        }
+
+        .zoom-info {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            font-weight: 500;
+            backdrop-filter: blur(10px);
+        }
+
+        /* 拖拽状态 */
+        .fullscreen-container.dragging {
+            cursor: grabbing;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .editor-panel {
+                border-right: none;
+                border-bottom: 1px solid #e9ecef;
+            }
+
+            .modal-controls {
+                gap: 5px;
+            }
+
+            .control-btn {
+                padding: 6px 10px;
+                font-size: 0.9em;
+            }
+
+            .modal-header h3 {
+                font-size: 1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎨 Mermaid 可视化渲染器 v3</h1>
+            <p>全格式支持版本：支持所有 Mermaid 图表类型、自动语法修复、全屏查看、缩放控制、拖拽平移等功能</p>
+        </div>
+
+        <div class="main-content">
+            <div class="editor-panel">
+                <div class="form-group">
+                    <label for="mermaidCode">Mermaid 代码</label>
+                    <textarea id="mermaidCode" placeholder="在此输入您的 Mermaid 代码...">graph TD
+    A[开始] --> B{是否登录?}
+    B -->|是| C[显示主页]
+    B -->|否| D[显示登录页]
+    D --> E[用户登录]
+    E --> F{登录成功?}
+    F -->|是| C
+    F -->|否| G[显示错误信息]
+    G --> D
+    C --> H[结束]</textarea>
+                </div>
+
+                <div class="examples">
+                    <label>快速示例：</label>
+                    <button class="example-btn" onclick="loadExample('flowchart')">流程图</button>
+                    <button class="example-btn" onclick="loadExample('sequence')">时序图</button>
+                    <button class="example-btn" onclick="loadExample('gantt')">甘特图</button>
+                    <button class="example-btn" onclick="loadExample('pie')">饼图</button>
+                    <button class="example-btn" onclick="loadExample('mindmap')">思维导图</button>
+                    <button class="example-btn" onclick="loadExample('complex')">复杂架构图</button>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="renderMermaid()">
+                        <span>🔄</span> 渲染图表
+                    </button>
+                    <button class="btn btn-success" onclick="copyAsImage()">
+                        <span>📋</span> 复制为图片
+                    </button>
+                    <button class="btn btn-secondary" onclick="downloadImage()">
+                        <span>💾</span> 下载图片
+                    </button>
+                    <button class="btn btn-secondary" onclick="showFixedCode()" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                        <span>🔧</span> 查看修复建议
+                    </button>
+                </div>
+
+                <div id="statusMessage" class="status-message"></div>
+            </div>
+
+            <div class="preview-panel">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <label>预览</label>
+                    <button class="btn btn-secondary" onclick="openFullscreen()" id="zoomBtn" style="padding: 8px 16px; font-size: 0.9em;" disabled>
+                        <span>🔍</span> 放大查看
+                    </button>
+                </div>
+                <div class="preview-container">
+                    <div id="loading" class="loading">
+                        <div class="spinner"></div>
+                        <p>正在渲染图表...</p>
+                    </div>
+                    <div id="mermaidContainer"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="copyNotification" class="copy-notification">
+        ✅ 图片已复制到剪贴板！
+    </div>
+
+    <!-- 全屏放大模态框 -->
+    <div id="fullscreenModal" class="fullscreen-modal">
+        <div class="modal-header">
+            <h3>🔍 图表放大查看</h3>
+            <div class="modal-controls">
+                <button class="control-btn" onclick="zoomIn()" title="放大">
+                    <span>🔍+</span>
+                </button>
+                <button class="control-btn" onclick="zoomOut()" title="缩小">
+                    <span>🔍-</span>
+                </button>
+                <button class="control-btn" onclick="resetZoom()" title="重置缩放">
+                    <span>🔄</span>
+                </button>
+                <button class="control-btn" onclick="closeFullscreen()" title="关闭">
+                    <span>❌</span>
+                </button>
+            </div>
+        </div>
+        <div class="modal-content">
+            <div id="fullscreenContainer" class="fullscreen-container">
+                <!-- 放大的图表将在这里显示 -->
+            </div>
+        </div>
+        <div class="zoom-info">
+            <span id="zoomLevel">100%</span>
+        </div>
+    </div>
+
+    <script>
+        // 初始化 Mermaid - 支持所有图表类型
+        mermaid.initialize({
+            startOnLoad: false,
+            theme: 'default',
+            securityLevel: 'loose', // 允许更宽松的语法
+            themeVariables: {
+                primaryColor: '#4facfe',
+                primaryTextColor: '#333',
+                primaryBorderColor: '#4facfe',
+                lineColor: '#666',
+                sectionBkgColor: '#f8f9fa',
+                altSectionBkgColor: '#e9ecef',
+                gridColor: '#dee2e6',
+                secondaryColor: '#00f2fe',
+                tertiaryColor: '#ffffff'
+            },
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis'
+            },
+            sequence: {
+                diagramMarginX: 50,
+                diagramMarginY: 10,
+                actorMargin: 50,
+                width: 150,
+                height: 65,
+                boxMargin: 10,
+                boxTextMargin: 5,
+                noteMargin: 10,
+                messageMargin: 35,
+                mirrorActors: true,
+                bottomMarginAdj: 1,
+                useMaxWidth: true,
+                rightAngles: false,
+                showSequenceNumbers: false
+            },
+            gantt: {
+                titleTopMargin: 25,
+                barHeight: 20,
+                barGap: 4,
+                topPadding: 50,
+                leftPadding: 75,
+                gridLineStartPadding: 35,
+                fontSize: 11,
+                fontFamily: '"Open-Sans", "sans-serif"',
+                numberSectionStyles: 4,
+                axisFormat: '%Y-%m-%d',
+                topAxis: false
+            },
+            pie: {
+                textPosition: 0.75
+            },
+            quadrantChart: {
+                chartWidth: 500,
+                chartHeight: 500,
+                titlePadding: 10,
+                quadrantPadding: 5,
+                xAxisLabelPadding: 5,
+                yAxisLabelPadding: 5,
+                quadrantLabelFontSize: 16,
+                quadrantTextFontSize: 12
+            },
+            requirement: {
+                rect_fill: '#ECECFF',
+                text_color: '#333',
+                rect_border_size: 2,
+                rect_border_color: '#000',
+                relation_type1_fill: '#ECECFF',
+                relation_type1_stroke: '#000',
+                relation_type1_stroke_width: 2,
+                relation_type1_text_color: '#333',
+                relation_type2_fill: '#FFECEC',
+                relation_type2_stroke: '#000',
+                relation_type2_stroke_width: 2,
+                relation_type2_text_color: '#333'
+            },
+            gitgraph: {
+                theme: 'base',
+                themeVariables: {
+                    'primaryColor': '#4facfe',
+                    'primaryTextColor': '#333',
+                    'primaryBorderColor': '#4facfe',
+                    'lineColor': '#666',
+                    'secondaryColor': '#00f2fe',
+                    'tertiaryColor': '#ffffff'
+                }
+            },
+            c4: {
+                diagramPadding: 10,
+                layoutDirection: 'TB',
+                personFontSize: 14,
+                personFontFamily: 'Open Sans',
+                personFontWeight: 'bold',
+                externalPersonFontSize: 14,
+                externalPersonFontFamily: 'Open Sans',
+                externalPersonFontWeight: 'bold',
+                systemFontSize: 14,
+                systemFontFamily: 'Open Sans',
+                systemFontWeight: 'bold',
+                externalSystemFontSize: 14,
+                externalSystemFontFamily: 'Open Sans',
+                externalSystemFontWeight: 'bold',
+                systemDbFontSize: 14,
+                systemDbFontFamily: 'Open Sans',
+                systemDbFontWeight: 'bold',
+                externalSystemDbFontSize: 14,
+                externalSystemDbFontFamily: 'Open Sans',
+                externalSystemDbFontWeight: 'bold',
+                systemQueueFontSize: 14,
+                systemQueueFontFamily: 'Open Sans',
+                systemQueueFontWeight: 'bold',
+                externalSystemQueueFontSize: 14,
+                externalSystemQueueFontFamily: 'Open Sans',
+                externalSystemQueueFontWeight: 'bold',
+                relationshipFontSize: 12,
+                relationshipFontFamily: 'Open Sans',
+                relationshipFontWeight: 'normal'
+            }
+        });
+
+        // 示例代码
+        const examples = {
+            flowchart: `graph TD
+    A[开始] --> B{是否登录?}
+    B -->|是| C[显示主页]
+    B -->|否| D[显示登录页]
+    D --> E[用户登录]
+    E --> F{登录成功?}
+    F -->|是| C
+    F -->|否| G[显示错误信息]
+    G --> D
+    C --> H[结束]`,
+            
+            sequence: `sequenceDiagram
+    participant U as 用户
+    participant F as 前端
+    participant B as 后端
+    participant D as 数据库
+    
+    U->>F: 登录请求
+    F->>B: 验证用户信息
+    B->>D: 查询用户数据
+    D-->>B: 返回用户信息
+    B-->>F: 返回验证结果
+    F-->>U: 显示登录状态`,
+            
+            gantt: `gantt
+    title 项目开发计划
+    dateFormat  YYYY-MM-DD
+    section 需求分析
+    需求收集           :done,    des1, 2024-01-01,2024-01-05
+    需求分析           :done,    des2, 2024-01-06, 3d
+    section 设计阶段
+    系统设计           :active,  des3, 2024-01-10, 5d
+    界面设计           :         des4, after des3, 3d
+    section 开发阶段
+    后端开发           :         des5, 2024-01-20, 10d
+    前端开发           :         des6, 2024-01-25, 8d
+    测试               :         des7, 2024-02-05, 5d`,
+            
+            pie: `pie title 技术栈使用情况
+    "JavaScript" : 35
+    "Python" : 25
+    "Java" : 20
+    "Go" : 10
+    "其他" : 10`,
+            
+            mindmap: `mindmap
+  root((Mermaid 图表类型))
+    流程图
+      基础流程图
+      子图
+      样式
+    时序图
+      参与者
+      消息
+      激活
+    甘特图
+      任务
+      里程碑
+      依赖关系
+    饼图
+      数据展示
+      百分比
+    思维导图
+      节点
+      连接
+      层级`,
+            
+            complex: `flowchart TD
+
+%% ======================
+%% 顶层 UI（Tauri Shell）
+%% ======================
+subgraph UI["🖥️ YunLing Shell (Tauri + React)"]
+    UI_Chat["Chat 窗口"]
+    UI_Panel["任务面板 / 看板"]
+    UI_Timeline["记忆时间线"]
+    UI_Settings["人格 / 偏好设置页"]
+end
+
+%% 连接 UI → Core Runtime
+UI -->|HTTP / WebSocket| CORE
+
+%% ======================
+%% 核心 Runtime（Python）
+%% ======================
+subgraph CORE["🧠 YunLing Core Runtime (Python/FastAPI)"]
+    direction TB
+    subgraph SessionLayer["会话与上下文管理"]
+        SessionMgr["Session Manager"]
+        ContextMgr["Context Manager"]
+    end
+    subgraph AgentLayer["Agent System"]
+        Planner["任务规划器\n(Planner)"]
+        Executor["执行器\n(Agent Runner)"]
+        Reflection["自我反思\n(Reflection Loop)"]
+        ToolRouter["工具选择器\n(Tool Router)"]
+    end
+    subgraph MemoryLayer["Memory System"]
+        ProfileMem["个人档案\n(Profile Memory)"]
+        SemanticMem["语义记忆\n(Vector Memory)"]
+        EpisodicMem["情节记忆/事件线\n(Episodic Memory)"]
+        FSIndex["文件索引\n(Obsidian / PDFs / Code)"]
+    end
+    subgraph SchedulerLayer["主动性调度"]
+        CronTasks["定时任务 Scheduler"]
+        EventWatcher["事件观察器\n(文件/Git/操作系统事件)"]
+    end
+end
+
+%% ======================
+%% 模型层（LLM）
+%% ======================
+subgraph LLM["🔮 Model Layer"]
+    RemoteLLM["远程模型 API\n(GPT / Claude / DeepSeek / Qwen)"]
+    LocalLLM["本地模型\n(Ollama / vLLM)"]
+    EmbeddingSvc["Embedding Service\n(bge-m3 / GTE / API)"]
+end
+
+Planner --> RemoteLLM
+Planner --> LocalLLM
+SemanticMem --> EmbeddingSvc
+CORE --> LLM
+
+%% ======================
+%% 数据层（Memory & Storage）
+%% ======================
+subgraph DATA["🗂️ Data Layer"]
+    PG[("PostgreSQL\n结构化数据")]
+    PGVector[("PGVector / Milvus\n向量存储")]
+    FS[("本地文件系统\nObsidian Vault / Docs")]
+end
+
+MemoryLayer --> PG
+SemanticMem --> PGVector
+FSIndex --> FS
+
+%% ======================
+%% 事件流向
+%% ======================
+SchedulerLayer --> Planner
+EventWatcher --> Planner
+Planner --> ToolRouter
+ToolRouter --> Executor
+Executor --> FS
+Executor --> PG`
+        };
+
+        function loadExample(type) {
+            document.getElementById('mermaidCode').value = examples[type];
+            renderMermaid();
+        }
+
+        function showStatus(message, type = 'success') {
+            const statusEl = document.getElementById('statusMessage');
+            statusEl.textContent = message;
+            statusEl.className = `status-message status-${type}`;
+            statusEl.style.display = 'block';
+            
+            setTimeout(() => {
+                statusEl.style.display = 'none';
+            }, 3000);
+        }
+
+        function showLoading(show = true) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+        }
+
+        // 自动修复常见的 Mermaid 语法问题
+        function autoFixMermaidSyntax(code) {
+            let fixed = code;
+            
+            // 修复 subgraph 标签中的特殊字符问题
+            // 匹配 subgraph ID[文本] 格式，如果文本包含特殊字符，添加引号
+            // 注意：需要先处理 subgraph，避免被后面的节点标签正则误匹配
+            // 使用更灵活的正则，匹配任何标识符（包括可能的特殊字符）
+            fixed = fixed.replace(/subgraph\s+([^\s\[]+)\[([^\]]+)\]/g, (match, id, text) => {
+                // 如果文本已经被引号包裹，直接返回
+                const trimmedText = text.trim();
+                if ((trimmedText.startsWith('"') && trimmedText.endsWith('"')) ||
+                    (trimmedText.startsWith("'") && trimmedText.endsWith("'"))) {
+                    return match;
+                }
+                // 如果文本包含 emoji、括号、空格等特殊字符，添加引号
+                if (/[🖥️🧠🔮🗂️()+\-:;]/.test(trimmedText) || trimmedText.includes(' ')) {
+                    return `subgraph ${id}["${trimmedText}"]`;
+                }
+                return match;
+            });
+            
+            // 修复节点标签中的特殊字符问题（排除 subgraph）
+            // 匹配 节点ID[文本] 格式，但排除 subgraph 开头的行
+            fixed = fixed.split('\n').map(line => {
+                // 跳过 subgraph 行（已经处理过）
+                if (line.trim().startsWith('subgraph')) {
+                    return line;
+                }
+                // 匹配节点标签
+                return line.replace(/(\w+)\[([^\]]+)\]/g, (match, id, text) => {
+                    // 如果文本已经被引号包裹，直接返回
+                    if ((text.startsWith('"') && text.endsWith('"')) || 
+                        (text.startsWith("'") && text.endsWith("'"))) {
+                        return match;
+                    }
+                    // 如果文本包含特殊字符，添加引号
+                    if (/[🖥️🧠🔮🗂️()+\-:;]/.test(text) || (text.includes(' ') && text.length > 1)) {
+                        return `${id}["${text}"]`;
+                    }
+                    return match;
+                });
+            }).join('\n');
+            
+            // 修复节点标签中的花括号格式
+            fixed = fixed.replace(/(\w+)\{([^}]+)\}/g, (match, id, text) => {
+                // 如果文本已经被引号包裹，直接返回
+                if ((text.startsWith('"') && text.endsWith('"')) || 
+                    (text.startsWith("'") && text.endsWith("'"))) {
+                    return match;
+                }
+                // 如果文本包含特殊字符，添加引号
+                if (/[🖥️🧠🔮🗂️()+\-:;]/.test(text) || (text.includes(' ') && text.length > 1)) {
+                    return `${id}{"${text}"}`;
+                }
+                return match;
+            });
+            
+            return fixed;
+        }
+
+        async function renderMermaid() {
+            let code = document.getElementById('mermaidCode').value.trim();
+            const container = document.getElementById('mermaidContainer');
+            
+            if (!code) {
+                showStatus('请输入 Mermaid 代码', 'error');
+                return;
+            }
+
+            showLoading(true);
+            container.innerHTML = '';
+
+            try {
+                // 尝试自动修复语法
+                const originalCode = code;
+                code = autoFixMermaidSyntax(code);
+                
+                // 如果代码被修改，提示用户
+                if (code !== originalCode) {
+                    console.log('已自动修复语法问题');
+                    showStatus('已自动修复语法问题，正在渲染...', 'success');
+                }
+                
+                // 生成唯一ID
+                const id = 'mermaid-' + Date.now();
+                
+                // 渲染 Mermaid 图表
+                const { svg } = await mermaid.render(id, code);
+                container.innerHTML = svg;
+                
+                // 启用放大按钮
+                document.getElementById('zoomBtn').disabled = false;
+                
+                // 如果代码被修复，提示用户可以查看修复建议
+                if (code !== originalCode) {
+                    showStatus('图表渲染成功！代码已自动修复，可点击"查看修复建议"查看修复后的代码。', 'success');
+                } else {
+                    showStatus('图表渲染成功！', 'success');
+                }
+            } catch (error) {
+                console.error('Mermaid 渲染错误:', error);
+                
+                // 提供更详细的错误信息
+                let errorMessage = error.message || '未知错误';
+                let errorDetails = '';
+                
+                // 尝试解析错误信息
+                if (errorMessage.includes('Parse error')) {
+                    errorDetails = '<p><strong>语法错误提示：</strong></p><ul>';
+                    errorDetails += '<li>检查 subgraph 标签是否用引号包裹（如：subgraph ID["标签文本"]）</li>';
+                    errorDetails += '<li>检查节点标签中的特殊字符是否用引号包裹</li>';
+                    errorDetails += '<li>确保所有括号、方括号、花括号正确配对</li>';
+                    errorDetails += '<li>检查是否使用了不支持的字符或格式</li>';
+                    errorDetails += '</ul>';
+                    errorDetails += '<p style="margin-top: 15px;"><button onclick="showFixedCode()" style="padding: 10px 20px; background: #4facfe; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">🔧 查看修复建议</button></p>';
+                }
+                
+                container.innerHTML = `<div style="color: #dc3545; padding: 20px; text-align: left; max-width: 600px; margin: 0 auto;">
+                    <h3 style="text-align: center; margin-bottom: 15px;">渲染错误</h3>
+                    <p style="background: #fff3cd; padding: 10px; border-radius: 5px; margin-bottom: 15px;"><strong>错误信息：</strong>${errorMessage}</p>
+                    ${errorDetails}
+                    <p style="margin-top: 15px; color: #666; font-size: 0.9em;">提示：系统已尝试自动修复常见语法问题，如仍有错误，请点击"查看修复建议"按钮获取帮助。</p>
+                </div>`;
+                showStatus('渲染失败：' + errorMessage, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function copyAsImage() {
+            const container = document.getElementById('mermaidContainer');
+            
+            if (!container.innerHTML || container.innerHTML.trim() === '') {
+                showStatus('请先渲染图表', 'error');
+                return;
+            }
+
+            try {
+                showLoading(true);
+                
+                // 使用 html2canvas 将 SVG 转换为图片
+                const canvas = await html2canvas(container, {
+                    backgroundColor: '#ffffff',
+                    scale: 2, // 提高图片质量
+                    useCORS: true,
+                    allowTaint: true,
+                    width: container.scrollWidth,
+                    height: container.scrollHeight
+                });
+
+                // 将 canvas 转换为 blob
+                canvas.toBlob(async (blob) => {
+                    try {
+                        // 复制到剪贴板
+                        await navigator.clipboard.write([
+                            new ClipboardItem({
+                                'image/png': blob
+                            })
+                        ]);
+                        
+                        showCopyNotification();
+                        showStatus('图片已复制到剪贴板！', 'success');
+                    } catch (clipboardError) {
+                        console.error('复制失败:', clipboardError);
+                        showStatus('复制失败，请尝试下载图片', 'error');
+                    }
+                }, 'image/png', 0.95);
+
+            } catch (error) {
+                console.error('生成图片失败:', error);
+                showStatus('生成图片失败：' + error.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function downloadImage() {
+            const container = document.getElementById('mermaidContainer');
+            
+            if (!container.innerHTML || container.innerHTML.trim() === '') {
+                showStatus('请先渲染图表', 'error');
+                return;
+            }
+
+            try {
+                showLoading(true);
+                
+                // 使用 html2canvas 将 SVG 转换为图片
+                const canvas = await html2canvas(container, {
+                    backgroundColor: '#ffffff',
+                    scale: 2,
+                    useCORS: true,
+                    allowTaint: true,
+                    width: container.scrollWidth,
+                    height: container.scrollHeight
+                });
+
+                // 下载图片
+                const link = document.createElement('a');
+                link.download = `mermaid-diagram-${Date.now()}.png`;
+                link.href = canvas.toDataURL('image/png', 0.95);
+                link.click();
+                
+                showStatus('图片下载成功！', 'success');
+            } catch (error) {
+                console.error('下载失败:', error);
+                showStatus('下载失败：' + error.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function showCopyNotification() {
+            const notification = document.getElementById('copyNotification');
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 2000);
+        }
+
+        // 显示修复后的代码
+        function showFixedCode() {
+            const code = document.getElementById('mermaidCode').value.trim();
+            if (!code) {
+                showStatus('请先输入 Mermaid 代码', 'error');
+                return;
+            }
+            
+            const fixed = autoFixMermaidSyntax(code);
+            
+            if (fixed === code) {
+                showStatus('代码无需修复，语法正确！', 'success');
+            } else {
+                // 创建模态框显示修复后的代码
+                const modal = document.createElement('div');
+                modal.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.8);
+                    z-index: 3000;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 20px;
+                `;
+                
+                const content = document.createElement('div');
+                content.style.cssText = `
+                    background: white;
+                    border-radius: 10px;
+                    padding: 30px;
+                    max-width: 800px;
+                    max-height: 80vh;
+                    overflow: auto;
+                    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+                `;
+                
+                content.innerHTML = `
+                    <h2 style="margin-bottom: 20px; color: #333;">🔧 代码修复建议</h2>
+                    <p style="margin-bottom: 15px; color: #666;">检测到语法问题，以下是修复后的代码：</p>
+                    <textarea id="fixedCode" style="width: 100%; min-height: 300px; padding: 15px; border: 2px solid #e9ecef; border-radius: 8px; font-family: monospace; font-size: 14px; line-height: 1.5;">${fixed}</textarea>
+                    <div style="margin-top: 20px; display: flex; gap: 10px;">
+                        <button onclick="applyFixedCode()" style="padding: 10px 20px; background: #4facfe; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">应用修复</button>
+                        <button onclick="copyFixedCode()" style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">复制代码</button>
+                        <button onclick="closeFixedCodeModal()" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">关闭</button>
+                    </div>
+                `;
+                
+                modal.appendChild(content);
+                document.body.appendChild(modal);
+                
+                // 存储模态框引用
+                window.fixedCodeModal = modal;
+                window.fixedCodeText = fixed;
+            }
+        }
+
+        function applyFixedCode() {
+            if (window.fixedCodeText) {
+                document.getElementById('mermaidCode').value = window.fixedCodeText;
+                closeFixedCodeModal();
+                renderMermaid();
+                showStatus('已应用修复后的代码并重新渲染', 'success');
+            }
+        }
+
+        function copyFixedCode() {
+            if (window.fixedCodeText) {
+                const textarea = document.getElementById('fixedCode');
+                textarea.select();
+                document.execCommand('copy');
+                showStatus('修复后的代码已复制到剪贴板', 'success');
+            }
+        }
+
+        function closeFixedCodeModal() {
+            if (window.fixedCodeModal) {
+                document.body.removeChild(window.fixedCodeModal);
+                window.fixedCodeModal = null;
+                window.fixedCodeText = null;
+            }
+        }
+
+        // 全屏查看相关变量
+        let currentZoom = 1;
+        let isDragging = false;
+        let dragStart = { x: 0, y: 0 };
+        let dragOffset = { x: 0, y: 0 };
+
+        // 打开全屏查看
+        function openFullscreen() {
+            const container = document.getElementById('mermaidContainer');
+            const fullscreenContainer = document.getElementById('fullscreenContainer');
+            
+            if (!container.innerHTML || container.innerHTML.trim() === '') {
+                showStatus('请先渲染图表', 'error');
+                return;
+            }
+
+            // 复制图表内容到全屏容器
+            fullscreenContainer.innerHTML = container.innerHTML;
+            
+            // 显示模态框
+            const modal = document.getElementById('fullscreenModal');
+            modal.classList.add('show');
+            
+            // 重置缩放和位置
+            currentZoom = 1;
+            dragOffset = { x: 0, y: 0 };
+            updateZoom();
+            
+            // 添加拖拽事件监听
+            addDragListeners();
+            
+            // 阻止背景滚动
+            document.body.style.overflow = 'hidden';
+        }
+
+        // 关闭全屏查看
+        function closeFullscreen() {
+            const modal = document.getElementById('fullscreenModal');
+            modal.classList.remove('show');
+            
+            // 恢复背景滚动
+            document.body.style.overflow = 'auto';
+            
+            // 移除拖拽事件监听
+            removeDragListeners();
+        }
+
+        // 放大
+        function zoomIn() {
+            currentZoom = Math.min(currentZoom * 1.2, 5);
+            updateZoom();
+        }
+
+        // 缩小
+        function zoomOut() {
+            currentZoom = Math.max(currentZoom / 1.2, 0.1);
+            updateZoom();
+        }
+
+        // 重置缩放
+        function resetZoom() {
+            currentZoom = 1;
+            dragOffset = { x: 0, y: 0 };
+            updateZoom();
+        }
+
+        // 更新缩放
+        function updateZoom() {
+            const svg = document.querySelector('#fullscreenContainer svg');
+            const zoomLevel = document.getElementById('zoomLevel');
+            
+            if (svg) {
+                svg.style.transform = `scale(${currentZoom}) translate(${dragOffset.x}px, ${dragOffset.y}px)`;
+            }
+            
+            if (zoomLevel) {
+                zoomLevel.textContent = Math.round(currentZoom * 100) + '%';
+            }
+        }
+
+        // 添加拖拽事件监听
+        function addDragListeners() {
+            const container = document.getElementById('fullscreenContainer');
+            
+            container.addEventListener('mousedown', startDrag);
+            container.addEventListener('mousemove', drag);
+            container.addEventListener('mouseup', endDrag);
+            container.addEventListener('mouseleave', endDrag);
+            
+            // 触摸事件支持
+            container.addEventListener('touchstart', startDragTouch);
+            container.addEventListener('touchmove', dragTouch);
+            container.addEventListener('touchend', endDrag);
+        }
+
+        // 移除拖拽事件监听
+        function removeDragListeners() {
+            const container = document.getElementById('fullscreenContainer');
+            
+            container.removeEventListener('mousedown', startDrag);
+            container.removeEventListener('mousemove', drag);
+            container.removeEventListener('mouseup', endDrag);
+            container.removeEventListener('mouseleave', endDrag);
+            
+            container.removeEventListener('touchstart', startDragTouch);
+            container.removeEventListener('touchmove', dragTouch);
+            container.removeEventListener('touchend', endDrag);
+        }
+
+        // 开始拖拽
+        function startDrag(e) {
+            isDragging = true;
+            dragStart.x = e.clientX - dragOffset.x;
+            dragStart.y = e.clientY - dragOffset.y;
+            document.getElementById('fullscreenContainer').classList.add('dragging');
+            e.preventDefault();
+        }
+
+        // 拖拽中
+        function drag(e) {
+            if (!isDragging) return;
+            
+            dragOffset.x = e.clientX - dragStart.x;
+            dragOffset.y = e.clientY - dragStart.y;
+            updateZoom();
+            e.preventDefault();
+        }
+
+        // 结束拖拽
+        function endDrag() {
+            isDragging = false;
+            document.getElementById('fullscreenContainer').classList.remove('dragging');
+        }
+
+        // 触摸开始拖拽
+        function startDragTouch(e) {
+            if (e.touches.length === 1) {
+                isDragging = true;
+                dragStart.x = e.touches[0].clientX - dragOffset.x;
+                dragStart.y = e.touches[0].clientY - dragOffset.y;
+                document.getElementById('fullscreenContainer').classList.add('dragging');
+                e.preventDefault();
+            }
+        }
+
+        // 触摸拖拽中
+        function dragTouch(e) {
+            if (!isDragging || e.touches.length !== 1) return;
+            
+            dragOffset.x = e.touches[0].clientX - dragStart.x;
+            dragOffset.y = e.touches[0].clientY - dragStart.y;
+            updateZoom();
+            e.preventDefault();
+        }
+
+        // 页面加载完成后自动渲染默认示例
+        document.addEventListener('DOMContentLoaded', function() {
+            renderMermaid();
+        });
+
+        // 添加键盘快捷键
+        document.addEventListener('keydown', function(e) {
+            // 检查是否在全屏模式
+            const isFullscreen = document.getElementById('fullscreenModal').classList.contains('show');
+            
+            if (isFullscreen) {
+                // 全屏模式下的快捷键
+                switch(e.key) {
+                    case 'Escape':
+                        e.preventDefault();
+                        closeFullscreen();
+                        break;
+                    case '+':
+                    case '=':
+                        e.preventDefault();
+                        zoomIn();
+                        break;
+                    case '-':
+                        e.preventDefault();
+                        zoomOut();
+                        break;
+                    case '0':
+                        e.preventDefault();
+                        resetZoom();
+                        break;
+                }
+            } else {
+                // 普通模式下的快捷键
+                if (e.ctrlKey || e.metaKey) {
+                    switch(e.key) {
+                        case 'Enter':
+                            e.preventDefault();
+                            renderMermaid();
+                            break;
+                        case 's':
+                            e.preventDefault();
+                            copyAsImage();
+                            break;
+                        case 'f':
+                            e.preventDefault();
+                            openFullscreen();
+                            break;
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
